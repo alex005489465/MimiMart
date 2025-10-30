@@ -32,21 +32,6 @@ cd ../database && docker-compose up -d
 | Redis 連線 | `redis:6379` |
 | 使用者/密碼 | 查看 `.env` |
 
-## Laravel 整合
-
-確保 Laravel `.env` 設定：
-```env
-DB_HOST=mysql
-DB_DATABASE=mimimart_ecommerce
-DB_USERNAME=mimimart_user
-DB_PASSWORD=與 database/.env 一致
-
-REDIS_HOST=redis
-REDIS_PORT=6379
-CACHE_DRIVER=redis
-QUEUE_CONNECTION=redis
-SESSION_DRIVER=redis
-```
 
 ## 常用指令
 

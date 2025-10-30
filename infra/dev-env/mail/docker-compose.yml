@@ -1,0 +1,27 @@
+services:
+  # Mailpit for Email Testing
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mimimart-mailpit
+    ports:
+      - "8025:8025"  # Web UI - 瀏覽器查看測試郵件
+    expose:
+      - "1025"       # SMTP Server - 只在內部網路給應用程式使用
+    environment:
+      MP_MAX_MESSAGES: ${MP_MAX_MESSAGES}
+      MP_SMTP_AUTH_ACCEPT_ANY: ${MP_SMTP_AUTH_ACCEPT_ANY}
+      MP_SMTP_AUTH_ALLOW_INSECURE: ${MP_SMTP_AUTH_ALLOW_INSECURE}
+    networks:
+      - mimimart-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+
+networks:
+  mimimart-network:
+    name: mimimart-network
+    driver: bridge

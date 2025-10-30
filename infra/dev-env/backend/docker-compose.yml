@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     working_dir: /workspace
     command: tail -f /dev/null  # 保持容器運行
+    env_file:
+      - .env
     environment:
       # Maven 配置
       - MAVEN_OPTS=-Xmx2g -Xms1g
@@ -20,7 +22,7 @@ services:
 
     volumes:
       # 掛載 Java 後端源碼目錄
-      - ../../../src/shop-backend:/workspace
+      - ../../../src/backend:/workspace
 
       # Maven 本地倉庫（加速依賴下載）
       - ./volumes/.m2:/root/.m2
