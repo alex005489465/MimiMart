@@ -1,0 +1,147 @@
+.header {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.logoIcon {
+  font-size: 2rem;
+}
+
+.logoText {
+  color: #ff6b6b;
+}
+
+/* 搜尋欄 */
+.searchBar {
+  flex: 1;
+  display: flex;
+  max-width: 600px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px 0 0 4px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.searchInput:focus {
+  border-color: #ff6b6b;
+}
+
+.searchButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #ff6b6b;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.searchButton:hover {
+  background-color: #ff5252;
+}
+
+.searchButton span {
+  font-size: 1.2rem;
+}
+
+/* 右側功能 */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.cartLink {
+  position: relative;
+  text-decoration: none;
+  color: #333;
+  font-size: 1.5rem;
+  transition: color 0.3s;
+}
+
+.cartLink:hover {
+  color: #ff6b6b;
+}
+
+.cartIcon {
+  font-size: 1.8rem;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff6b6b;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.loginLink {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+
+.loginLink:hover {
+  color: #ff6b6b;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .container {
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .searchBar {
+    max-width: none;
+  }
+
+  .searchInput {
+    font-size: 0.875rem;
+  }
+
+  .loginLink {
+    font-size: 0.875rem;
+  }
+}
