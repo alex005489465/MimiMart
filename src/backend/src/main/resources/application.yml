@@ -1,0 +1,97 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mimimart-backend
+
+  # MySQL 8.4.6 資料庫配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: MimiMart-HikariCP
+
+  # JPA 配置 (MySQL 8 Dialect)
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+    show-sql: ${JPA_SHOW_SQL}
+    open-in-view: false
+
+  # Flyway 配置
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  # 郵件配置
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS}
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    displayRequestDuration: true
+    tryItOutEnabled: true
+    defaultModelsExpandDepth: 1
+    filter: false
+    syntaxHighlight:
+      theme: monokai
+
+application:
+  version: @project.version@
+
+# MimiMart 應用程式配置
+app:
+  base-url: ${APP_BASE_URL}
+
+# JWT 認證配置
+jwt:
+  # JWT 簽名金鑰 (生產環境請使用環境變數覆蓋)
+  # 生成指令: openssl rand -base64 64
+  secret: ${JWT_SECRET}
+  # Access Token 有效期 (毫秒) - 會員 15 分鐘, 管理員 30 分鐘
+  member-access-token-expiration: ${JWT_MEMBER_ACCESS_EXPIRATION}
+  admin-access-token-expiration: ${JWT_ADMIN_ACCESS_EXPIRATION}
+  # Refresh Token 有效期 (毫秒) - 7 天
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION}
+
+# Mailpit 測試郵件服務配置 (可選)
+mailpit:
+  api-url: ${MAILPIT_API_URL}
+
+# 日誌配置
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT}
+    com.mimimart: ${LOG_LEVEL_APP}
+    org.springframework.web: ${LOG_LEVEL_WEB}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_BINDER}
