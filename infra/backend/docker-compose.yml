@@ -1,0 +1,46 @@
+services:
+  # Java 21 開發環境 (Spring Boot)
+  java-dev:
+    image: maven:3.9.11-eclipse-temurin-21
+    container_name: mimimart-java
+    restart: unless-stopped
+    working_dir: /workspace
+    command: tail -f /dev/null  # 保持容器運行
+    environment:
+      # Maven 配置
+      - MAVEN_OPTS=-Xmx2g -Xms1g
+      - MAVEN_CONFIG=/root/.m2
+
+      # 容器時區設定
+      - TZ=Asia/Taipei
+
+    ports:
+      - "8083:8080"        # Spring Boot 應用端口
+      - "5005:5005"        # 遠程除錯端口 (JPDA)
+
+    volumes:
+      # 掛載 Java 後端源碼目錄
+      - ../../../src/shop-backend:/workspace
+
+      # Maven 本地倉庫（加速依賴下載）
+      - ./volumes/.m2:/root/.m2
+
+      # 應用日誌目錄
+      # - ../../../src/shop-backend/logs:/workspace/logs
+
+    networks:
+      - mimimart-network
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+networks:
+  mimimart-network:
+    name: mimimart-network
+    driver: bridge
