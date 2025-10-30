@@ -85,9 +85,18 @@ export const AuthProvider = ({ children }) => {
   /**
    * 會員登出
    */
-  const logout = () => {
-    storage.clearAuth();
-    setUser(null);
+  const logout = async () => {
+    try {
+      // 呼叫後端 API 撤銷 Refresh Token
+      await authService.logout();
+    } catch (error) {
+      console.error('登出 API 呼叫失敗:', error);
+      // 即使 API 失敗也要清除本地資料
+    } finally {
+      // 清除本地認證資料
+      storage.clearAuth();
+      setUser(null);
+    }
   };
 
   /**

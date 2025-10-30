@@ -2,6 +2,7 @@ package com.mimimart.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -62,6 +63,9 @@ public class SecurityConfig {
         http
             // 停用 CSRF (純 API 專案,使用 JWT 認證)
             .csrf(csrf -> csrf.disable())
+
+            // 啟用 CORS (使用 CorsConfig 中的配置)
+            .cors(Customizer.withDefaults())
 
             // 無狀態 Session 管理 (使用 JWT,不建立 Session)
             .sessionManagement(session -> session

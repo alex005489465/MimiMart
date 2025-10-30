@@ -1,4 +1,7 @@
 .claude/
 docs/
 CLAUDE.md
+src/temp
 
+# 環境變數（各平台目錄）
+**/.env

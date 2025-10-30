@@ -57,7 +57,7 @@ springdoc:
   api-docs:
     path: /swagger/v3/api-docs
   swagger-ui:
-    path: /swagger/ui.html
+    path: /swagger/swagger-ui/index.html
     displayRequestDuration: true
     tryItOutEnabled: true
     defaultModelsExpandDepth: 1
@@ -73,6 +73,8 @@ application:
 # MimiMart 應用程式配置
 app:
   base-url: ${APP_BASE_URL}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
 # JWT 認證配置
 jwt:

@@ -37,4 +37,12 @@ export const authService = {
       refreshToken,
     });
   },
+
+  /**
+   * 會員登出
+   * @returns {Promise} 登出結果
+   */
+  async logout() {
+    return await apiClient.post('/api/storefront/auth/logout', {});
+  },
 };
