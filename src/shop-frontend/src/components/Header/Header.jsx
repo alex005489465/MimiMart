@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import ThemeToggle from '../ThemeToggle/ThemeToggle'
 import styles from './Header.module.css'
 
 export default function Header() {
@@ -25,6 +26,7 @@ export default function Header() {
 
         {/* 右側功能 */}
         <div className={styles.actions}>
+          <ThemeToggle />
           <Link to="/cart" className={styles.cartLink}>
             <span className={styles.cartIcon}>🛒</span>
             <span className={styles.cartBadge}>0</span>

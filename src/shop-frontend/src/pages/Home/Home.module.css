@@ -10,7 +10,8 @@
 
 .welcomeSection {
   padding: 4rem 1.5rem;
-  background-color: #f9f9f9;
+  background-color: var(--color-bg-secondary);
+  transition: background-color 0.3s ease;
 }
 
 .container {
@@ -22,23 +23,27 @@
 .sectionTitle {
   font-size: 2rem;
   font-weight: bold;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
+  transition: color 0.3s ease;
 }
 
 .sectionDescription {
   font-size: 1.125rem;
-  color: #666;
+  color: var(--color-text-secondary);
   line-height: 1.6;
   max-width: 600px;
   margin: 0 auto;
+  transition: color 0.3s ease;
 }
 
 .footer {
-  background-color: #333;
-  color: white;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
   padding: 2rem 1.5rem;
   text-align: center;
+  border-top: 1px solid var(--color-border);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .footer .container {

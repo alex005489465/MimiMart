@@ -35,18 +35,20 @@
 .title {
   font-size: 3rem;
   font-weight: bold;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
+  transition: color 0.3s ease;
 }
 
 .subtitle {
   font-size: 1.5rem;
-  color: #666;
+  color: var(--color-text-secondary);
   margin-bottom: 2rem;
+  transition: color 0.3s ease;
 }
 
 .ctaButton {
-  background-color: #ff6b6b;
+  background-color: var(--color-primary);
   color: white;
   border: none;
   padding: 1rem 2.5rem;
@@ -54,11 +56,11 @@
   font-weight: bold;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .ctaButton:hover {
-  background-color: #ff5252;
+  background-color: var(--color-primary-hover);
   transform: translateY(-2px);
 }
 
@@ -72,21 +74,23 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background-color: rgba(255, 255, 255, 0.8);
-  border: none;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
   width: 50px;
   height: 50px;
   font-size: 2rem;
-  color: #333;
+  color: var(--color-text-primary);
   cursor: pointer;
   border-radius: 50%;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   z-index: 10;
 }
 
 .prevButton:hover,
 .nextButton:hover {
-  background-color: rgba(255, 255, 255, 1);
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .prevButton {
@@ -112,14 +116,15 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid var(--color-text-primary);
   background-color: transparent;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .indicator.activeIndicator {
-  background-color: white;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 /* 響應式設計 */
