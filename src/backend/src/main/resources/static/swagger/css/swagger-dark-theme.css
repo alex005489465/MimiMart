@@ -1,0 +1,367 @@
+/**
+ * Swagger UI 暗色主題
+ * 根據系統偏好自動套用
+ */
+
+:root {
+    /* 暗色主題配色 */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2d2d30;
+    --bg-hover: #3e3e42;
+    --text-primary: #d4d4d4;
+    --text-secondary: #9d9d9d;
+    --border-color: #3e3e42;
+    --link-color: #4ec9b0;
+    --success-color: #4ec9b0;
+    --warning-color: #dcdcaa;
+    --error-color: #f48771;
+    --info-color: #569cd6;
+}
+
+/* 主容器背景 */
+.swagger-ui {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Topbar 頂部導航欄 */
+.swagger-ui .topbar {
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .topbar .link,
+.swagger-ui .topbar a {
+    color: var(--text-primary) !important;
+}
+
+/* 資訊區域 */
+.swagger-ui .info {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .info .title,
+.swagger-ui .info h1, .swagger-ui .info h2, .swagger-ui .info h3,
+.swagger-ui .info h4, .swagger-ui .info h5, .swagger-ui .info h6 {
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .info p,
+.swagger-ui .info li,
+.swagger-ui .info a {
+    color: var(--text-secondary) !important;
+}
+
+.swagger-ui .info a {
+    color: var(--link-color) !important;
+}
+
+/* Scheme 容器 */
+.swagger-ui .scheme-container {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .scheme-container .schemes > label {
+    color: var(--text-primary) !important;
+}
+
+/* Operations 操作區塊 */
+.swagger-ui .opblock {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .opblock .opblock-summary {
+    background-color: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .opblock .opblock-summary:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+.swagger-ui .opblock-tag {
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* HTTP Method 顏色 */
+.swagger-ui .opblock.opblock-get {
+    background: rgba(78, 201, 176, 0.1) !important;
+    border-color: var(--success-color) !important;
+}
+
+.swagger-ui .opblock.opblock-get .opblock-summary {
+    border-color: var(--success-color) !important;
+}
+
+.swagger-ui .opblock.opblock-post {
+    background: rgba(86, 156, 214, 0.1) !important;
+    border-color: var(--info-color) !important;
+}
+
+.swagger-ui .opblock.opblock-post .opblock-summary {
+    border-color: var(--info-color) !important;
+}
+
+.swagger-ui .opblock.opblock-put {
+    background: rgba(220, 220, 170, 0.1) !important;
+    border-color: var(--warning-color) !important;
+}
+
+.swagger-ui .opblock.opblock-put .opblock-summary {
+    border-color: var(--warning-color) !important;
+}
+
+.swagger-ui .opblock.opblock-delete {
+    background: rgba(244, 135, 113, 0.1) !important;
+    border-color: var(--error-color) !important;
+}
+
+.swagger-ui .opblock.opblock-delete .opblock-summary {
+    border-color: var(--error-color) !important;
+}
+
+/* Parameters 參數區 */
+.swagger-ui .parameters-col_description {
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .parameter__name,
+.swagger-ui .parameter__type {
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .parameter__in {
+    color: var(--text-secondary) !important;
+}
+
+.swagger-ui table thead tr th,
+.swagger-ui table thead tr td {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.swagger-ui table tbody tr td {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Response 回應區 */
+.swagger-ui .responses-inner {
+    background-color: var(--bg-secondary) !important;
+}
+
+.swagger-ui .response-col_status {
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .response-col_description {
+    color: var(--text-secondary) !important;
+}
+
+/* Models 模型區 */
+.swagger-ui section.models {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .model-container {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.swagger-ui .model-box {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .model-title {
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .model {
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .property-row {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Input 輸入框 */
+.swagger-ui input[type=text],
+.swagger-ui input[type=password],
+.swagger-ui input[type=email],
+.swagger-ui textarea,
+.swagger-ui select {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui input[type=text]:focus,
+.swagger-ui input[type=password]:focus,
+.swagger-ui input[type=email]:focus,
+.swagger-ui textarea:focus,
+.swagger-ui select:focus {
+    border-color: var(--link-color) !important;
+    outline: none !important;
+}
+
+/* Buttons 按鈕 */
+.swagger-ui .btn {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .btn:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+.swagger-ui .btn.execute {
+    background-color: var(--info-color) !important;
+    color: #ffffff !important;
+    border-color: var(--info-color) !important;
+}
+
+.swagger-ui .btn.execute:hover {
+    filter: brightness(1.1);
+}
+
+/* Authorization 授權 */
+.swagger-ui .auth-container {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .auth-wrapper {
+    background-color: var(--bg-tertiary) !important;
+}
+
+.swagger-ui .modal-ux {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.swagger-ui .modal-ux-content {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .modal-ux-header {
+    background-color: var(--bg-tertiary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Code Blocks 程式碼區塊 */
+.swagger-ui .highlight-code,
+.swagger-ui pre {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .microlight {
+    color: var(--text-primary) !important;
+}
+
+/* Copy to clipboard button */
+.swagger-ui .copy-to-clipboard {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui .copy-to-clipboard:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+/* Download button */
+.swagger-ui .download-contents {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Scrollbar 捲軸樣式 */
+.swagger-ui ::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+.swagger-ui ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+.swagger-ui ::-webkit-scrollbar-thumb {
+    background: var(--bg-hover);
+    border: 3px solid var(--bg-secondary);
+    border-radius: 7px;
+}
+
+.swagger-ui ::-webkit-scrollbar-thumb:hover {
+    background: #4e4e52;
+}
+
+/* Loading 載入狀態 */
+.swagger-ui .loading-container {
+    background-color: var(--bg-primary) !important;
+}
+
+.swagger-ui .loading-container .loading:after {
+    border-color: var(--link-color) transparent transparent !important;
+}
+
+/* Errors 錯誤訊息 */
+.swagger-ui .errors-wrapper {
+    background-color: rgba(244, 135, 113, 0.1) !important;
+    border: 1px solid var(--error-color) !important;
+}
+
+.swagger-ui .errors {
+    color: var(--error-color) !important;
+}
+
+/* 其他文字元素 */
+.swagger-ui .markdown p,
+.swagger-ui .markdown code,
+.swagger-ui .renderedMarkdown p,
+.swagger-ui .renderedMarkdown code {
+    color: var(--text-primary) !important;
+}
+
+.swagger-ui code {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--warning-color) !important;
+}
+
+/* Links 連結 */
+.swagger-ui a {
+    color: var(--link-color) !important;
+}
+
+.swagger-ui a:hover {
+    text-decoration: underline;
+}
+
+/* Tabs 標籤頁 */
+.swagger-ui .tab {
+    color: var(--text-secondary) !important;
+}
+
+.swagger-ui .tab.active {
+    color: var(--text-primary) !important;
+}
+
+/* Filter 篩選器 */
+.swagger-ui .filter-container {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.swagger-ui .operation-filter-input {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}

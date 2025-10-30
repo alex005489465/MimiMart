@@ -76,8 +76,8 @@ public class SecurityConfig {
                 // 公開端點: 後台管理員認證 (登入、Refresh Token)
                 .requestMatchers("/api/admin/auth/**").permitAll()
 
-                // 公開端點: Swagger UI 和 API 文件
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // 公開端點: Swagger UI 和 API 文件 (統一在 /swagger 路徑下)
+                .requestMatchers("/swagger/**").permitAll()
 
                 // 前台需認證端點 (會員/地址)
                 .requestMatchers("/api/storefront/member/**").authenticated()

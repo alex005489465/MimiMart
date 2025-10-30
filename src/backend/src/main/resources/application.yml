@@ -55,15 +55,17 @@ spring:
 # SpringDoc OpenAPI 配置
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: /swagger/v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    path: /swagger/ui.html
     displayRequestDuration: true
     tryItOutEnabled: true
     defaultModelsExpandDepth: 1
     filter: false
     syntaxHighlight:
       theme: monokai
+    # 注入自訂 JavaScript (暗色主題偵測器)
+    use-root-path: true
 
 application:
   version: @project.version@
