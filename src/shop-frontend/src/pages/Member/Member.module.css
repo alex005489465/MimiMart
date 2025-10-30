@@ -1,0 +1,155 @@
+/* 會員資料主頁面樣式 */
+
+.memberPage {
+  min-height: calc(100vh - 80px);
+  background: var(--background-color);
+  padding: 2rem 1rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+}
+
+/* 左側選單 */
+.sidebar {
+  background: var(--surface-color);
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.userInfo {
+  text-align: center;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 auto 1rem;
+}
+
+.userName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.userEmail {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* 導航選單 */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.navItem:hover {
+  background: var(--hover-color);
+  color: var(--text-primary);
+}
+
+.navItemActive {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.navItemActive:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+  color: white;
+}
+
+.navItemLogout {
+  margin-top: 1rem;
+  color: #c33;
+}
+
+.navItemLogout:hover {
+  background: #fee;
+  color: #c33;
+}
+
+.navIcon {
+  font-size: 1.25rem;
+}
+
+/* 右側內容區 */
+.content {
+  background: var(--surface-color);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-height: 500px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .memberPage {
+    padding: 1rem 0.5rem;
+  }
+
+  .sidebar {
+    padding: 1.5rem 1rem;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .navItem {
+    font-size: 0.9375rem;
+  }
+}
