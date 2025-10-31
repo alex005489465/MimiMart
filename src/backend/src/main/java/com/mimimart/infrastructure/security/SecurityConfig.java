@@ -83,6 +83,10 @@ public class SecurityConfig {
                 // 公開端點: Swagger UI 和 API 文件 (統一在 /swagger 路徑下)
                 .requestMatchers("/swagger/**").permitAll()
 
+                // 公開端點: 前台商品和分類瀏覽 (不需認證)
+                .requestMatchers("/api/storefront/product/**").permitAll()
+                .requestMatchers("/api/storefront/category/**").permitAll()
+
                 // 前台需認證端點 (會員/地址)
                 .requestMatchers("/api/storefront/member/**").authenticated()
                 .requestMatchers("/api/storefront/address/**").authenticated()
