@@ -1,4 +1,4 @@
-package com.mimimart.api.controller.storefront;
+package com.mimimart.api.controller.shop;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.member.*;
@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/storefront/auth")
+@RequestMapping("/api/shop/auth")
 @Tag(name = "會員認證", description = "會員註冊、登入、登出相關 API")
-public class StorefrontAuthController {
+public class ShopAuthController {
 
     private final AuthService authService;
 
-    public StorefrontAuthController(AuthService authService) {
+    public ShopAuthController(AuthService authService) {
         this.authService = authService;
     }
 

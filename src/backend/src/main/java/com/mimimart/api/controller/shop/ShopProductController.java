@@ -1,4 +1,4 @@
-package com.mimimart.api.controller.storefront;
+package com.mimimart.api.controller.shop;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.product.ProductDetailResponse;
@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
  * 前台商品 Controller
  */
 @RestController
-@RequestMapping("/api/storefront/product")
+@RequestMapping("/api/shop/product")
 @RequiredArgsConstructor
 @Tag(name = "前台 - 商品", description = "前台商品查詢 API")
-public class StorefrontProductController {
+public class ShopProductController {
 
     private final ProductService productService;
 

@@ -1,4 +1,4 @@
-package com.mimimart.api.controller.storefront;
+package com.mimimart.api.controller.shop;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mimimart.api.dto.member.ChangePasswordRequest;
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * StorefrontMemberController 測試類別
+ * ShopMemberController 測試類別
  * 測試會員資料管理 API 端點
  *
  * @author MimiMart Development Team
@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @DisplayName("會員資料管理 API 測試")
-class StorefrontMemberControllerTest {
+class ShopMemberControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -76,10 +76,10 @@ class StorefrontMemberControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/storefront/member/profile - 成功查看個人資料")
+    @DisplayName("GET /api/shop/member/profile - 成功查看個人資料")
     void testGetProfile_Success() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/storefront/member/profile")
+        mockMvc.perform(get("/api/shop/member/profile")
                         .with(user(userDetails)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -91,7 +91,7 @@ class StorefrontMemberControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/member/profile/update - 成功更新個人資料")
+    @DisplayName("POST /api/shop/member/profile/update - 成功更新個人資料")
     void testUpdateProfile_Success() throws Exception {
         // Given
         UpdateProfileRequest request = new UpdateProfileRequest();
@@ -100,7 +100,7 @@ class StorefrontMemberControllerTest {
         request.setHomeAddress("台北市信義區");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/member/profile/update")
+        mockMvc.perform(post("/api/shop/member/profile/update")
                         .with(user(userDetails))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -119,14 +119,14 @@ class StorefrontMemberControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/member/profile/update - 部分更新個人資料")
+    @DisplayName("POST /api/shop/member/profile/update - 部分更新個人資料")
     void testUpdateProfile_PartialUpdate() throws Exception {
         // Given
         UpdateProfileRequest request = new UpdateProfileRequest();
         request.setName("只改名字");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/member/profile/update")
+        mockMvc.perform(post("/api/shop/member/profile/update")
                         .with(user(userDetails))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -137,7 +137,7 @@ class StorefrontMemberControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/member/change-password - 成功修改密碼")
+    @DisplayName("POST /api/shop/member/change-password - 成功修改密碼")
     void testChangePassword_Success() throws Exception {
         // Given
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -145,7 +145,7 @@ class StorefrontMemberControllerTest {
         request.setNewPassword("newpassword456");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/member/change-password")
+        mockMvc.perform(post("/api/shop/member/change-password")
                         .with(user(userDetails))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -159,7 +159,7 @@ class StorefrontMemberControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/member/change-password - 舊密碼錯誤應返回失敗")
+    @DisplayName("POST /api/shop/member/change-password - 舊密碼錯誤應返回失敗")
     void testChangePassword_WrongOldPassword() throws Exception {
         // Given
         ChangePasswordRequest request = new ChangePasswordRequest();
@@ -167,7 +167,7 @@ class StorefrontMemberControllerTest {
         request.setNewPassword("newpassword456");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/member/change-password")
+        mockMvc.perform(post("/api/shop/member/change-password")
                         .with(user(userDetails))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

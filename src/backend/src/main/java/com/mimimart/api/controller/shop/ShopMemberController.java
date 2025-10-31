@@ -1,4 +1,4 @@
-package com.mimimart.api.controller.storefront;
+package com.mimimart.api.controller.shop;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.member.ChangePasswordRequest;
@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.*;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/storefront/member")
+@RequestMapping("/api/shop/member")
 @Tag(name = "會員資料", description = "會員個人資料管理 API")
-public class StorefrontMemberController {
+public class ShopMemberController {
 
     private final MemberService memberService;
 
-    public StorefrontMemberController(MemberService memberService) {
+    public ShopMemberController(MemberService memberService) {
         this.memberService = memberService;
     }
 

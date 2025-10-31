@@ -90,8 +90,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // 前台會員專用路徑要求 MEMBER 類型
-        if ((requestPath.startsWith("/api/storefront/member/") ||
-             requestPath.startsWith("/api/storefront/address/")) &&
+        if ((requestPath.startsWith("/api/shop/member/") ||
+             requestPath.startsWith("/api/shop/address/")) &&
             userType != UserType.MEMBER) {
             throw new SecurityException("會員端點要求會員權限");
         }

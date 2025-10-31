@@ -1,4 +1,4 @@
-package com.mimimart.api.controller.storefront;
+package com.mimimart.api.controller.shop;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.member.AddressRequest;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/storefront/address")
+@RequestMapping("/api/shop/address")
 @Tag(name = "收貨地址", description = "會員收貨地址管理 API")
-public class StorefrontAddressController {
+public class ShopAddressController {
 
     private final AddressService addressService;
 
-    public StorefrontAddressController(AddressService addressService) {
+    public ShopAddressController(AddressService addressService) {
         this.addressService = addressService;
     }
 

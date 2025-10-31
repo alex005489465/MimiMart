@@ -1,4 +1,4 @@
-package com.mimimart.api.controller.storefront;
+package com.mimimart.api.controller.shop;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.category.CategoryResponse;
@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
  * 前台分類 Controller
  */
 @RestController
-@RequestMapping("/api/storefront/category")
+@RequestMapping("/api/shop/category")
 @RequiredArgsConstructor
 @Tag(name = "前台 - 商品分類", description = "前台商品分類查詢 API")
-public class StorefrontCategoryController {
+public class ShopCategoryController {
 
     private final CategoryService categoryService;
 

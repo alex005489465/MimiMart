@@ -75,7 +75,7 @@ public class SecurityConfig {
             // 授權規則
             .authorizeHttpRequests(auth -> auth
                 // 公開端點: 前台會員認證 (註冊、登入、Email 驗證、密碼重設、Refresh Token)
-                .requestMatchers("/api/storefront/auth/**").permitAll()
+                .requestMatchers("/api/shop/auth/**").permitAll()
 
                 // 公開端點: 後台管理員認證 (登入、Refresh Token)
                 .requestMatchers("/api/admin/auth/**").permitAll()
@@ -87,12 +87,12 @@ public class SecurityConfig {
                 .requestMatchers("/swagger/**").permitAll()
 
                 // 公開端點: 前台商品和分類瀏覽 (不需認證)
-                .requestMatchers("/api/storefront/product/**").permitAll()
-                .requestMatchers("/api/storefront/category/**").permitAll()
+                .requestMatchers("/api/shop/product/**").permitAll()
+                .requestMatchers("/api/shop/category/**").permitAll()
 
                 // 前台需認證端點 (會員/地址)
-                .requestMatchers("/api/storefront/member/**").authenticated()
-                .requestMatchers("/api/storefront/address/**").authenticated()
+                .requestMatchers("/api/shop/member/**").authenticated()
+                .requestMatchers("/api/shop/address/**").authenticated()
 
                 // 後台端點 (需認證)
                 .requestMatchers("/api/admin/**").authenticated()

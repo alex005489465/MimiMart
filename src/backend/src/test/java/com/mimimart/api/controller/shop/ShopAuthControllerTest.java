@@ -1,4 +1,4 @@
-package com.mimimart.api.controller.storefront;
+package com.mimimart.api.controller.shop;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mimimart.api.dto.member.LoginRequest;
@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * StorefrontAuthController 測試類別
+ * ShopAuthController 測試類別
  * 測試會員認證 API 端點
  *
  * @author MimiMart Development Team
@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @DisplayName("會員認證 API 測試")
-class StorefrontAuthControllerTest {
+class ShopAuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -53,7 +53,7 @@ class StorefrontAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/auth/register - 成功註冊新會員")
+    @DisplayName("POST /api/shop/auth/register - 成功註冊新會員")
     void testRegister_Success() throws Exception {
         // Given
         RegisterRequest request = new RegisterRequest();
@@ -62,7 +62,7 @@ class StorefrontAuthControllerTest {
         request.setName("新會員");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/auth/register")
+        mockMvc.perform(post("/api/shop/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -75,7 +75,7 @@ class StorefrontAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/auth/register - Email 已存在應返回失敗")
+    @DisplayName("POST /api/shop/auth/register - Email 已存在應返回失敗")
     void testRegister_EmailExists() throws Exception {
         // Given
         String email = "existing@example.com";
@@ -87,7 +87,7 @@ class StorefrontAuthControllerTest {
         request.setName("新會員");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/auth/register")
+        mockMvc.perform(post("/api/shop/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -96,7 +96,7 @@ class StorefrontAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/auth/login - 使用正確帳密登入成功")
+    @DisplayName("POST /api/shop/auth/login - 使用正確帳密登入成功")
     void testLogin_Success() throws Exception {
         // Given
         String email = "login@example.com";
@@ -108,7 +108,7 @@ class StorefrontAuthControllerTest {
         request.setPassword(password);
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/auth/login")
+        mockMvc.perform(post("/api/shop/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -121,7 +121,7 @@ class StorefrontAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/auth/login - 錯誤的密碼應返回失敗")
+    @DisplayName("POST /api/shop/auth/login - 錯誤的密碼應返回失敗")
     void testLogin_WrongPassword() throws Exception {
         // Given
         String email = "wrongpw@example.com";
@@ -132,7 +132,7 @@ class StorefrontAuthControllerTest {
         request.setPassword("wrongpassword");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/auth/login")
+        mockMvc.perform(post("/api/shop/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -141,10 +141,10 @@ class StorefrontAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/auth/logout - 成功登出")
+    @DisplayName("POST /api/shop/auth/logout - 成功登出")
     void testLogout_Success() throws Exception {
         // When & Then
-        mockMvc.perform(post("/api/storefront/auth/logout")
+        mockMvc.perform(post("/api/shop/auth/logout")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -152,7 +152,7 @@ class StorefrontAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/auth/refresh-token - 使用有效的 Refresh Token 更新 Access Token")
+    @DisplayName("POST /api/shop/auth/refresh-token - 使用有效的 Refresh Token 更新 Access Token")
     void testRefreshToken_Success() throws Exception {
         // Given
         String email = "refresh@example.com";
@@ -164,7 +164,7 @@ class StorefrontAuthControllerTest {
         request.setRefreshToken(loginResult.refreshToken);
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/auth/refresh-token")
+        mockMvc.perform(post("/api/shop/auth/refresh-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -175,14 +175,14 @@ class StorefrontAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/storefront/auth/refresh-token - 使用無效的 Refresh Token 應返回失敗")
+    @DisplayName("POST /api/shop/auth/refresh-token - 使用無效的 Refresh Token 應返回失敗")
     void testRefreshToken_InvalidToken() throws Exception {
         // Given
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken("invalid-refresh-token");
 
         // When & Then
-        mockMvc.perform(post("/api/storefront/auth/refresh-token")
+        mockMvc.perform(post("/api/shop/auth/refresh-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
