@@ -15,6 +15,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class UpdateProductRequest {
 
+    @NotNull(message = "商品 ID 不能為空")
+    private Long productId;
+
     @NotBlank(message = "商品名稱不能為空")
     @Size(max = 200, message = "商品名稱長度不能超過 200 個字元")
     private String name;

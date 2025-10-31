@@ -1,6 +1,7 @@
 package com.mimimart.api.dto.category;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateCategoryRequest {
+
+    @NotNull(message = "分類 ID 不能為空")
+    private Long categoryId;
 
     @NotBlank(message = "分類名稱不能為空")
     @Size(max = 100, message = "分類名稱長度不能超過 100 個字元")

@@ -74,10 +74,11 @@ public class ShopProductController {
     /**
      * 查詢商品詳情
      */
-    @GetMapping("/{id}")
+    @GetMapping("/detail")
     @Operation(summary = "查詢商品詳情", description = "根據 ID 查詢商品詳細資訊")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductDetail(@PathVariable Long id) {
-        Product product = productService.getPublishedProductById(id);
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductDetail(
+            @Parameter(description = "商品 ID") @RequestParam Long productId) {
+        Product product = productService.getPublishedProductById(productId);
         ProductDetailResponse response = ProductDetailResponse.from(product);
 
         return ResponseEntity.ok(ApiResponse.success("查詢成功", response));

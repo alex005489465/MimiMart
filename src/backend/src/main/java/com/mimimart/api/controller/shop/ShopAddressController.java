@@ -1,6 +1,7 @@
 package com.mimimart.api.controller.shop;
 
 import com.mimimart.api.dto.ApiResponse;
+import com.mimimart.api.dto.member.AddressIdRequest;
 import com.mimimart.api.dto.member.AddressRequest;
 import com.mimimart.api.dto.member.AddressResponse;
 import com.mimimart.application.service.AddressService;
@@ -73,16 +74,15 @@ public class ShopAddressController {
     /**
      * 更新收貨地址
      */
-    @PostMapping("/{id}/update")
+    @PostMapping("/update")
     @Operation(summary = "更新收貨地址", description = "更新指定的收貨地址")
     public ResponseEntity<ApiResponse<AddressResponse>> updateAddress(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long id,
             @Valid @RequestBody AddressRequest request) {
 
         MemberAddress address = addressService.updateAddress(
                 userDetails.getUserId(),
-                id,
+                request.getAddressId(),
                 request.getRecipientName(),
                 request.getPhone(),
                 request.getAddress()
@@ -94,13 +94,13 @@ public class ShopAddressController {
     /**
      * 刪除收貨地址
      */
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @Operation(summary = "刪除收貨地址", description = "刪除指定的收貨地址")
     public ResponseEntity<ApiResponse<Void>> deleteAddress(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long id) {
+            @Valid @RequestBody AddressIdRequest request) {
 
-        addressService.deleteAddress(userDetails.getUserId(), id);
+        addressService.deleteAddress(userDetails.getUserId(), request.getAddressId());
 
         return ResponseEntity.ok(ApiResponse.success("刪除成功"));
     }
@@ -108,13 +108,13 @@ public class ShopAddressController {
     /**
      * 設為預設地址
      */
-    @PostMapping("/{id}/set-default")
+    @PostMapping("/set-default")
     @Operation(summary = "設為預設地址", description = "將指定的地址設為預設收貨地址")
     public ResponseEntity<ApiResponse<Void>> setDefaultAddress(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long id) {
+            @Valid @RequestBody AddressIdRequest request) {
 
-        addressService.setDefaultAddress(userDetails.getUserId(), id);
+        addressService.setDefaultAddress(userDetails.getUserId(), request.getAddressId());
 
         return ResponseEntity.ok(ApiResponse.success("設定成功"));
     }

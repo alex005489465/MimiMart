@@ -5,6 +5,7 @@ import com.mimimart.api.dto.category.CategoryResponse;
 import com.mimimart.application.service.CategoryService;
 import com.mimimart.infrastructure.persistence.entity.Category;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,10 +42,11 @@ public class ShopCategoryController {
     /**
      * 查詢分類詳情
      */
-    @GetMapping("/{id}")
+    @GetMapping("/detail")
     @Operation(summary = "查詢分類詳情", description = "根據 ID 查詢分類詳細資訊")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryDetail(@PathVariable Long id) {
-        Category category = categoryService.getCategoryById(id);
+    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryDetail(
+            @Parameter(description = "分類 ID") @RequestParam Long categoryId) {
+        Category category = categoryService.getCategoryById(categoryId);
         CategoryResponse response = CategoryResponse.from(category);
 
         return ResponseEntity.ok(ApiResponse.success("查詢成功", response));

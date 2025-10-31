@@ -13,6 +13,8 @@ import lombok.Data;
 @Data
 public class AddressRequest {
 
+    private Long addressId;
+
     @NotBlank(message = "收件人姓名不能為空")
     @Size(max = 100, message = "收件人姓名長度不能超過 100 字元")
     private String recipientName;

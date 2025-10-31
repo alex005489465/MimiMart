@@ -3,6 +3,7 @@ package com.mimimart.api.controller.admin;
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.product.CreateProductRequest;
 import com.mimimart.api.dto.product.ProductDetailResponse;
+import com.mimimart.api.dto.product.ProductIdRequest;
 import com.mimimart.api.dto.product.ProductResponse;
 import com.mimimart.api.dto.product.UpdateProductRequest;
 import com.mimimart.application.service.ProductService;
@@ -77,10 +78,11 @@ public class AdminProductController {
     /**
      * 查詢商品詳情
      */
-    @GetMapping("/{id}")
+    @GetMapping("/detail")
     @Operation(summary = "查詢商品詳情", description = "根據 ID 查詢商品詳細資訊")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductDetail(@PathVariable Long id) {
-        Product product = productService.getProductById(id);
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> getProductDetail(
+            @Parameter(description = "商品 ID") @RequestParam Long productId) {
+        Product product = productService.getProductById(productId);
         ProductDetailResponse response = ProductDetailResponse.from(product);
 
         return ResponseEntity.ok(ApiResponse.success("查詢成功", response));
@@ -110,14 +112,13 @@ public class AdminProductController {
     /**
      * 更新商品
      */
-    @PostMapping("/{id}/update")
+    @PostMapping("/update")
     @Operation(summary = "更新商品", description = "更新商品資訊")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> updateProduct(
-            @PathVariable Long id,
             @Valid @RequestBody UpdateProductRequest request) {
 
         Product product = productService.updateProduct(
-            id,
+            request.getProductId(),
             request.getName(),
             request.getDescription(),
             request.getPrice(),
@@ -133,20 +134,20 @@ public class AdminProductController {
     /**
      * 刪除商品
      */
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @Operation(summary = "刪除商品", description = "軟刪除商品")
-    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@Valid @RequestBody ProductIdRequest request) {
+        productService.deleteProduct(request.getProductId());
         return ResponseEntity.ok(ApiResponse.success("刪除成功"));
     }
 
     /**
      * 上架商品
      */
-    @PostMapping("/{id}/publish")
+    @PostMapping("/publish")
     @Operation(summary = "上架商品", description = "將商品設為上架狀態")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> publishProduct(@PathVariable Long id) {
-        Product product = productService.publishProduct(id);
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> publishProduct(@Valid @RequestBody ProductIdRequest request) {
+        Product product = productService.publishProduct(request.getProductId());
         ProductDetailResponse response = ProductDetailResponse.from(product);
 
         return ResponseEntity.ok(ApiResponse.success("上架成功", response));
@@ -155,10 +156,10 @@ public class AdminProductController {
     /**
      * 下架商品
      */
-    @PostMapping("/{id}/unpublish")
+    @PostMapping("/unpublish")
     @Operation(summary = "下架商品", description = "將商品設為下架狀態")
-    public ResponseEntity<ApiResponse<ProductDetailResponse>> unpublishProduct(@PathVariable Long id) {
-        Product product = productService.unpublishProduct(id);
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> unpublishProduct(@Valid @RequestBody ProductIdRequest request) {
+        Product product = productService.unpublishProduct(request.getProductId());
         ProductDetailResponse response = ProductDetailResponse.from(product);
 
         return ResponseEntity.ok(ApiResponse.success("下架成功", response));

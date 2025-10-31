@@ -1,12 +1,14 @@
 package com.mimimart.api.controller.admin;
 
 import com.mimimart.api.dto.ApiResponse;
+import com.mimimart.api.dto.category.CategoryIdRequest;
 import com.mimimart.api.dto.category.CategoryResponse;
 import com.mimimart.api.dto.category.CreateCategoryRequest;
 import com.mimimart.api.dto.category.UpdateCategoryRequest;
 import com.mimimart.application.service.CategoryService;
 import com.mimimart.infrastructure.persistence.entity.Category;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,10 +46,11 @@ public class AdminCategoryController {
     /**
      * 查詢分類詳情
      */
-    @GetMapping("/{id}")
+    @GetMapping("/detail")
     @Operation(summary = "查詢分類詳情", description = "根據 ID 查詢分類詳細資訊")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryDetail(@PathVariable Long id) {
-        Category category = categoryService.getCategoryById(id);
+    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryDetail(
+            @Parameter(description = "分類 ID") @RequestParam Long categoryId) {
+        Category category = categoryService.getCategoryById(categoryId);
         CategoryResponse response = CategoryResponse.from(category);
 
         return ResponseEntity.ok(ApiResponse.success("查詢成功", response));
@@ -74,14 +77,13 @@ public class AdminCategoryController {
     /**
      * 更新分類
      */
-    @PostMapping("/{id}/update")
+    @PostMapping("/update")
     @Operation(summary = "更新分類", description = "更新分類資訊")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
-            @PathVariable Long id,
             @Valid @RequestBody UpdateCategoryRequest request) {
 
         Category category = categoryService.updateCategory(
-            id,
+            request.getCategoryId(),
             request.getName(),
             request.getDescription(),
             request.getSortOrder()
@@ -94,10 +96,10 @@ public class AdminCategoryController {
     /**
      * 刪除分類
      */
-    @PostMapping("/{id}/delete")
+    @PostMapping("/delete")
     @Operation(summary = "刪除分類", description = "軟刪除分類")
-    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@Valid @RequestBody CategoryIdRequest request) {
+        categoryService.deleteCategory(request.getCategoryId());
         return ResponseEntity.ok(ApiResponse.success("刪除成功"));
     }
 }
