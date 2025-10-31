@@ -1,0 +1,29 @@
+{
+  "comment": "開發者與管理員 IP 白名單範例檔案",
+    "notes": [
+    "1. 複製此檔案為 developer-ips.json",
+    "2. 將佔位符替換為實際的 IP 地址",
+    "3. IPv4 格式: 1.2.3.4/32 (單一 IP 使用 /32)",
+    "4. IPv6 格式: 2001:db8::1/128 (單一 IP 使用 /128)",
+    "5. 如何查詢 IP:",
+    "   - IPv4: curl -4 ifconfig.me",
+    "   - IPv6: curl -6 ifconfig.me",
+    "6. developer-ips.json 不會被提交到 Git (已加入 .gitignore)",
+    "7. 更新 IP 後需重新執行 terraform apply"
+  ],
+  "last_updated": "YYYY-MM-DD",
+  "developer_ips_v4": [
+    "YOUR_IPv4_ADDRESS_1/32",
+    "YOUR_IPv4_ADDRESS_2/32"
+  ],
+  "developer_ips_v6": [
+    "YOUR_IPv6_ADDRESS_1/128",
+    "YOUR_IPv6_ADDRESS_2/128"
+  ],
+  "office_ips_v4": [
+    "OFFICE_IPv4_ADDRESS/32"
+  ],
+  "office_ips_v6": [
+    "OFFICE_IPv6_ADDRESS/128"
+  ]
+}

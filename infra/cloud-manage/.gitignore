@@ -1,0 +1,52 @@
+# ====================================================================
+# Terraform 相關檔案
+# ====================================================================
+
+# Terraform state 檔案
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform 工作目錄
+.terraform/
+.terraform.lock.hcl
+
+# Crash log 檔案
+crash.log
+crash.*.log
+
+# 變數檔案可能包含敏感資訊
+*.tfvars.json
+
+# CLI 配置檔案
+.terraformrc
+terraform.rc
+
+# ====================================================================
+# 專案特定忽略
+# ====================================================================
+
+# 開發者 IP 配置檔案（包含真實 IP，不應提交）
+modules/ip-ranges/developer-ips.json
+
+# 備份檔案
+*.bak
+*.backup
+
+# IDE 設定檔
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# 臨時檔案
+*.tmp
+*.temp

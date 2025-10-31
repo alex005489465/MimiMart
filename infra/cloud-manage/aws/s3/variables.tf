@@ -68,6 +68,40 @@ variable "member_cors_max_age_seconds" {
 }
 
 # ====================================================================
+# Public Bucket 配置
+# ====================================================================
+
+variable "public_bucket_name" {
+  description = "Name for the public bucket (must be globally unique)"
+  type        = string
+}
+
+variable "public_enable_versioning" {
+  description = "Enable versioning for public bucket (false for dev environment to save cost)"
+  type        = bool
+}
+
+variable "public_cors_allowed_origins" {
+  description = "List of allowed origins for CORS (e.g., ['http://localhost:5173', 'http://cdn.example.com'])"
+  type        = list(string)
+}
+
+variable "public_cors_allowed_methods" {
+  description = "List of allowed HTTP methods for CORS"
+  type        = list(string)
+}
+
+variable "public_cors_allowed_headers" {
+  description = "List of allowed headers for CORS"
+  type        = list(string)
+}
+
+variable "public_cors_max_age_seconds" {
+  description = "Max age for CORS preflight cache in seconds"
+  type        = number
+}
+
+# ====================================================================
 # 標籤配置
 # ====================================================================
 

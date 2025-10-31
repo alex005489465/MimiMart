@@ -10,6 +10,7 @@
 #
 # 權限範圍:
 #   - Member Bucket: 完整 CRUD 權限
+#   - Public Bucket: 完整 CRUD 權限
 #
 # 遵循最小權限原則,僅授予必要的操作權限
 # --------------------------------------------------------------------
@@ -42,6 +43,30 @@ locals {
           "s3:GetBucketVersioning"
         ]
         Resource = aws_s3_bucket.member.arn
+      },
+      # Public Bucket: 物件層級操作
+      {
+        Sid    = "PublicBucketObjectAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:GetObjectVersion",
+          "s3:GetObjectAttributes"
+        ]
+        Resource = "${aws_s3_bucket.public.arn}/*"
+      },
+      # Public Bucket: Bucket 層級操作
+      {
+        Sid    = "PublicBucketListAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = aws_s3_bucket.public.arn
       }
     ]
   }

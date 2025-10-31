@@ -1,0 +1,52 @@
+# ====================================================================
+# S3 Buckets DNS 記錄自動化
+# ====================================================================
+# 用途: 自動建立 S3 bucket 的 Cloudflare DNS CNAME 記錄
+# 方式: 透過 terraform_remote_state 讀取 S3 模組的輸出
+# ====================================================================
+
+# --------------------------------------------------------------------
+# 讀取 S3 模組的 State
+# --------------------------------------------------------------------
+
+data "terraform_remote_state" "s3" {
+  backend = "local"
+
+  config = {
+    path = "../../aws/s3/terraform.tfstate"
+  }
+}
+
+# --------------------------------------------------------------------
+# S3 Public Bucket DNS 記錄
+# --------------------------------------------------------------------
+
+resource "cloudflare_record" "s3_public" {
+  # 只有當 S3 state 存在且包含 public_bucket_website_endpoint 時才建立
+  count = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null ? 1 : 0
+
+  zone_id = var.cloudflare_zone_id
+  name    = "shop-storage-public-dev"
+  content = data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint
+  type    = "CNAME"
+  proxied = true
+  ttl     = 1
+  comment = "Auto-managed: S3 public bucket CDN endpoint (IP-restricted)"
+}
+
+# --------------------------------------------------------------------
+# 輸出資訊
+# --------------------------------------------------------------------
+
+output "s3_dns_records" {
+  description = "S3 buckets DNS records information"
+  value = {
+    public_bucket = {
+      enabled      = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null
+      dns_name     = "shop-storage-public-dev.xenolume.com"
+      s3_endpoint  = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, "N/A - S3 not deployed yet")
+      proxied      = true
+      access_note  = "IP-restricted to Cloudflare + Developer IPs"
+    }
+  }
+}
