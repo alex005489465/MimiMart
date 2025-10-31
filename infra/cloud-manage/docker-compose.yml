@@ -1,0 +1,16 @@
+services:
+  terraform:
+    image: hashicorp/terraform:latest
+    container_name: mimimart-terraform-${PLATFORM:-cloudflare}
+    working_dir: /workspace/${PLATFORM:-cloudflare}
+    volumes:
+      - .:/workspace
+      - terraform-cache:/root/.terraform.d/plugin-cache
+    environment:
+      - TF_PLUGIN_CACHE_DIR=/root/.terraform.d/plugin-cache
+    env_file:
+      - ${PLATFORM:-cloudflare}/.env      # 平台專屬配置和機密
+    entrypoint: ["/bin/sh", "-c"]
+
+volumes:
+  terraform-cache:

@@ -1,0 +1,99 @@
+# 注意：以下變數由 Docker 環境變數提供，不需要在此檔案中設定：
+# - cloudflare_api_token (透過 TF_VAR_cloudflare_api_token)
+# - cloudflare_zone_id (透過 TF_VAR_cloudflare_zone_id)
+#
+# 這些變數在 cloudflare/.env 檔案中配置
+
+# ============================================================================
+# WAF 規則配置
+# ============================================================================
+
+# 範例：限制特定域名只能從特定 IP 訪問
+waf_rules = [
+  # 規則 1：保護多個管理介面（同時支援 IPv4 和 IPv6）
+  {
+    action      = "block"
+    description = "封鎖非白名單 IP 訪問管理介面"
+    enabled     = true
+    expression  = "(http.host in {\"admin.example.com\" \"git.example.com\"} and not ip.src in {203.0.113.50 2001:db8::1})"
+  },
+
+  # 規則 2：單一域名 IP 白名單（僅 IPv4）
+  # {
+  #   action      = "block"
+  #   description = "封鎖非白名單 IP 訪問特定域名"
+  #   enabled     = true
+  #   expression  = "(http.host eq \"admin.example.com\" and ip.src ne 203.0.113.50)"
+  # },
+
+  # 規則 3：封鎖特定國家/地區
+  # {
+  #   action      = "block"
+  #   description = "封鎖來自特定國家的請求"
+  #   enabled     = false
+  #   expression  = "(ip.geoip.country in {\"CN\" \"RU\"})"
+  # },
+
+  # 規則 4：保護 API 端點
+  # {
+  #   action      = "challenge"
+  #   description = "對 API 端點啟用驗證"
+  #   enabled     = false
+  #   expression  = "(http.request.uri.path contains \"/api/\")"
+  # },
+
+  # 規則 5：IP 範圍白名單（CIDR）
+  # {
+  #   action      = "block"
+  #   description = "限制只能從公司網段訪問"
+  #   enabled     = true
+  #   expression  = "(http.host eq \"internal.example.com\" and not ip.src in {192.168.1.0/24 10.0.0.0/8})"
+  # },
+]
+
+# ============================================================================
+# 表達式語法參考
+# ============================================================================
+#
+# 域名匹配：
+#   - http.host eq "example.com"          # 完全匹配
+#   - http.host contains "example.com"    # 包含
+#   - http.host in {"a.com" "b.com"}      # 多個域名
+#
+# IP 匹配：
+#   - ip.src eq 203.0.113.50                      # 單一 IPv4
+#   - ip.src ne 203.0.113.50                      # 不等於（不建議用於白名單）
+#   - ip.src in {203.0.113.50 203.0.113.51}       # 多個 IPv4
+#   - not ip.src in {203.0.113.50 203.0.113.51}   # 不在列表中（建議用於白名單）
+#   - ip.src in {203.0.113.0/24}                  # IP 範圍（CIDR）
+#   - ip.src in {203.0.113.50 2001:db8::1}        # 同時支援 IPv4 和 IPv6
+#
+# ⚠️ 重要：如果你的網路同時支援 IPv4 和 IPv6，請務必兩者都加入白名單！
+#    瀏覽器可能優先使用 IPv6，如果只允許 IPv4 會被封鎖。
+#
+# 路徑匹配：
+#   - http.request.uri.path eq "/admin"
+#   - http.request.uri.path contains "/api/"
+#   - http.request.uri.path matches "^/admin.*"
+#
+# 地理位置：
+#   - ip.geoip.country eq "TW"
+#   - ip.geoip.country in {"TW" "US" "JP"}
+#
+# 組合條件：
+#   - (condition1 and condition2)
+#   - (condition1 or condition2)
+#   - not (condition1)
+#
+# 動作類型：
+#   - block             # 封鎖請求
+#   - allow             # 允許請求
+#   - challenge         # 顯示驗證碼
+#   - js_challenge      # JavaScript 驗證
+#   - managed_challenge # 智能驗證
+#   - log               # 僅記錄，不攔截（⚠️ Free 方案不支援）
+#
+# Free 方案限制：
+#   - 最多 5 條自訂規則
+#   - 不支援 log 動作（需 Pro 或更高方案）
+#   - 其他動作類型均可使用

@@ -1,0 +1,58 @@
+# 注意：以下變數由 Docker 環境變數提供，不需要在此檔案中設定：
+# - cloudflare_api_token (透過 TF_VAR_cloudflare_api_token)
+# - cloudflare_zone_id (透過 TF_VAR_cloudflare_zone_id)
+# - domain_name (透過 TF_VAR_domain_name)
+#
+# 這些變數在 cloudflare/.env 檔案中配置
+
+# ============================================================================
+# DNS 記錄配置
+# ============================================================================
+# name 格式說明：
+# - 如果基礎域名是 example.com
+# - 想創建 subdomain.demo.example.com
+# - 則 name = "subdomain.demo"
+# - 特殊：name = "@" 代表根域名（example.com）
+
+dns_records = [
+  # A 記錄範例：指向 EC2 伺服器
+  {
+    name    = "app"
+    type    = "A"
+    content = "203.0.113.50"
+    proxied = true
+    ttl     = 1
+    comment = "應用服務"
+  },
+
+  # CNAME 記錄範例：指向其他域名
+  # {
+  #   name    = "blog"
+  #   type    = "CNAME"
+  #   content = "myblog.medium.com"
+  #   proxied = true
+  #   ttl     = 1
+  #   comment = "部落格服務"
+  # },
+
+  # MX 記錄範例：郵件伺服器
+  # {
+  #   name     = "@"
+  #   type     = "MX"
+  #   content  = "mail.example.com"
+  #   proxied  = false
+  #   ttl      = 3600
+  #   priority = 10
+  #   comment  = "主要郵件伺服器"
+  # },
+
+  # TXT 記錄範例：域名驗證
+  # {
+  #   name    = "@"
+  #   type    = "TXT"
+  #   content = "v=spf1 include:_spf.google.com ~all"
+  #   proxied = false
+  #   ttl     = 3600
+  #   comment = "SPF 記錄"
+  # },
+]

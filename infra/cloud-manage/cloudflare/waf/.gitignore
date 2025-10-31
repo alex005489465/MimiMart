@@ -1,0 +1,18 @@
+# Terraform 狀態檔案
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform 目錄
+.terraform/
+.terraform.lock.hcl
+
+# 配置檔案（包含敏感資訊）
+terraform.tfvars
+
+# 輸出檔案
+output/
+
+# 備份檔案
+*.backup
+*.bak
