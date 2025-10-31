@@ -6,20 +6,14 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 會員資料
+ * 頭貼上傳回應
  *
  * @author MimiMart Development Team
  * @since 1.0.0
  */
 @Data
 @AllArgsConstructor
-public class MemberProfile {
-    private Long id;
-    private String email;
-    private String name;
-    private String phone;
-    private String homeAddress;
-    private Boolean emailVerified;
+public class AvatarUploadResponse {
     private String avatarUrl;
     private LocalDateTime avatarUpdatedAt;
 }

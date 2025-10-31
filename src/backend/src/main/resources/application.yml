@@ -94,6 +94,15 @@ jwt:
 mailpit:
   api-url: ${MAILPIT_API_URL}
 
+# AWS S3 配置
+aws:
+  region: ${AWS_REGION}
+  s3:
+    bucket-name: ${S3_BUCKET_NAME}
+  credentials:
+    access-key-id: ${AWS_ACCESS_KEY_ID}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+
 # 日誌配置
 logging:
   level:

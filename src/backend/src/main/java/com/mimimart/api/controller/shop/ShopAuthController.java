@@ -44,7 +44,9 @@ public class ShopAuthController {
                 member.getName(),
                 member.getPhone(),
                 member.getHomeAddress(),
-                member.getEmailVerified()
+                member.getEmailVerified(),
+                member.getAvatarUrl(),
+                member.getAvatarUpdatedAt()
         );
 
         return ResponseEntity.ok(ApiResponse.success("註冊成功", profile));
@@ -64,7 +66,9 @@ public class ShopAuthController {
                 result.member.getName(),
                 result.member.getPhone(),
                 result.member.getHomeAddress(),
-                result.member.getEmailVerified()
+                result.member.getEmailVerified(),
+                result.member.getAvatarUrl(),
+                result.member.getAvatarUpdatedAt()
         );
 
         LoginResponse response = new LoginResponse(result.accessToken, result.refreshToken, profile);
