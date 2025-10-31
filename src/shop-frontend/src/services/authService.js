@@ -13,7 +13,7 @@ export const authService = {
    * @returns {Promise} 註冊結果
    */
   async register(data) {
-    return await apiClient.post('/api/storefront/auth/register', data);
+    return await apiClient.post('/api/shop/auth/register', data);
   },
 
   /**
@@ -24,7 +24,7 @@ export const authService = {
    * @returns {Promise} 登入結果 (包含 accessToken, refreshToken, profile)
    */
   async login(credentials) {
-    return await apiClient.post('/api/storefront/auth/login', credentials);
+    return await apiClient.post('/api/shop/auth/login', credentials);
   },
 
   /**
@@ -33,7 +33,7 @@ export const authService = {
    * @returns {Promise} 新的 Access Token
    */
   async refreshToken(refreshToken) {
-    return await apiClient.post('/api/storefront/auth/refresh-token', {
+    return await apiClient.post('/api/shop/auth/refresh-token', {
       refreshToken,
     });
   },
@@ -43,6 +43,6 @@ export const authService = {
    * @returns {Promise} 登出結果
    */
   async logout() {
-    return await apiClient.post('/api/storefront/auth/logout', {});
+    return await apiClient.post('/api/shop/auth/logout', {});
   },
 };

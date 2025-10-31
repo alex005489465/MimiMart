@@ -9,7 +9,7 @@ export const memberService = {
    * @returns {Promise} 會員資料
    */
   async getProfile() {
-    return await apiClient.get('/api/storefront/member/profile');
+    return await apiClient.get('/api/shop/member/profile');
   },
 
   /**
@@ -21,7 +21,7 @@ export const memberService = {
    * @returns {Promise} 更新結果
    */
   async updateProfile(data) {
-    return await apiClient.post('/api/storefront/member/profile/update', data);
+    return await apiClient.post('/api/shop/member/profile/update', data);
   },
 
   /**
@@ -32,6 +32,6 @@ export const memberService = {
    * @returns {Promise} 修改結果
    */
   async changePassword(data) {
-    return await apiClient.post('/api/storefront/member/change-password', data);
+    return await apiClient.post('/api/shop/member/change-password', data);
   },
 };

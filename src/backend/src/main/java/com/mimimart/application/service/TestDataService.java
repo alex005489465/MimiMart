@@ -40,7 +40,7 @@ public class TestDataService {
     // 測試帳號常數
     private static final String EMAIL_TEMPLATE = "test-member-%03d@test.com";
     private static final String NAME_TEMPLATE = "測試會員%03d";
-    private static final String PHONE_TEMPLATE = "0912-345-%03d";
+    private static final String PHONE_TEMPLATE = "0912345%03d";
     private static final String ADDRESS_TEMPLATE = "台北市信義區測試路%03d號";
     private static final String DEFAULT_PASSWORD = "password123";
     private static final int MIN_COUNT = 1;

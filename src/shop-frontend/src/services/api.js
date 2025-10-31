@@ -47,7 +47,7 @@ apiClient.interceptors.response.use(
         const refreshToken = storage.getRefreshToken();
         if (refreshToken) {
           const response = await axios.post(
-            `${API_BASE_URL}/api/storefront/auth/refresh-token`,
+            `${API_BASE_URL}/api/shop/auth/refresh-token`,
             { refreshToken }
           );
 
