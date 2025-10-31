@@ -1,9 +1,10 @@
 /**
  * 會員資料主頁面 (分頁管理型)
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { memberService } from '../../services/memberService';
 import ProfileView from './components/ProfileView';
 import ProfileEdit from './components/ProfileEdit';
 import PasswordChange from './components/PasswordChange';
@@ -13,6 +14,30 @@ const Member = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  const [avatarBlobUrl, setAvatarBlobUrl] = useState(null);
+
+  // 載入頭像
+  useEffect(() => {
+    const loadAvatar = async () => {
+      if (user?.id && user?.avatarUrl) {
+        try {
+          const blobUrl = await memberService.getAvatarUrl(user.id);
+          setAvatarBlobUrl(blobUrl);
+        } catch (error) {
+          console.error('載入頭像失敗:', error);
+        }
+      }
+    };
+
+    loadAvatar();
+
+    // 清理 Blob URL
+    return () => {
+      if (avatarBlobUrl) {
+        URL.revokeObjectURL(avatarBlobUrl);
+      }
+    };
+  }, [user?.id, user?.avatarUrl]);
 
   const handleLogout = () => {
     logout();
@@ -39,7 +64,15 @@ const Member = () => {
         <aside className={styles.sidebar}>
           <div className={styles.userInfo}>
             <div className={styles.avatar}>
-              {user?.name?.charAt(0)?.toUpperCase() || 'M'}
+              {avatarBlobUrl ? (
+                <img
+                  src={avatarBlobUrl}
+                  alt="會員頭像"
+                  className={styles.avatarImage}
+                />
+              ) : (
+                user?.name?.charAt(0)?.toUpperCase() || 'M'
+              )}
             </div>
             <h2 className={styles.userName}>{user?.name}</h2>
             <p className={styles.userEmail}>{user?.email}</p>

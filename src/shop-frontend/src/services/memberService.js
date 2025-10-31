@@ -34,4 +34,37 @@ export const memberService = {
   async changePassword(data) {
     return await apiClient.post('/api/shop/member/change-password', data);
   },
+
+  /**
+   * 上傳頭像
+   * @param {File} file - 圖片檔案
+   * @returns {Promise} 上傳結果 (包含 avatarUrl 和 avatarUpdatedAt)
+   */
+  async uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    return await apiClient.post('/api/shop/member/avatar/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  /**
+   * 取得頭像顯示 URL
+   * @param {number} memberId - 會員 ID
+   * @returns {Promise<string>} 頭像的 Blob URL
+   */
+  async getAvatarUrl(memberId) {
+    const response = await apiClient.post(
+      '/api/shop/member/avatar/view',
+      { memberId },
+      { responseType: 'blob' }
+    );
+
+    // 將二進位資料轉為 Blob URL
+    const blob = new Blob([response], { type: response.type || 'image/jpeg' });
+    return URL.createObjectURL(blob);
+  },
 };

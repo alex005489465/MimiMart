@@ -17,6 +17,15 @@
   margin-bottom: 2rem;
 }
 
+/* 頭像區域 */
+.avatarSection {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
 .errorAlert {
   background: #fee;
   color: #c33;

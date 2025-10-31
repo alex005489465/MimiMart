@@ -17,6 +17,46 @@
   margin-bottom: 2rem;
 }
 
+/* 頭像顯示區 */
+.avatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.avatarDisplay {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  color: white;
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.avatarUpdateTime {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 .infoSection {
   display: flex;
   flex-direction: column;

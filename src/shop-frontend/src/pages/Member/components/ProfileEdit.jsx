@@ -1,10 +1,11 @@
 /**
  * 編輯個人資料元件
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { memberService } from '../../../services/memberService';
 import { validation } from '../../../utils/validation';
+import AvatarUpload from './AvatarUpload';
 import styles from './ProfileEdit.module.css';
 
 const ProfileEdit = ({ user, onSuccess }) => {
@@ -20,6 +21,29 @@ const ProfileEdit = ({ user, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState(null);
+
+  // 載入當前頭像
+  useEffect(() => {
+    const loadAvatar = async () => {
+      if (user?.id && user?.avatarUrl) {
+        try {
+          const blobUrl = await memberService.getAvatarUrl(user.id);
+          setCurrentAvatarUrl(blobUrl);
+        } catch (error) {
+          console.error('載入頭像失敗:', error);
+        }
+      }
+    };
+
+    loadAvatar();
+
+    return () => {
+      if (currentAvatarUrl) {
+        URL.revokeObjectURL(currentAvatarUrl);
+      }
+    };
+  }, [user?.id, user?.avatarUrl]);
 
   // 處理輸入變更
   const handleChange = (e) => {
@@ -88,10 +112,23 @@ const ProfileEdit = ({ user, onSuccess }) => {
     }
   };
 
+  // 頭像上傳成功後的回調
+  const handleAvatarUploadSuccess = (newAvatarUrl) => {
+    setCurrentAvatarUrl(newAvatarUrl);
+  };
+
   return (
     <div className={styles.profileEdit}>
       <h1 className={styles.title}>編輯個人資料</h1>
       <p className={styles.subtitle}>更新您的帳號資訊</p>
+
+      {/* 頭像上傳區 */}
+      <div className={styles.avatarSection}>
+        <AvatarUpload
+          currentAvatarUrl={currentAvatarUrl}
+          onUploadSuccess={handleAvatarUploadSuccess}
+        />
+      </div>
 
       {errorMessage && (
         <div className={styles.errorAlert}>{errorMessage}</div>

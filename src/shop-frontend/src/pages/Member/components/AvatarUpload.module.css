@@ -1,0 +1,101 @@
+/* 頭像上傳元件樣式 */
+
+.avatarUpload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avatarPreview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.avatarPreview:hover {
+  transform: scale(1.05);
+}
+
+.avatarPreview:hover .avatarOverlay {
+  opacity: 1;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.avatarOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.uploadIcon {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.uploadText {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.fileInput {
+  display: none;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0;
+}
+
+.errorMessage {
+  background: #fee;
+  color: #c33;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  text-align: center;
+  width: 100%;
+}
+
+.successMessage {
+  background: #efe;
+  color: #3a3;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  text-align: center;
+  width: 100%;
+}
