@@ -80,6 +80,9 @@ public class SecurityConfig {
                 // 公開端點: 後台管理員認證 (登入、Refresh Token)
                 .requestMatchers("/api/admin/auth/**").permitAll()
 
+                // 公開端點: 測試資料端點 (僅開發/測試環境,由 @ConditionalOnProperty 控制)
+                .requestMatchers("/api/test/**").permitAll()
+
                 // 公開端點: Swagger UI 和 API 文件 (統一在 /swagger 路徑下)
                 .requestMatchers("/swagger/**").permitAll()
 
