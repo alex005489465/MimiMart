@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ThemeToggle from '../../components/ThemeToggle/ThemeToggle'
 import styles from './Dashboard.module.css'
 
 /**
@@ -53,6 +54,7 @@ function Dashboard() {
           <h1 className={styles.logo}>MimiMart 管理後台</h1>
         </div>
         <div className={styles.headerRight}>
+          <ThemeToggle />
           <div className={styles.userInfo}>
             <span className={styles.username}>{adminUser.username}</span>
           </div>
