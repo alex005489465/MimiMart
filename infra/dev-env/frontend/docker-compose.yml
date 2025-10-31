@@ -1,5 +1,5 @@
 services:
-  frontend:
+  shop-frontend:
     image: node:24-alpine
     container_name: mimimart-shop-frontend
     working_dir: /workspace
@@ -16,7 +16,26 @@ services:
           memory: 512M
           cpus: '2.0'
         reservations:
-          memory: 128M  
+          memory: 128M
+
+  admin-frontend:
+    image: node:24-alpine
+    container_name: mimimart-admin-frontend
+    working_dir: /workspace
+    volumes:
+      - ../../../src/admin-frontend:/workspace
+    ports:
+      - "5174:5174"
+    command: tail -f /dev/null
+    networks:
+      - mimimart-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '2.0'
+        reservations:
+          memory: 128M
 
 networks:
   mimimart-network:
