@@ -73,6 +73,8 @@ application:
 # MimiMart 應用程式配置
 app:
   base-url: ${APP_BASE_URL}
+  frontend:
+    url: ${APP_FRONTEND_URL:http://localhost:5173}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
   # 測試端點配置 (僅開發/測試環境啟用)
@@ -104,6 +106,21 @@ aws:
   credentials:
     access-key-id: ${AWS_ACCESS_KEY_ID}
     secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+
+# MimiMart 業務配置
+mimimart:
+  # 付款配置
+  payment:
+    expiration-minutes: 30  # 付款期限(分鐘)
+    expired-check-cron: "0 */5 * * * ?"  # 逾期檢查排程(每5分鐘)
+  # ECPay 綠界金流配置
+  ecpay:
+    merchant-id: ${ECPAY_MERCHANT_ID}
+    hash-key: ${ECPAY_HASH_KEY}
+    hash-iv: ${ECPAY_HASH_IV}
+    api-url: ${ECPAY_API_URL}
+    return-url: ${ECPAY_RETURN_URL}
+    callback-url: ${ECPAY_CALLBACK_URL}
 
 # 日誌配置
 logging:
