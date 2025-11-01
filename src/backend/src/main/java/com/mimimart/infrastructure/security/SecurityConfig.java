@@ -2,6 +2,7 @@ package com.mimimart.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -86,9 +87,13 @@ public class SecurityConfig {
                 // 公開端點: Swagger UI 和 API 文件 (統一在 /swagger 路徑下)
                 .requestMatchers("/swagger/**").permitAll()
 
-                // 公開端點: 前台商品和分類瀏覽 (不需認證)
+                // 公開端點: 前台商品、分類、輪播圖瀏覽 (不需認證)
                 .requestMatchers("/api/shop/product/**").permitAll()
                 .requestMatchers("/api/shop/category/**").permitAll()
+                .requestMatchers("/api/shop/banner/**").permitAll()
+
+                // 公開端點: 頭像圖片 (任何人都可查看)
+                .requestMatchers(HttpMethod.GET, "/api/shop/member/avatar").permitAll()
 
                 // 前台需認證端點 (會員/地址)
                 .requestMatchers("/api/shop/member/**").authenticated()

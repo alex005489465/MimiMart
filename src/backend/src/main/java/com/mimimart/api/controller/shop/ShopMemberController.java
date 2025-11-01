@@ -123,27 +123,25 @@ public class ShopMemberController {
     }
 
     /**
-     * 查看頭貼
+     * 取得頭貼
      */
-    @PostMapping("/avatar/view")
-    @Operation(summary = "查看頭貼", description = "查看會員頭貼圖片(僅能查看自己的頭貼)")
-    public ResponseEntity<byte[]> viewAvatar(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody AvatarViewRequest request) {
+    @GetMapping("/avatar")
+    @Operation(summary = "取得頭貼", description = "取得指定會員的頭貼圖片(公開訪問)")
+    public ResponseEntity<byte[]> getAvatar(@RequestParam("memberId") Long memberId) {
 
         // 取得頭貼資料
-        byte[] avatarData = memberService.getAvatarData(
-                request.getMemberId(),
-                userDetails.getUserId()
-        );
+        byte[] avatarData = memberService.getAvatarData(memberId);
 
         // 取得 Content-Type
-        String contentType = memberService.getAvatarContentType(request.getMemberId());
+        String contentType = memberService.getAvatarContentType(memberId);
 
         // 設定回應標頭
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(contentType));
         headers.setContentLength(avatarData.length);
+
+        // 設定快取標頭 (快取 1 小時)
+        headers.setCacheControl("public, max-age=3600");
 
         return new ResponseEntity<>(avatarData, headers, HttpStatus.OK);
     }

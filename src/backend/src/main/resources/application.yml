@@ -99,6 +99,8 @@ aws:
   region: ${AWS_REGION}
   s3:
     bucket-name: ${S3_BUCKET_NAME}
+    public-bucket-name: ${S3_PUBLIC_BUCKET_NAME}
+    public-base-url: ${S3_PUBLIC_BASE_URL}
   credentials:
     access-key-id: ${AWS_ACCESS_KEY_ID}
     secret-access-key: ${AWS_SECRET_ACCESS_KEY}

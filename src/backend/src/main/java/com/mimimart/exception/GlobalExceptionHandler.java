@@ -1,6 +1,8 @@
 package com.mimimart.exception;
 
 import com.mimimart.api.dto.ApiResponse;
+import com.mimimart.domain.banner.exception.BannerNotFoundException;
+import com.mimimart.domain.banner.exception.InvalidBannerOrderException;
 import com.mimimart.domain.member.exception.*;
 import com.mimimart.shared.exception.DomainException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -144,6 +146,28 @@ public class GlobalExceptionHandler {
         logger.warn("地址不存在: {}", ex.getMessage());
         return ResponseEntity.ok(
             ApiResponse.error("ADDRESS_NOT_FOUND", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理輪播圖不存在異常
+     */
+    @ExceptionHandler(BannerNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBannerNotFound(BannerNotFoundException ex) {
+        logger.warn("輪播圖不存在: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("BANNER_NOT_FOUND", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理無效輪播圖順序異常
+     */
+    @ExceptionHandler(InvalidBannerOrderException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidBannerOrder(InvalidBannerOrderException ex) {
+        logger.warn("無效輪播圖順序: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("INVALID_BANNER_ORDER", ex.getMessage())
         );
     }
 

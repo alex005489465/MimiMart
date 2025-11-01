@@ -6,14 +6,15 @@ import { memberService } from '../../../services/memberService';
 import { useAuth } from '../../../hooks/useAuth';
 import styles from './AvatarUpload.module.css';
 
-const AvatarUpload = ({ currentAvatarUrl, onUploadSuccess }) => {
+const AvatarUpload = () => {
   const { user, updateUserProfile } = useAuth();
   const fileInputRef = useRef(null);
 
-  const [preview, setPreview] = useState(currentAvatarUrl);
+  const [preview, setPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploadKey, setUploadKey] = useState(0); // 用於強制重新載入圖片
 
   // 檔案驗證
   const validateFile = (file) => {
@@ -70,20 +71,19 @@ const AvatarUpload = ({ currentAvatarUrl, onUploadSuccess }) => {
         };
         updateUserProfile(updatedUser);
 
-        // 通知父組件
-        if (onUploadSuccess) {
-          onUploadSuccess(response.data.avatarUrl);
-        }
+        // 清除預覽,強制重新載入圖片
+        setPreview(null);
+        setUploadKey((prev) => prev + 1);
 
         // 3 秒後清除成功訊息
         setTimeout(() => setSuccess(''), 3000);
       } else {
         setError(response.message || '上傳失敗,請稍後再試');
-        setPreview(currentAvatarUrl); // 恢復原頭像
+        setPreview(null);
       }
     } catch (err) {
       setError(err.message || '上傳失敗,請稍後再試');
-      setPreview(currentAvatarUrl); // 恢復原頭像
+      setPreview(null);
       console.error('頭像上傳錯誤:', err);
     } finally {
       setIsUploading(false);
@@ -99,11 +99,32 @@ const AvatarUpload = ({ currentAvatarUrl, onUploadSuccess }) => {
     fileInputRef.current?.click();
   };
 
+  // 取得當前頭像 URL
+  const getCurrentAvatarUrl = () => {
+    if (preview) return preview;
+    if (user?.avatarUrl) {
+      return `${memberService.getAvatarUrl(user.id)}&_=${uploadKey}`;
+    }
+    return null;
+  };
+
   return (
     <div className={styles.avatarUpload}>
       <div className={styles.avatarPreview} onClick={handleClick}>
-        {preview ? (
-          <img src={preview} alt="頭像預覽" className={styles.avatarImage} />
+        {getCurrentAvatarUrl() ? (
+          <img
+            src={getCurrentAvatarUrl()}
+            alt="頭像預覽"
+            className={styles.avatarImage}
+            onError={(e) => {
+              e.target.style.display = 'none';
+              const placeholder = document.createElement('div');
+              placeholder.className = styles.avatarPlaceholder;
+              placeholder.innerText =
+                user?.name?.charAt(0)?.toUpperCase() || 'M';
+              e.target.parentElement.prepend(placeholder);
+            }}
+          />
         ) : (
           <div className={styles.avatarPlaceholder}>
             {user?.name?.charAt(0)?.toUpperCase() || 'M'}

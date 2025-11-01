@@ -210,7 +210,6 @@ class MemberServiceAvatarTest {
     void getAvatarData_Success() {
         // Arrange
         Long memberId = 1L;
-        Long requesterMemberId = 1L;
         String s3Key = "avatars/1/avatar.jpg";
         byte[] avatarData = "image data".getBytes();
 
@@ -220,7 +219,7 @@ class MemberServiceAvatarTest {
         when(s3StorageService.downloadAvatar(s3Key)).thenReturn(avatarData);
 
         // Act
-        byte[] result = memberService.getAvatarData(memberId, requesterMemberId);
+        byte[] result = memberService.getAvatarData(memberId);
 
         // Assert
         assertThat(result).isEqualTo(avatarData);
@@ -228,34 +227,19 @@ class MemberServiceAvatarTest {
         verify(s3StorageService).downloadAvatar(s3Key);
     }
 
-    @Test
-    @DisplayName("取得頭貼資料 - 無權訪問他人頭貼")
-    void getAvatarData_Unauthorized() {
-        // Arrange
-        Long memberId = 1L;
-        Long requesterMemberId = 2L; // 不同會員
-
-        // Act & Assert
-        assertThatThrownBy(() -> memberService.getAvatarData(memberId, requesterMemberId))
-                .isInstanceOf(UnauthorizedAvatarAccessException.class)
-                .hasMessageContaining("無權訪問該會員的頭貼");
-
-        verify(memberRepository, never()).findById(any());
-        verify(s3StorageService, never()).downloadAvatar(any());
-    }
+    // 此測試已移除 - 頭貼改為公開訪問,不再檢查權限
 
     @Test
     @DisplayName("取得頭貼資料 - 會員尚未上傳頭貼")
     void getAvatarData_NoAvatar() {
         // Arrange
         Long memberId = 1L;
-        Long requesterMemberId = 1L;
         testMember.setAvatarS3Key(null); // 沒有頭貼
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(testMember));
 
         // Act & Assert
-        assertThatThrownBy(() -> memberService.getAvatarData(memberId, requesterMemberId))
+        assertThatThrownBy(() -> memberService.getAvatarData(memberId))
                 .isInstanceOf(AvatarNotFoundException.class)
                 .hasMessageContaining("該會員尚未上傳頭貼");
 

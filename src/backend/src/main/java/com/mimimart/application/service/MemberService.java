@@ -125,18 +125,12 @@ public class MemberService {
     }
 
     /**
-     * 取得會員頭貼資料
+     * 取得會員頭貼資料 (公開訪問)
      *
-     * @param memberId          頭貼所屬會員 ID
-     * @param requesterMemberId 請求者會員 ID
+     * @param memberId 頭貼所屬會員 ID
      * @return 頭貼的位元組陣列
      */
-    public byte[] getAvatarData(Long memberId, Long requesterMemberId) {
-        // 權限驗證:只能讀取自己的頭貼
-        if (!memberId.equals(requesterMemberId)) {
-            throw new UnauthorizedAvatarAccessException("無權訪問該會員的頭貼");
-        }
-
+    public byte[] getAvatarData(Long memberId) {
         // 查詢會員
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("會員不存在"));

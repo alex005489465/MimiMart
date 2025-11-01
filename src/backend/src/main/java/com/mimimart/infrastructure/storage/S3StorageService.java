@@ -30,14 +30,20 @@ public class S3StorageService {
 
     private final S3Client s3Client;
     private final String bucketName;
+    private final String publicBucketName;
+    private final String publicBaseUrl;
 
     public S3StorageService(
             @Value("${aws.region}") String region,
             @Value("${aws.s3.bucket-name}") String bucketName,
+            @Value("${aws.s3.public-bucket-name}") String publicBucketName,
+            @Value("${aws.s3.public-base-url}") String publicBaseUrl,
             @Value("${aws.credentials.access-key-id}") String accessKeyId,
             @Value("${aws.credentials.secret-access-key}") String secretAccessKey) {
 
         this.bucketName = bucketName;
+        this.publicBucketName = publicBucketName;
+        this.publicBaseUrl = publicBaseUrl;
 
         // 初始化 S3 客戶端
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
@@ -46,7 +52,8 @@ public class S3StorageService {
                 .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .build();
 
-        log.info("S3StorageService 已初始化 - Region: {}, Bucket: {}", region, bucketName);
+        log.info("S3StorageService 已初始化 - Region: {}, Bucket: {}, Public Bucket: {}, Public Base URL: {}",
+                region, bucketName, publicBucketName, publicBaseUrl);
     }
 
     /**
@@ -196,5 +203,113 @@ public class S3StorageService {
             log.error("取得 Content-Type 失敗 - S3 Key: {}, Error: {}", s3Key, e.getMessage(), e);
             return "application/octet-stream"; // 預設值
         }
+    }
+
+    // ===== 輪播圖相關方法 =====
+
+    /**
+     * 上傳輪播圖到 S3 公開 Bucket
+     *
+     * @param file 上傳的檔案
+     * @return S3 物件的 URL (完整路徑)
+     * @throws RuntimeException 當上傳失敗時
+     */
+    public String uploadBanner(MultipartFile file) {
+        try {
+            // 生成 S3 key: banners/banner-{timestamp}.{extension}
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : "";
+            String s3Key = String.format("banners/banner-%s%s", timestamp, extension);
+
+            // 上傳到公開 Bucket
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(publicBucketName)
+                    .key(s3Key)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+            // 生成公開 URL (使用自訂域名)
+            String publicUrl = String.format("%s/%s", publicBaseUrl, s3Key);
+            log.info("輪播圖上傳成功 - S3 Key: {}, URL: {}", s3Key, publicUrl);
+            return publicUrl;
+
+        } catch (S3Exception e) {
+            log.error("S3 上傳輪播圖失敗 - Error: {}", e.getMessage(), e);
+            throw new RuntimeException("輪播圖上傳失敗: " + e.awsErrorDetails().errorMessage(), e);
+        } catch (IOException e) {
+            log.error("讀取輪播圖檔案失敗 - Error: {}", e.getMessage(), e);
+            throw new RuntimeException("讀取檔案失敗", e);
+        }
+    }
+
+    /**
+     * 從 S3 刪除輪播圖
+     *
+     * @param imageUrl 圖片的完整 URL
+     */
+    public void deleteBanner(String imageUrl) {
+        try {
+            // 從 URL 提取 S3 Key
+            // 範例: https://mimimart-public.s3.amazonaws.com/banners/banner-1234567890.jpg
+            //       -> banners/banner-1234567890.jpg
+            String s3Key = extractS3KeyFromUrl(imageUrl);
+
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(publicBucketName)
+                    .key(s3Key)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+            log.info("輪播圖刪除成功 - S3 Key: {}", s3Key);
+
+        } catch (S3Exception e) {
+            // 如果物件不存在,也視為刪除成功(冪等性)
+            if (e.statusCode() == 404) {
+                log.warn("S3 輪播圖不存在,視為刪除成功 - URL: {}", imageUrl);
+            } else {
+                log.error("S3 刪除輪播圖失敗 - URL: {}, Error: {}", imageUrl, e.getMessage(), e);
+                throw new RuntimeException("輪播圖刪除失敗: " + e.awsErrorDetails().errorMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * 從 S3 URL 提取 S3 Key
+     *
+     * @param url S3 物件的完整 URL
+     * @return S3 Key
+     */
+    private String extractS3KeyFromUrl(String url) {
+        // 優先支援自訂域名格式
+        // 例: http://shop-storage-public-dev.xenolume.com/banners/banner-123.jpg
+        //     -> banners/banner-123.jpg
+        if (url.startsWith(publicBaseUrl)) {
+            String key = url.substring(publicBaseUrl.length());
+            // 移除開頭的 /
+            return key.startsWith("/") ? key.substring(1) : key;
+        }
+
+        // 向下相容: 支援 AWS S3 標準 URL 格式
+        // 格式 1: https://bucket-name.s3.amazonaws.com/key
+        if (url.contains(".s3.amazonaws.com/")) {
+            return url.substring(url.indexOf(".s3.amazonaws.com/") + 18);
+        }
+
+        // 格式 2: https://s3.amazonaws.com/bucket-name/key
+        if (url.contains("s3.amazonaws.com/")) {
+            String afterS3 = url.substring(url.indexOf("s3.amazonaws.com/") + 17);
+            // 跳過 bucket name
+            return afterS3.substring(afterS3.indexOf("/") + 1);
+        }
+
+        // 假設傳入的已經是 S3 Key
+        log.warn("無法從 URL 解析 S3 Key,假設傳入的是 Key 本身: {}", url);
+        return url;
     }
 }

@@ -1,36 +1,10 @@
 /**
  * 個人資料檢視元件
  */
-import { useState, useEffect } from 'react';
 import { memberService } from '../../../services/memberService';
 import styles from './ProfileView.module.css';
 
 const ProfileView = ({ user }) => {
-  const [avatarBlobUrl, setAvatarBlobUrl] = useState(null);
-
-  // 載入頭像
-  useEffect(() => {
-    const loadAvatar = async () => {
-      if (user?.id && user?.avatarUrl) {
-        try {
-          const blobUrl = await memberService.getAvatarUrl(user.id);
-          setAvatarBlobUrl(blobUrl);
-        } catch (error) {
-          console.error('載入頭像失敗:', error);
-        }
-      }
-    };
-
-    loadAvatar();
-
-    // 清理 Blob URL
-    return () => {
-      if (avatarBlobUrl) {
-        URL.revokeObjectURL(avatarBlobUrl);
-      }
-    };
-  }, [user?.id, user?.avatarUrl]);
-
   return (
     <div className={styles.profileView}>
       <h1 className={styles.title}>個人資料</h1>
@@ -39,11 +13,19 @@ const ProfileView = ({ user }) => {
       {/* 頭像顯示區 */}
       <div className={styles.avatarSection}>
         <div className={styles.avatarDisplay}>
-          {avatarBlobUrl ? (
+          {user?.avatarUrl ? (
             <img
-              src={avatarBlobUrl}
+              src={memberService.getAvatarUrl(user.id)}
               alt="會員頭像"
               className={styles.avatarImage}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                const placeholder = document.createElement('div');
+                placeholder.className = styles.avatarPlaceholder;
+                placeholder.innerText =
+                  user?.name?.charAt(0)?.toUpperCase() || 'M';
+                e.target.parentElement.appendChild(placeholder);
+              }}
             />
           ) : (
             <div className={styles.avatarPlaceholder}>

@@ -52,19 +52,12 @@ export const memberService = {
   },
 
   /**
-   * 取得頭像顯示 URL
+   * 取得頭像 URL
    * @param {number} memberId - 會員 ID
-   * @returns {Promise<string>} 頭像的 Blob URL
+   * @returns {string} 頭像的 URL
    */
-  async getAvatarUrl(memberId) {
-    const response = await apiClient.post(
-      '/api/shop/member/avatar/view',
-      { memberId },
-      { responseType: 'blob' }
-    );
-
-    // 將二進位資料轉為 Blob URL
-    const blob = new Blob([response], { type: response.type || 'image/jpeg' });
-    return URL.createObjectURL(blob);
+  getAvatarUrl(memberId) {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+    return `${baseUrl}/api/shop/member/avatar?memberId=${memberId}`;
   },
 };
