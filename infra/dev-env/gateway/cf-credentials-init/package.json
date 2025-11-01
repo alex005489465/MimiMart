@@ -1,0 +1,20 @@
+{
+  "name": "cf-credentials-init",
+  "version": "1.0.0",
+  "description": "Cloudflare Tunnel Token 轉換工具 - 將 CLOUDFLARE_TUNNEL_TOKEN 轉換為 credentials.json",
+  "main": "init-credentials.js",
+  "scripts": {
+    "init": "node init-credentials.js",
+    "clean": "rm -f ../cloudflared/config/credentials.json"
+  },
+  "keywords": [
+    "cloudflare",
+    "tunnel",
+    "credentials"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

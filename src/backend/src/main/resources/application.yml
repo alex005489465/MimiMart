@@ -74,7 +74,7 @@ application:
 app:
   base-url: ${APP_BASE_URL}
   frontend:
-    url: ${APP_FRONTEND_URL:http://localhost:5173}
+    url: ${APP_FRONTEND_URL}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
   # 測試端點配置 (僅開發/測試環境啟用)

@@ -1,0 +1,82 @@
+# MimiMart 後端 API 路由配置
+# 僅轉發特定路徑到後端容器
+
+# Upstream 定義
+upstream mimimart_backend {
+    server mimimart-java:8080;
+    keepalive 32;
+}
+
+# 主要伺服器區塊
+server {
+    listen 80;
+    server_name _;
+
+    # 安全標頭
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # 健康檢查端點
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    # ECPay 金流回調端點
+    location /api/payment/ecpay/ {
+        # 日誌
+        access_log /var/log/nginx/backend.log main;
+
+        # Proxy 設定
+        proxy_pass http://mimimart_backend;
+        proxy_http_version 1.1;
+
+        # 保留真實 IP 和協定
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+
+        # Cloudflare 特定標頭
+        proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
+        proxy_set_header CF-Ray $http_cf_ray;
+        proxy_set_header CF-Visitor $http_cf_visitor;
+
+        # 連接設定
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_request_buffering off;
+
+        # 超時設定
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 其他 API 路徑（可選，根據需求開啟）
+    # location /api/ {
+    #     access_log /var/log/nginx/backend.log main;
+    #     proxy_pass http://mimimart_backend;
+    #     proxy_http_version 1.1;
+    #
+    #     proxy_set_header Host $host;
+    #     proxy_set_header X-Real-IP $remote_addr;
+    #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    #     proxy_set_header X-Forwarded-Proto $scheme;
+    #     proxy_set_header Connection "";
+    # }
+
+    # 拒絕所有其他請求
+    location / {
+        access_log off;
+        return 404 "Not Found\n";
+        add_header Content-Type text/plain;
+    }
+
+    # 隱藏 nginx 版本資訊
+    server_tokens off;
+}

@@ -1,0 +1,11 @@
+# Cloudflare Tunnel 配置（可能包含敏感資訊）
+cloudflared/config/credentials.json
+cloudflared/config/config.yml
+
+# Nginx 配置（可能包含專案特定設定）
+nginx/nginx.conf
+nginx/conf.d/*.conf
+
+# 日誌
+*.log
+logs/
