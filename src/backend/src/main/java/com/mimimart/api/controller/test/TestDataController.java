@@ -1,8 +1,10 @@
 package com.mimimart.api.controller.test;
 
 import com.mimimart.api.dto.ApiResponse;
+import com.mimimart.api.dto.response.TestAdminAccountResponse;
 import com.mimimart.api.dto.test.TestAccountResponse;
 import com.mimimart.application.service.TestDataService;
+import com.mimimart.infrastructure.persistence.entity.Admin;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -68,6 +70,40 @@ public class TestDataController {
                 .collect(Collectors.toList());
 
         String message = String.format("成功獲取 %d 個測試帳號", count);
+        return ResponseEntity.ok(ApiResponse.success(message, responses));
+    }
+
+    /**
+     * 獲取測試管理員帳號
+     */
+    @GetMapping("/accounts/admin")
+    @Operation(
+            summary = "獲取測試管理員帳號",
+            description = "返回指定數量的測試管理員帳號資訊 (1-100個)。如果帳號不存在會自動創建。\n\n" +
+                    "測試帳號規格:\n" +
+                    "- Username: test-admin-001 ~ test-admin-100\n" +
+                    "- Email: test-admin-001@test.com ~ test-admin-100@test.com\n" +
+                    "- Password: admin123 (統一密碼)\n" +
+                    "- Name: 測試管理員001 ~ 測試管理員100"
+    )
+    public ResponseEntity<ApiResponse<List<TestAdminAccountResponse>>> getTestAdmins(
+            @Parameter(description = "獲取的帳號數量", example = "1")
+            @RequestParam(defaultValue = "1") int count) {
+
+        // 獲取或創建測試管理員
+        List<Admin> admins = testDataService.getOrCreateTestAdmins(count);
+
+        // 組裝回應
+        String password = testDataService.getAdminDefaultPassword();
+        List<TestAdminAccountResponse> responses = admins.stream()
+                .map(admin -> new TestAdminAccountResponse(
+                        admin.getUsername(),
+                        admin.getEmail(),
+                        password
+                ))
+                .collect(Collectors.toList());
+
+        String message = String.format("成功獲取 %d 個測試管理員帳號 (預設密碼: %s)", count, password);
         return ResponseEntity.ok(ApiResponse.success(message, responses));
     }
 

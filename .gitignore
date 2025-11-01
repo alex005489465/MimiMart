@@ -2,6 +2,7 @@
 docs/
 CLAUDE.md
 src/temp
+src/shop-backend/
 
 # 環境變數（各平台目錄）
 **/.env

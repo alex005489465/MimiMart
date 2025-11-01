@@ -1,7 +1,10 @@
 package com.mimimart.application.service;
 
+import com.mimimart.infrastructure.persistence.entity.Admin;
 import com.mimimart.infrastructure.persistence.entity.Member;
+import com.mimimart.infrastructure.persistence.repository.AdminRepository;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
+import com.mimimart.shared.valueobject.AdminStatus;
 import com.mimimart.shared.valueobject.MemberStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,22 +35,32 @@ import java.util.Optional;
 public class TestDataService {
 
     private final MemberRepository memberRepository;
+    private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.test-endpoints.enabled:false}")
     private boolean testEndpointsEnabled;
 
-    // 測試帳號常數
+    // 會員測試帳號常數
     private static final String EMAIL_TEMPLATE = "test-member-%03d@test.com";
     private static final String NAME_TEMPLATE = "測試會員%03d";
     private static final String PHONE_TEMPLATE = "0912345%03d";
     private static final String ADDRESS_TEMPLATE = "台北市信義區測試路%03d號";
     private static final String DEFAULT_PASSWORD = "password123";
+
+    // 管理員測試帳號常數
+    private static final String ADMIN_USERNAME_TEMPLATE = "test-admin-%03d";
+    private static final String ADMIN_EMAIL_TEMPLATE = "test-admin-%03d@test.com";
+    private static final String ADMIN_NAME_TEMPLATE = "測試管理員%03d";
+    private static final String ADMIN_DEFAULT_PASSWORD = "admin123";
+
+    // 通用常數
     private static final int MIN_COUNT = 1;
     private static final int MAX_COUNT = 100;
 
-    public TestDataService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
+    public TestDataService(MemberRepository memberRepository, AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
+        this.adminRepository = adminRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -133,5 +146,75 @@ public class TestDataService {
      */
     public String getDefaultPassword() {
         return DEFAULT_PASSWORD;
+    }
+
+    /**
+     * 獲取或創建測試管理員帳號
+     *
+     * @param count 帳號數量 (1-100)
+     * @return 測試管理員列表
+     */
+    @Transactional
+    public List<Admin> getOrCreateTestAdmins(int count) {
+        checkTestEndpointsEnabled();
+
+        // 驗證數量範圍
+        if (count < MIN_COUNT || count > MAX_COUNT) {
+            throw new IllegalArgumentException(
+                    String.format("帳號數量必須在 %d-%d 之間", MIN_COUNT, MAX_COUNT)
+            );
+        }
+
+        List<Admin> admins = new ArrayList<>();
+
+        for (int i = 1; i <= count; i++) {
+            String username = String.format(ADMIN_USERNAME_TEMPLATE, i);
+            String email = String.format(ADMIN_EMAIL_TEMPLATE, i);
+            String name = String.format(ADMIN_NAME_TEMPLATE, i);
+
+            // 檢查是否已存在（透過 username 查詢）
+            Optional<Admin> existingAdmin = adminRepository.findByUsername(username);
+
+            if (existingAdmin.isPresent()) {
+                admins.add(existingAdmin.get());
+                log.debug("測試管理員帳號已存在: {}", username);
+            } else {
+                // 創建新的測試管理員
+                Admin newAdmin = createTestAdmin(username, email, name);
+                admins.add(newAdmin);
+                log.info("創建新的測試管理員: {}", username);
+            }
+        }
+
+        return admins;
+    }
+
+    /**
+     * 創建測試管理員
+     *
+     * @param username 帳號
+     * @param email    Email
+     * @param name     姓名
+     * @return 管理員實體
+     */
+    private Admin createTestAdmin(String username, String email, String name) {
+        Admin admin = new Admin();
+        admin.setUsername(username);
+        admin.setEmail(email);
+        admin.setPasswordHash(passwordEncoder.encode(ADMIN_DEFAULT_PASSWORD));
+        admin.setName(name);
+        admin.setStatus(AdminStatus.ACTIVE);
+
+        return adminRepository.save(admin);
+    }
+
+    /**
+     * 獲取管理員預設密碼
+     * (提供給 Controller 使用)
+     *
+     * @return 管理員預設密碼
+     */
+    public String getAdminDefaultPassword() {
+        return ADMIN_DEFAULT_PASSWORD;
     }
 }
