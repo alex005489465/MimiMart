@@ -4,6 +4,7 @@ import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.domain.banner.exception.BannerNotFoundException;
 import com.mimimart.domain.banner.exception.InvalidBannerOrderException;
 import com.mimimart.domain.member.exception.*;
+import com.mimimart.domain.order.exception.*;
 import com.mimimart.shared.exception.DomainException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -168,6 +169,50 @@ public class GlobalExceptionHandler {
         logger.warn("無效輪播圖順序: {}", ex.getMessage());
         return ResponseEntity.ok(
             ApiResponse.error("INVALID_BANNER_ORDER", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理訂單不存在異常
+     */
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOrderNotFound(OrderNotFoundException ex) {
+        logger.warn("訂單不存在: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("ORDER_NOT_FOUND", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理無效訂單狀態轉換異常
+     */
+    @ExceptionHandler(InvalidOrderStatusTransitionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidOrderStatusTransition(InvalidOrderStatusTransitionException ex) {
+        logger.warn("無效訂單狀態轉換: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("INVALID_ORDER_STATUS", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理購物車為空異常
+     */
+    @ExceptionHandler(EmptyCartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEmptyCart(EmptyCartException ex) {
+        logger.warn("購物車為空: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("EMPTY_CART", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理未授權訂單存取異常
+     */
+    @ExceptionHandler(UnauthorizedOrderAccessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedOrderAccess(UnauthorizedOrderAccessException ex) {
+        logger.warn("未授權訂單存取: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("UNAUTHORIZED_ORDER_ACCESS", ex.getMessage())
         );
     }
 

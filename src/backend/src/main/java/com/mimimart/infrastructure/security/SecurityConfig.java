@@ -95,9 +95,11 @@ public class SecurityConfig {
                 // 公開端點: 頭像圖片 (任何人都可查看)
                 .requestMatchers(HttpMethod.GET, "/api/shop/member/avatar").permitAll()
 
-                // 前台需認證端點 (會員/地址)
+                // 前台需認證端點 (會員/地址/購物車/訂單)
                 .requestMatchers("/api/shop/member/**").authenticated()
                 .requestMatchers("/api/shop/address/**").authenticated()
+                .requestMatchers("/api/shop/cart/**").authenticated()
+                .requestMatchers("/api/shop/order/**").authenticated()
 
                 // 後台端點 (需認證)
                 .requestMatchers("/api/admin/**").authenticated()
