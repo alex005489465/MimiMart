@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import authService from '@/services/authService'
 import styles from './Login.module.css'
 
 /**
@@ -43,24 +44,21 @@ function Login() {
     setError('')
 
     try {
-      // TODO: 整合實際的登入 API
-      // const response = await authService.login(formData)
+      // 呼叫實際的登入 API
+      await authService.login(formData)
 
-      // 模擬 API 呼叫
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // 暫時儲存登入狀態（後續需要改用實際的 token 管理）
-      localStorage.setItem('isAuthenticated', 'true')
-      localStorage.setItem('adminUser', JSON.stringify({
-        username: formData.username,
-        loginTime: new Date().toISOString()
-      }))
-
-      // 導向儀表板
+      // 登入成功，導向儀表板
       navigate('/dashboard')
     } catch (err) {
       console.error('登入失敗:', err)
-      setError(err.message || '登入失敗，請檢查帳號密碼')
+      // 處理不同類型的錯誤
+      if (err.response?.status === 401) {
+        setError('帳號或密碼錯誤')
+      } else if (err.response?.status === 403) {
+        setError('您沒有管理員權限')
+      } else {
+        setError(err.response?.data?.message || err.message || '登入失敗，請稍後再試')
+      }
     } finally {
       setIsLoading(false)
     }

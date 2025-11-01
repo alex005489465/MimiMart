@@ -15,14 +15,22 @@ const authService = {
     try {
       const response = await apiClient.post('/api/admin/auth/login', credentials)
 
+      // 後端使用 ApiResponse 包裝，實際資料在 data 欄位中
+      const { data } = response
+
       // 儲存 token 和使用者資訊
-      if (response.token) {
-        localStorage.setItem('adminToken', response.token)
+      if (data.accessToken) {
+        localStorage.setItem('adminToken', data.accessToken)
         localStorage.setItem('isAuthenticated', 'true')
-        localStorage.setItem('adminUser', JSON.stringify(response.user || { username: credentials.username }))
+        localStorage.setItem('adminUser', JSON.stringify(data.profile || { username: credentials.username }))
+
+        // 選擇性儲存 refreshToken
+        if (data.refreshToken) {
+          localStorage.setItem('adminRefreshToken', data.refreshToken)
+        }
       }
 
-      return response
+      return data
     } catch (error) {
       throw error
     }

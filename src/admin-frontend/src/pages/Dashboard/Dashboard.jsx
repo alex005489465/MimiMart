@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import authService from '@/services/authService'
 import ThemeToggle from '../../components/ThemeToggle/ThemeToggle'
 import styles from './Dashboard.module.css'
 
@@ -34,9 +35,8 @@ function Dashboard() {
    * 處理登出
    */
   const handleLogout = () => {
-    // 清除登入狀態
-    localStorage.removeItem('isAuthenticated')
-    localStorage.removeItem('adminUser')
+    // 使用 authService 清除所有登入狀態
+    authService.logout()
 
     // 導向登入頁
     navigate('/')
