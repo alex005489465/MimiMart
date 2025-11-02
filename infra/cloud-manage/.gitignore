@@ -2,6 +2,9 @@
 # Terraform 相關檔案
 # ====================================================================
 
+# 臨時
+temp/
+
 # Terraform state 檔案
 *.tfstate
 *.tfstate.*
@@ -16,7 +19,9 @@ crash.log
 crash.*.log
 
 # 變數檔案可能包含敏感資訊
+*.tfvars
 *.tfvars.json
+!*.tfvars.example
 
 # CLI 配置檔案
 .terraformrc
@@ -25,6 +30,11 @@ terraform.rc
 # ====================================================================
 # 專案特定忽略
 # ====================================================================
+
+# 環境變數檔案（包含 API Token 和金鑰）
+.env
+*.env
+!.env.example
 
 # 開發者 IP 配置檔案（包含真實 IP，不應提交）
 modules/ip-ranges/developer-ips.json
