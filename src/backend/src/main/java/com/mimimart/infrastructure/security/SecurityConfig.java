@@ -95,6 +95,9 @@ public class SecurityConfig {
                 // 公開端點: 頭像圖片 (任何人都可查看)
                 .requestMatchers(HttpMethod.GET, "/api/shop/member/avatar").permitAll()
 
+                // 公開端點: 金流回調 (第三方金流服務回調,無法提供 JWT Token)
+                .requestMatchers("/api/shop/payment/ecpay/**").permitAll()
+
                 // 前台需認證端點 (會員/地址/購物車/訂單)
                 .requestMatchers("/api/shop/member/**").authenticated()
                 .requestMatchers("/api/shop/address/**").authenticated()
