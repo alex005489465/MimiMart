@@ -3,6 +3,7 @@ package com.mimimart.application.service;
 import com.mimimart.domain.order.model.Money;
 import com.mimimart.domain.order.model.Order;
 import com.mimimart.domain.payment.exception.PaymentNotFoundException;
+import com.mimimart.domain.payment.exception.UnauthorizedPaymentAccessException;
 import com.mimimart.domain.payment.model.Payment;
 import com.mimimart.infrastructure.payment.ecpay.ECPayService;
 import com.mimimart.infrastructure.persistence.entity.OrderEntity;
@@ -102,24 +103,39 @@ public class PaymentService {
     /**
      * 查詢付款詳情
      *
+     * @param memberId 會員 ID (用於驗證所有權)
      * @param paymentNumber 付款編號
      * @return 付款領域模型
      */
-    public Payment getPaymentDetail(String paymentNumber) {
+    public Payment getPaymentDetail(Long memberId, String paymentNumber) {
         PaymentEntity paymentEntity = paymentRepository.findByPaymentNumber(paymentNumber)
                 .orElseThrow(() -> new PaymentNotFoundException(paymentNumber));
 
-        return paymentMapper.toDomain(paymentEntity);
+        Payment payment = paymentMapper.toDomain(paymentEntity);
+
+        // 驗證付款記錄所有權
+        OrderEntity orderEntity = orderRepository.findById(payment.getOrderId())
+                .orElseThrow(() -> new RuntimeException("訂單不存在"));
+
+        if (!orderEntity.getMemberId().equals(memberId)) {
+            logger.warn("未授權存取付款記錄: memberId={}, paymentNumber={}, orderMemberId={}",
+                    memberId, paymentNumber, orderEntity.getMemberId());
+            throw new UnauthorizedPaymentAccessException(paymentNumber);
+        }
+
+        return payment;
     }
 
     /**
      * 取得付款的綠界參數
      *
+     * @param memberId 會員 ID (用於驗證所有權)
      * @param paymentNumber 付款編號
      * @return 綠界 API 參數
      */
-    public Map<String, String> getECPayParams(String paymentNumber) {
-        Payment payment = getPaymentDetail(paymentNumber);
+    public Map<String, String> getECPayParams(Long memberId, String paymentNumber) {
+        // 使用帶有所有權驗證的方法
+        Payment payment = getPaymentDetail(memberId, paymentNumber);
 
         // 取得訂單資訊作為商品描述
         OrderEntity orderEntity = orderRepository.findById(payment.getOrderId())

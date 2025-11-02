@@ -7,6 +7,8 @@ import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.application.service.PaymentService;
 import com.mimimart.domain.payment.model.Payment;
 import com.mimimart.infrastructure.config.ECPayConfig;
+import com.mimimart.infrastructure.security.CustomUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -35,12 +37,15 @@ public class ShopPaymentController {
      * 查詢付款詳情
      * URL 使用靜態路徑,付款編號放在 Body 中
      *
+     * @param userDetails 當前登入使用者
      * @param request 查詢請求
      * @return 付款詳情
      */
     @PostMapping("/detail")
-    public ApiResponse<PaymentDetailResponse> getPaymentDetail(@Valid @RequestBody PaymentDetailRequest request) {
-        Payment payment = paymentService.getPaymentDetail(request.getPaymentNumber());
+    public ApiResponse<PaymentDetailResponse> getPaymentDetail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody PaymentDetailRequest request) {
+        Payment payment = paymentService.getPaymentDetail(userDetails.getUserId(), request.getPaymentNumber());
         return ApiResponse.success("查詢付款詳情成功", PaymentDetailResponse.from(payment));
     }
 
@@ -48,12 +53,15 @@ public class ShopPaymentController {
      * 取得綠界付款參數
      * 前端可使用這些參數自動提交表單到綠界
      *
+     * @param userDetails 當前登入使用者
      * @param request 查詢請求
      * @return 綠界付款參數
      */
     @PostMapping("/ecpay/params")
-    public ApiResponse<PaymentParamsResponse> getECPayParams(@Valid @RequestBody PaymentDetailRequest request) {
-        Map<String, String> params = paymentService.getECPayParams(request.getPaymentNumber());
+    public ApiResponse<PaymentParamsResponse> getECPayParams(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody PaymentDetailRequest request) {
+        Map<String, String> params = paymentService.getECPayParams(userDetails.getUserId(), request.getPaymentNumber());
 
         PaymentParamsResponse response = new PaymentParamsResponse();
         response.setPaymentUrl(ecPayConfig.getCreatePaymentUrl());
