@@ -1,0 +1,25 @@
+{
+  "name": "@mimimart/ssh-keygen",
+  "version": "1.0.0",
+  "description": "SSH key pair generator for AWS EC2 instances",
+  "main": "generate-key.js",
+  "type": "module",
+  "scripts": {
+    "generate": "node generate-key.js",
+    "clean": "node -e \"require('fs').rmSync('./output', {recursive: true, force: true}); require('fs').mkdirSync('./output'); require('fs').writeFileSync('./output/.gitkeep', '');\"",
+    "list": "node -e \"const fs = require('fs'); const files = fs.readdirSync('./output').filter(f => f !== '.gitkeep'); console.log('Generated keys:', files.length ? files.join('\\n') : 'None');\""
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "ssh",
+    "keygen",
+    "aws",
+    "ec2",
+    "infrastructure"
+  ],
+  "author": "MimiMart Infrastructure Team",
+  "license": "UNLICENSED",
+  "private": true
+}

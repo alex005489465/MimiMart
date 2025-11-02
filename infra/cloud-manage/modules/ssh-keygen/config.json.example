@@ -1,0 +1,16 @@
+{
+  "default_key_type": "ed25519",
+  "default_output_dir": "./output",
+  "keys": [
+    {
+      "name": "my-server-key",
+      "comment": "My Server SSH Access"
+    },
+    {
+      "name": "my-legacy-server-key",
+      "type": "rsa",
+      "bits": 4096,
+      "comment": "My Legacy Server SSH Access"
+    }
+  ]
+}
