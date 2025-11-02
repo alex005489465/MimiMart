@@ -1,0 +1,96 @@
+# ========================================
+# AWS 認證資訊
+# ========================================
+# 實際認證資訊請從 aws/.env 檔案透過環境變數提供
+# 不需要在此檔案中填寫
+
+# aws_region     = "透過 TF_VAR_aws_region 環境變數提供"
+# aws_access_key = "透過 TF_VAR_aws_access_key 環境變數提供"
+# aws_secret_key = "透過 TF_VAR_aws_secret_key 環境變數提供"
+
+# ========================================
+# 專案資訊
+# ========================================
+
+project_name = "example-project"  # 專案名稱
+environment  = "dev"              # 環境：dev, staging, prod
+
+# ========================================
+# EC2 實例配置
+# ========================================
+
+instance_count = 1                      # 實例數量
+ami_id         = "ami-xxxxxxxxxxxxxxxxx" # Amazon Linux 2023 AMI ID (需查詢最新版本)
+instance_type  = "t3.micro"             # 實例類型 (可選：t3.micro, t3.small, t3.medium 等)
+
+# ========================================
+# 網路配置
+# ========================================
+
+# 從 VPC 模組取得 (執行 terraform output -json 查看)
+subnet_ids = [
+  "subnet-xxxxxxxxxxxxxxxxx"  # VPC 模組的 public_subnet_id
+]
+
+# 從 Security Groups 模組取得
+security_group_ids = [
+  "sg-xxxxxxxxxxxxxxxxx",  # SSH Security Group
+  # "sg-xxxxxxxxxxxxxxxxx",  # 其他 Security Groups (如需要)
+]
+
+# 固定私有 IP (選用，註解掉則自動分配)
+# private_ips = [
+#   "10.0.1.20"  # 請確保 IP 在子網路 CIDR 範圍內
+# ]
+
+# ========================================
+# SSH 金鑰配置
+# ========================================
+
+# 從 Key Pair 模組取得
+key_name = "example-key-pair"  # Key Pair 模組建立的金鑰名稱
+
+# ========================================
+# 儲存配置
+# ========================================
+
+root_volume_type                  = "gp3"  # 最新一代 SSD
+root_volume_size                  = 20     # 根磁碟大小 (GB)
+root_volume_delete_on_termination = true   # 終止實例時刪除磁碟
+root_volume_encrypted             = true   # 加密磁碟
+
+# ========================================
+# 選用配置
+# ========================================
+
+# 使用者資料腳本 (選用)
+# 若不指定，則使用預設的 user-data.sh (安裝 Docker 和 Docker Compose)
+# user_data_script = <<-EOF
+# #!/bin/bash
+# dnf update -y
+# dnf install -y docker git
+# systemctl start docker
+# systemctl enable docker
+# usermod -aG docker ec2-user
+# EOF
+
+# ========================================
+# Elastic IP 配置
+# ========================================
+
+# 是否關聯 Elastic IP (若使用 EIP，需先部署 EIP 模組)
+associate_eip = false
+
+# EIP Allocation IDs (從 EIP 模組取得)
+# 範例: eip_allocation_ids = ["eipalloc-xxxxxxxxxxxxxxxxx"]
+eip_allocation_ids = []
+
+# ========================================
+# 額外標籤
+# ========================================
+
+additional_tags = {
+  # Owner       = "your-name"
+  # CostCenter  = "engineering"
+  # Description = "Production EC2 instance"
+}

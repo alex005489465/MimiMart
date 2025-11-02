@@ -11,6 +11,7 @@ aws/
 ├── vpc/                   # VPC 網路模組
 ├── eip/                   # Elastic IP 模組
 ├── security-groups/       # 安全組模組
+├── key-pair/              # SSH Key Pair 金鑰對模組
 ├── ec2/                   # EC2 計算實例模組
 └── s3/                    # S3 物件儲存模組
 ```
@@ -53,6 +54,12 @@ Elastic IP 靜態公有 IP 位址管理，可用於 EC2 實例、NAT Gateway 等
 
 詳見：[security-groups/README.md](security-groups/README.md)
 
+### Key Pair 模組 (`key-pair/`)
+
+SSH 金鑰對管理，用於 EC2 實例的安全登入認證
+
+詳見：[key-pair/README.md](key-pair/README.md)
+
 ### EC2 模組 (`ec2/`)
 
 EC2 計算實例管理：虛擬伺服器、SSH 金鑰對、根磁碟配置、Elastic IP 關聯
@@ -73,8 +80,9 @@ S3 物件儲存管理：
 1. EIP（無依賴）
 2. VPC（無依賴，或依賴 EIP 如需用於 NAT Gateway）
 3. Security Groups（依賴 VPC）
-4. EC2（依賴 VPC、Security Groups、選擇性依賴 EIP）
-5. S3（無依賴）
+4. Key Pair（無依賴，EC2 的前置需求）
+5. EC2（依賴 VPC、Security Groups、Key Pair、選擇性依賴 EIP）
+6. S3（無依賴）
 
 ## 使用方式
 
