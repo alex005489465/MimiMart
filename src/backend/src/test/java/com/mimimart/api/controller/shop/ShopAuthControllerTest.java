@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mimimart.api.dto.member.LoginRequest;
 import com.mimimart.api.dto.member.RefreshTokenRequest;
 import com.mimimart.api.dto.member.RegisterRequest;
+import com.mimimart.api.dto.request.ForgotPasswordRequest;
+import com.mimimart.api.dto.request.ResendVerificationEmailRequest;
+import com.mimimart.api.dto.request.ResetPasswordRequest;
+import com.mimimart.api.dto.request.VerifyEmailRequest;
 import com.mimimart.application.service.AuthService;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
@@ -188,5 +192,165 @@ class ShopAuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Refresh Token 無效或已過期"));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/verify-email - 使用有效 Token 驗證 Email 成功")
+    void testVerifyEmail_Success() throws Exception {
+        // Given
+        String email = "verify@example.com";
+        Member member = authService.register(email, "password123", "驗證測試會員");
+        String token = member.getVerificationToken();
+
+        VerifyEmailRequest request = new VerifyEmailRequest(token);
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Email 驗證成功"))
+                .andExpect(jsonPath("$.data.verified").value(true));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/verify-email - 使用無效 Token 應返回失敗")
+    void testVerifyEmail_InvalidToken() throws Exception {
+        // Given
+        VerifyEmailRequest request = new VerifyEmailRequest("invalid-token");
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("無效的驗證 Token"));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/resend-verification - 重新發送驗證郵件成功")
+    void testResendVerificationEmail_Success() throws Exception {
+        // Given
+        String email = "resend@example.com";
+        authService.register(email, "password123", "重發測試會員");
+
+        ResendVerificationEmailRequest request = new ResendVerificationEmailRequest(email);
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/resend-verification")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("驗證郵件已重新發送"));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/resend-verification - 會員不存在應返回失敗")
+    void testResendVerificationEmail_MemberNotFound() throws Exception {
+        // Given
+        ResendVerificationEmailRequest request = new ResendVerificationEmailRequest("nonexistent@example.com");
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/resend-verification")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("會員不存在"));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/forgot-password - 申請密碼重設成功")
+    void testForgotPassword_Success() throws Exception {
+        // Given
+        String email = "forgot@example.com";
+        authService.register(email, "password123", "忘記密碼測試");
+
+        ForgotPasswordRequest request = new ForgotPasswordRequest(email);
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("密碼重設郵件已發送"))
+                .andExpect(jsonPath("$.data.message").value("密碼重設郵件已發送，請查看您的信箱"));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/forgot-password - 會員不存在應返回失敗")
+    void testForgotPassword_MemberNotFound() throws Exception {
+        // Given
+        ForgotPasswordRequest request = new ForgotPasswordRequest("nonexistent@example.com");
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("會員不存在"));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/reset-password - 重設密碼成功")
+    void testResetPassword_Success() throws Exception {
+        // Given
+        String email = "reset@example.com";
+        authService.register(email, "oldpassword", "重設密碼測試");
+        authService.requestPasswordReset(email);
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        String resetToken = member.getPasswordResetToken();
+
+        ResetPasswordRequest request = new ResetPasswordRequest(resetToken, "newpassword123", "newpassword123");
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("密碼重設成功"))
+                .andExpect(jsonPath("$.data.success").value(true));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/reset-password - 密碼不一致應返回失敗")
+    void testResetPassword_PasswordMismatch() throws Exception {
+        // Given
+        String email = "mismatch@example.com";
+        authService.register(email, "password123", "密碼不一致測試");
+        authService.requestPasswordReset(email);
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        String resetToken = member.getPasswordResetToken();
+
+        ResetPasswordRequest request = new ResetPasswordRequest(resetToken, "newpassword", "differentpassword");
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("新密碼與確認密碼不一致"));
+    }
+
+    @Test
+    @DisplayName("POST /api/shop/auth/reset-password - 使用無效 Token 應返回失敗")
+    void testResetPassword_InvalidToken() throws Exception {
+        // Given
+        ResetPasswordRequest request = new ResetPasswordRequest("invalid-token", "newpassword", "newpassword");
+
+        // When & Then
+        mockMvc.perform(post("/api/shop/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("無效的密碼重設 Token"));
     }
 }

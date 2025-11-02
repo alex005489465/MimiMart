@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>驗證您的 Email</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #2196F3;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 5px 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 40px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .token-box {
+            background-color: #e8f4f8;
+            border: 1px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>驗證您的 Email</h1>
+    </div>
+    <div class="content">
+        <p>親愛的 <strong th:text="${memberName}">會員</strong>，您好！</p>
+
+        <p>感謝您註冊 MimiMart 帳號。請點擊下方按鈕來驗證您的 Email 地址：</p>
+
+        <div style="text-align: center;">
+            <a th:href="${verificationUrl}" class="button">驗證我的 Email</a>
+        </div>
+
+        <p style="margin-top: 30px; color: #666;">
+            如果上方按鈕無法點擊，請複製以下連結到瀏覽器中：
+        </p>
+        <div class="token-box" th:text="${verificationUrl}"></div>
+
+        <div class="warning">
+            <strong>注意：</strong>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                <li>此驗證連結將在 <strong>24 小時</strong>後失效</li>
+                <li>如果您沒有註冊 MimiMart 帳號，請忽略此郵件</li>
+            </ul>
+        </div>
+
+        <p style="margin-top: 30px; color: #666; font-size: 14px;">
+            如果您有任何問題，歡迎隨時與我們聯繫。
+        </p>
+    </div>
+    <div class="footer">
+        <p>© 2025 MimiMart. 保留所有權利。</p>
+    </div>
+</body>
+</html>

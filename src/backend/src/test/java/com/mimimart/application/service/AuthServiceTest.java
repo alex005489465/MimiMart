@@ -1,8 +1,15 @@
 package com.mimimart.application.service;
 
 import com.mimimart.domain.member.exception.AccountDisabledException;
+import com.mimimart.domain.member.exception.EmailAlreadyVerifiedException;
 import com.mimimart.domain.member.exception.InvalidCredentialsException;
+import com.mimimart.domain.member.exception.InvalidResetTokenException;
+import com.mimimart.domain.member.exception.InvalidVerificationTokenException;
 import com.mimimart.domain.member.exception.MemberAlreadyExistsException;
+import com.mimimart.domain.member.exception.MemberNotFoundException;
+import com.mimimart.domain.member.exception.PasswordMismatchException;
+import com.mimimart.domain.member.exception.ResetTokenExpiredException;
+import com.mimimart.domain.member.exception.VerificationTokenExpiredException;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import com.mimimart.infrastructure.persistence.repository.RefreshTokenRepository;
@@ -161,6 +168,167 @@ class AuthServiceTest {
         // When & Then
         assertThrows(InvalidCredentialsException.class, () -> {
             authService.refreshAccessToken("invalid-refresh-token");
+        });
+    }
+
+    @Test
+    @DisplayName("Email 驗證 - 使用有效 Token 驗證成功")
+    void testVerifyEmail_Success() {
+        // Given
+        String email = "verify@example.com";
+        Member member = authService.register(email, "password123", "驗證測試會員");
+        String token = member.getVerificationToken();
+
+        // When
+        authService.verifyEmail(token);
+
+        // Then
+        Member verifiedMember = memberRepository.findByEmail(email).orElseThrow();
+        assertTrue(verifiedMember.getEmailVerified());
+        assertNull(verifiedMember.getVerificationToken());
+        assertNull(verifiedMember.getVerificationTokenExpiresAt());
+    }
+
+    @Test
+    @DisplayName("Email 驗證 - 使用無效 Token 應拋出例外")
+    void testVerifyEmail_InvalidToken() {
+        // When & Then
+        assertThrows(InvalidVerificationTokenException.class, () -> {
+            authService.verifyEmail("invalid-token");
+        });
+    }
+
+    @Test
+    @DisplayName("Email 驗證 - 已驗證的 Email 再次驗證應拋出例外")
+    void testVerifyEmail_AlreadyVerified() {
+        // Given
+        String email = "already-verified@example.com";
+        Member member = authService.register(email, "password123", "已驗證會員");
+        String token = member.getVerificationToken();
+        authService.verifyEmail(token);
+
+        // 重新取得會員的驗證 token（模擬重複驗證）
+        Member verifiedMember = memberRepository.findByEmail(email).orElseThrow();
+
+        // When & Then - 因為已驗證，token 已被清空，應該拋出 InvalidVerificationTokenException
+        assertThrows(InvalidVerificationTokenException.class, () -> {
+            authService.verifyEmail(token);
+        });
+    }
+
+    @Test
+    @DisplayName("重新發送驗證郵件 - 成功")
+    void testResendVerificationEmail_Success() {
+        // Given
+        String email = "resend@example.com";
+        Member member = authService.register(email, "password123", "重發驗證會員");
+        String oldToken = member.getVerificationToken();
+
+        // When
+        authService.resendVerificationEmail(email);
+
+        // Then
+        Member updatedMember = memberRepository.findByEmail(email).orElseThrow();
+        assertNotNull(updatedMember.getVerificationToken());
+        assertNotEquals(oldToken, updatedMember.getVerificationToken());
+        assertNotNull(updatedMember.getVerificationTokenExpiresAt());
+    }
+
+    @Test
+    @DisplayName("重新發送驗證郵件 - 會員不存在應拋出例外")
+    void testResendVerificationEmail_MemberNotFound() {
+        // When & Then
+        assertThrows(MemberNotFoundException.class, () -> {
+            authService.resendVerificationEmail("nonexistent@example.com");
+        });
+    }
+
+    @Test
+    @DisplayName("重新發送驗證郵件 - 已驗證的 Email 應拋出例外")
+    void testResendVerificationEmail_AlreadyVerified() {
+        // Given
+        String email = "verified-resend@example.com";
+        Member member = authService.register(email, "password123", "已驗證會員");
+        authService.verifyEmail(member.getVerificationToken());
+
+        // When & Then
+        assertThrows(EmailAlreadyVerifiedException.class, () -> {
+            authService.resendVerificationEmail(email);
+        });
+    }
+
+    @Test
+    @DisplayName("申請密碼重設 - 成功")
+    void testRequestPasswordReset_Success() {
+        // Given
+        String email = "reset@example.com";
+        authService.register(email, "password123", "重設密碼會員");
+
+        // When
+        authService.requestPasswordReset(email);
+
+        // Then
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        assertNotNull(member.getPasswordResetToken());
+        assertNotNull(member.getPasswordResetTokenExpiresAt());
+    }
+
+    @Test
+    @DisplayName("申請密碼重設 - 會員不存在應拋出例外")
+    void testRequestPasswordReset_MemberNotFound() {
+        // When & Then
+        assertThrows(MemberNotFoundException.class, () -> {
+            authService.requestPasswordReset("nonexistent@example.com");
+        });
+    }
+
+    @Test
+    @DisplayName("重設密碼 - 成功")
+    void testResetPassword_Success() {
+        // Given
+        String email = "password-reset@example.com";
+        authService.register(email, "oldpassword", "重設密碼測試");
+        authService.requestPasswordReset(email);
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        String resetToken = member.getPasswordResetToken();
+        String newPassword = "newpassword123";
+
+        // When
+        authService.resetPassword(resetToken, newPassword, newPassword);
+
+        // Then
+        Member updatedMember = memberRepository.findByEmail(email).orElseThrow();
+        assertNull(updatedMember.getPasswordResetToken());
+        assertNull(updatedMember.getPasswordResetTokenExpiresAt());
+
+        // 驗證可以使用新密碼登入
+        assertDoesNotThrow(() -> {
+            authService.login(email, newPassword);
+        });
+    }
+
+    @Test
+    @DisplayName("重設密碼 - 密碼不一致應拋出例外")
+    void testResetPassword_PasswordMismatch() {
+        // Given
+        String email = "mismatch@example.com";
+        authService.register(email, "password123", "密碼不一致測試");
+        authService.requestPasswordReset(email);
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        String resetToken = member.getPasswordResetToken();
+
+        // When & Then
+        assertThrows(PasswordMismatchException.class, () -> {
+            authService.resetPassword(resetToken, "newpassword", "differentpassword");
+        });
+    }
+
+    @Test
+    @DisplayName("重設密碼 - 使用無效 Token 應拋出例外")
+    void testResetPassword_InvalidToken() {
+        // When & Then
+        assertThrows(InvalidResetTokenException.class, () -> {
+            authService.resetPassword("invalid-token", "newpassword", "newpassword");
         });
     }
 }

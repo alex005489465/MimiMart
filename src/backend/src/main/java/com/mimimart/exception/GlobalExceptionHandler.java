@@ -140,6 +140,39 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 處理無效密碼重設 Token 異常
+     */
+    @ExceptionHandler(InvalidResetTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidResetToken(InvalidResetTokenException ex) {
+        logger.warn("無效密碼重設 Token: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("INVALID_RESET_TOKEN", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理密碼重設 Token 過期異常
+     */
+    @ExceptionHandler(ResetTokenExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResetTokenExpired(ResetTokenExpiredException ex) {
+        logger.warn("密碼重設 Token 已過期: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("RESET_TOKEN_EXPIRED", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理密碼不一致異常
+     */
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePasswordMismatch(PasswordMismatchException ex) {
+        logger.warn("密碼不一致: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("PASSWORD_MISMATCH", ex.getMessage())
+        );
+    }
+
+    /**
      * 處理地址不存在異常
      */
     @ExceptionHandler(AddressNotFoundException.class)

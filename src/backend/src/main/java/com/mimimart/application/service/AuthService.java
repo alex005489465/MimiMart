@@ -1,9 +1,15 @@
 package com.mimimart.application.service;
 
 import com.mimimart.domain.member.exception.AccountDisabledException;
+import com.mimimart.domain.member.exception.EmailAlreadyVerifiedException;
 import com.mimimart.domain.member.exception.InvalidCredentialsException;
+import com.mimimart.domain.member.exception.InvalidResetTokenException;
+import com.mimimart.domain.member.exception.InvalidVerificationTokenException;
 import com.mimimart.domain.member.exception.MemberAlreadyExistsException;
 import com.mimimart.domain.member.exception.MemberNotFoundException;
+import com.mimimart.domain.member.exception.PasswordMismatchException;
+import com.mimimart.domain.member.exception.ResetTokenExpiredException;
+import com.mimimart.domain.member.exception.VerificationTokenExpiredException;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import com.mimimart.infrastructure.security.JwtUtil;
@@ -29,15 +35,18 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
+    private final EmailService emailService;
 
     public AuthService(MemberRepository memberRepository,
                       PasswordEncoder passwordEncoder,
                       JwtUtil jwtUtil,
-                      RefreshTokenService refreshTokenService) {
+                      RefreshTokenService refreshTokenService,
+                      EmailService emailService) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
+        this.emailService = emailService;
     }
 
     /**
@@ -63,7 +72,13 @@ public class AuthService {
         member.setVerificationToken(verificationToken);
         member.setVerificationTokenExpiresAt(LocalDateTime.now().plusHours(24));
 
-        return memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+
+        // 發送歡迎郵件和驗證郵件
+        emailService.sendWelcomeEmail(email, name);
+        emailService.sendVerificationEmail(email, name, verificationToken);
+
+        return savedMember;
     }
 
     /**
@@ -162,5 +177,103 @@ public class AuthService {
         public TokenRefreshResult(String accessToken) {
             this.accessToken = accessToken;
         }
+    }
+
+    /**
+     * 驗證 Email
+     */
+    @Transactional
+    public void verifyEmail(String token) {
+        // 查詢會員
+        Member member = memberRepository.findByVerificationToken(token)
+                .orElseThrow(() -> new InvalidVerificationTokenException("無效的驗證 Token"));
+
+        // 檢查是否已驗證
+        if (member.getEmailVerified()) {
+            throw new EmailAlreadyVerifiedException("Email 已經驗證過了");
+        }
+
+        // 檢查 Token 是否過期
+        if (member.getVerificationTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new VerificationTokenExpiredException("驗證 Token 已過期，請重新申請");
+        }
+
+        // 更新驗證狀態
+        member.setEmailVerified(true);
+        member.setVerificationToken(null);
+        member.setVerificationTokenExpiresAt(null);
+        memberRepository.save(member);
+    }
+
+    /**
+     * 重新發送驗證郵件
+     */
+    @Transactional
+    public void resendVerificationEmail(String email) {
+        // 查詢會員
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberNotFoundException("會員不存在"));
+
+        // 檢查是否已驗證
+        if (member.getEmailVerified()) {
+            throw new EmailAlreadyVerifiedException("Email 已經驗證過了");
+        }
+
+        // 生成新的驗證 Token
+        String verificationToken = UUID.randomUUID().toString();
+        member.setVerificationToken(verificationToken);
+        member.setVerificationTokenExpiresAt(LocalDateTime.now().plusHours(24));
+        memberRepository.save(member);
+
+        // 發送驗證郵件
+        emailService.sendVerificationEmail(email, member.getName(), verificationToken);
+    }
+
+    /**
+     * 申請密碼重設
+     */
+    @Transactional
+    public void requestPasswordReset(String email) {
+        // 查詢會員
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberNotFoundException("會員不存在"));
+
+        // 生成密碼重設 Token（30 分鐘有效期）
+        String resetToken = UUID.randomUUID().toString();
+        member.setPasswordResetToken(resetToken);
+        member.setPasswordResetTokenExpiresAt(LocalDateTime.now().plusMinutes(30));
+        memberRepository.save(member);
+
+        // 發送密碼重設郵件
+        emailService.sendPasswordResetEmail(email, member.getName(), resetToken);
+    }
+
+    /**
+     * 重設密碼
+     */
+    @Transactional
+    public void resetPassword(String token, String newPassword, String confirmPassword) {
+        // 檢查密碼是否一致
+        if (!newPassword.equals(confirmPassword)) {
+            throw new PasswordMismatchException("新密碼與確認密碼不一致");
+        }
+
+        // 查詢會員
+        Member member = memberRepository.findByPasswordResetToken(token)
+                .orElseThrow(() -> new InvalidResetTokenException("無效的密碼重設 Token"));
+
+        // 檢查 Token 是否過期
+        if (member.getPasswordResetTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new ResetTokenExpiredException("密碼重設 Token 已過期，請重新申請");
+        }
+
+        // 更新密碼
+        member.setPasswordHash(passwordEncoder.encode(newPassword));
+        member.setPasswordResetToken(null);
+        member.setPasswordResetTokenExpiresAt(null);
+        memberRepository.save(member);
+
+        // 撤銷所有 Refresh Token（強制重新登入）
+        refreshTokenService.revokeAllTokens(member.getId(), UserType.MEMBER);
     }
 }

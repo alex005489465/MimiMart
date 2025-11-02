@@ -2,6 +2,8 @@ package com.mimimart.api.controller.shop;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.member.*;
+import com.mimimart.api.dto.request.*;
+import com.mimimart.api.dto.response.*;
 import com.mimimart.application.service.AuthService;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
@@ -96,5 +98,49 @@ public class ShopAuthController {
         AuthService.TokenRefreshResult result = authService.refreshAccessToken(request.getRefreshToken());
 
         return ResponseEntity.ok(ApiResponse.success("Token 更新成功", result.accessToken));
+    }
+
+    /**
+     * 驗證 Email
+     */
+    @PostMapping("/verify-email")
+    @Operation(summary = "驗證 Email", description = "使用驗證 Token 驗證 Email")
+    public ResponseEntity<ApiResponse<VerifyEmailResponse>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        authService.verifyEmail(request.getToken());
+
+        return ResponseEntity.ok(ApiResponse.success("Email 驗證成功", VerifyEmailResponse.success()));
+    }
+
+    /**
+     * 重新發送驗證郵件
+     */
+    @PostMapping("/resend-verification")
+    @Operation(summary = "重新發送驗證郵件", description = "重新發送 Email 驗證郵件")
+    public ResponseEntity<ApiResponse<String>> resendVerificationEmail(@Valid @RequestBody ResendVerificationEmailRequest request) {
+        authService.resendVerificationEmail(request.getEmail());
+
+        return ResponseEntity.ok(ApiResponse.success("驗證郵件已重新發送"));
+    }
+
+    /**
+     * 忘記密碼
+     */
+    @PostMapping("/forgot-password")
+    @Operation(summary = "忘記密碼", description = "申請密碼重設，系統將發送重設郵件")
+    public ResponseEntity<ApiResponse<ForgotPasswordResponse>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.getEmail());
+
+        return ResponseEntity.ok(ApiResponse.success("密碼重設郵件已發送", ForgotPasswordResponse.success()));
+    }
+
+    /**
+     * 重設密碼
+     */
+    @PostMapping("/reset-password")
+    @Operation(summary = "重設密碼", description = "使用重設 Token 重設密碼")
+    public ResponseEntity<ApiResponse<ResetPasswordResponse>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword(), request.getConfirmPassword());
+
+        return ResponseEntity.ok(ApiResponse.success("密碼重設成功", ResetPasswordResponse.success()));
     }
 }
