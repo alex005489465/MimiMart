@@ -43,97 +43,20 @@ cp terraform.tfvars.example terraform.tfvars
 
 編輯 `terraform.tfvars`，配置你的 DNS 記錄。
 
-## 使用範例
+## name 格式說明
 
-### 範例 1：基本 A 記錄（指向 EC2）
-
-```hcl
-dns_records = [
-  {
-    name    = "subdomain.project"  # 完整域名：subdomain.project.example.com
-    type    = "A"
-    content = "[IP_ADDRESS]"
-    proxied = true
-    ttl     = 1
-    comment = "Git UI 管理介面"
-  }
-]
-```
-
-**name 格式說明**：
 - 基礎域名在 `cloudflare/.env` 中定義（例如 `example.com`）
 - `name` 是基礎域名之前的部分
 - 例如：`name = "subdomain.project"` → 完整域名 `subdomain.project.example.com`
 - 特殊值：`name = "@"` 代表根域名本身
-
-### 範例 2：多條記錄
-
-```hcl
-dns_records = [
-  # API 服務
-  {
-    name    = "api"
-    type    = "A"
-    content = "[IP_ADDRESS_1]"
-    proxied = true
-    ttl     = 1
-    comment = "API 伺服器"
-  },
-
-  # CNAME 指向外部服務
-  {
-    name    = "blog"
-    type    = "CNAME"
-    content = "yourblog.medium.com"
-    proxied = false
-    ttl     = 3600
-    comment = "部落格服務"
-  },
-
-  # 郵件伺服器
-  {
-    name     = "@"
-    type     = "MX"
-    content  = "mail.example.com"
-    proxied  = false
-    ttl      = 3600
-    priority = 10
-    comment  = "主要郵件伺服器"
-  }
-]
-```
-
-### 範例 3：網域驗證 TXT 記錄
-
-```hcl
-dns_records = [
-  {
-    name    = "@"
-    type    = "TXT"
-    content = "v=spf1 include:_spf.google.com ~all"
-    proxied = false
-    ttl     = 3600
-    comment = "SPF 記錄"
-  }
-]
-```
 
 ## 部署步驟
 
 > **注意**：所有指令需要在 `infra/cloud-manage` 目錄下執行
 
 ```bash
-# 1. 初始化 Terraform
-docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform init"
-
-# 2. 檢查變更計畫
-docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform plan"
-
-# 3. 套用變更
-docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform apply"
-
-# 4. 查看輸出
-docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform output"
+# 通用指令模板
+docker-compose --env-file cloudflare/.env run --rm terraform "cd dns && terraform <command>"
 ```
 
 ## 配置參數說明
@@ -180,54 +103,6 @@ docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terrafor
 dns_records          # 所有 DNS 記錄的完整資訊
 dns_record_ids       # 記錄 ID 對照表
 dns_record_hostnames # 完整主機名稱列表
-```
-
-## 常見場景
-
-### 場景 1：將子網域指向 EC2
-
-```hcl
-{
-  name    = "admin"
-  type    = "A"
-  content = "[IP_ADDRESS_2]"
-  proxied = true
-  ttl     = 1
-}
-```
-
-### 場景 2：將子網域指向 Vercel
-
-```hcl
-{
-  name    = "app"
-  type    = "CNAME"
-  content = "cname.vercel-dns.com"
-  proxied = false  # Vercel 建議不啟用代理
-  ttl     = 3600
-}
-```
-
-### 場景 3：配置 Google Workspace 郵件
-
-```hcl
-dns_records = [
-  {
-    name     = "@"
-    type     = "MX"
-    content  = "aspmx.l.google.com"
-    proxied  = false
-    ttl      = 3600
-    priority = 1
-  },
-  {
-    name    = "@"
-    type    = "TXT"
-    content = "v=spf1 include:_spf.google.com ~all"
-    proxied = false
-    ttl     = 3600
-  }
-]
 ```
 
 ## 安全注意

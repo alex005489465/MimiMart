@@ -112,15 +112,7 @@ resource "aws_s3_bucket_policy" "example" {
 
 ## 驗證
 
-執行以下指令檢查配置是否正確：
-
-```bash
-terraform init
-terraform plan
-
-# 檢查輸出的 IP 列表
-terraform output
-```
+執行 `terraform init`、`terraform plan` 和 `terraform output` 檢查配置是否正確。
 
 ## 安全注意事項
 

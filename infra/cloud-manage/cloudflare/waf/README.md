@@ -46,142 +46,14 @@ cp terraform.tfvars.example terraform.tfvars
 
 編輯 `terraform.tfvars`，配置你的 WAF 規則。
 
-## 使用範例
-
-### 範例 1：限制特定域名只能從特定 IP 訪問（支援 IPv4 和 IPv6）
-
-```hcl
-waf_rules = [
-  {
-    action      = "block"
-    description = "封鎖非白名單 IP 訪問 Git UI"
-    enabled     = true
-    expression  = "(http.host eq \"git-ui.example.com\" and not ip.src in {203.0.113.50 2001:db8::1})"
-  }
-]
-```
-
-**說明**：
-- 當訪問 `git-ui.example.com` 且來源 IP 不在白名單時，封鎖請求
-- 同時支援 IPv4 (`203.0.113.50`) 和 IPv6 (`2001:db8::1`)
-- ⚠️ **重要**：如果你的網路支援 IPv6，請務必同時加入 IPv4 和 IPv6，否則可能被封鎖
-
-### 範例 2：保護多個域名（推薦）
-
-```hcl
-waf_rules = [
-  {
-    action      = "block"
-    description = "封鎖非白名單 IP 訪問管理介面"
-    enabled     = true
-    expression  = "(http.host in {\"admin.example.com\" \"git.example.com\"} and not ip.src in {203.0.113.50 2001:db8::1})"
-  }
-]
-```
-
-**說明**：
-- 使用 `http.host in {}` 保護多個域名
-- 節省規則數量（Free 方案限制 5 條）
-- 同時支援 IPv4 和 IPv6
-
-### 範例 3：多個 IP 白名單
-
-```hcl
-waf_rules = [
-  {
-    action      = "block"
-    description = "僅允許辦公室和家裡 IP 訪問管理介面"
-    enabled     = true
-    expression  = "(http.host eq \"admin.example.com\" and not ip.src in {203.0.113.50 203.0.113.51})"
-  }
-]
-```
-
-### 範例 4：IP 範圍白名單（CIDR）
-
-```hcl
-waf_rules = [
-  {
-    action      = "block"
-    description = "僅允許公司內網 IP 範圍訪問"
-    enabled     = true
-    expression  = "(http.host eq \"internal.example.com\" and not ip.src in {192.168.1.0/24 10.0.0.0/8})"
-  }
-]
-```
-
-### 範例 5：地理位置封鎖
-
-```hcl
-waf_rules = [
-  {
-    action      = "block"
-    description = "封鎖來自特定國家的請求"
-    enabled     = true
-    expression  = "(ip.geoip.country in {\"CN\" \"RU\" \"KP\"})"
-  }
-]
-```
-
-### 範例 6：保護 API 端點
-
-```hcl
-waf_rules = [
-  {
-    action      = "challenge"
-    description = "對 API 端點啟用驗證"
-    enabled     = true
-    expression  = "(http.request.uri.path contains \"/api/\" and not ip.src in {203.0.113.50})"
-  }
-]
-```
-
-### 範例 7：組合多個規則
-
-```hcl
-waf_rules = [
-  # 規則 1：管理介面 IP 白名單
-  {
-    action      = "block"
-    description = "限制管理介面訪問"
-    enabled     = true
-    expression  = "(http.host eq \"admin.example.com\" and ip.src ne 203.0.113.50)"
-  },
-
-  # 規則 2：封鎖特定國家
-  {
-    action      = "block"
-    description = "地理位置封鎖"
-    enabled     = true
-    expression  = "(ip.geoip.country in {\"CN\" \"RU\"})"
-  },
-
-  # 規則 3：API 端點驗證
-  {
-    action      = "managed_challenge"
-    description = "保護 API 端點"
-    enabled     = true
-    expression  = "(http.request.uri.path matches \"^/api/.*\")"
-  }
-]
-```
 
 ## 部署步驟
 
-> **注意**：所有指令需要在專案根目錄 `env-prod` 下執行
+> **注意**：所有指令需要在 `infra/cloud-manage` 目錄下執行
 
 ```bash
-# 1. 初始化 Terraform
-docker-compose --env-file cloudflare/.env run --rm terraform -c "cd waf && terraform init"
-
-# 2. 檢查變更計畫
-docker-compose --env-file cloudflare/.env run --rm terraform -c "cd waf && terraform plan"
-
-# 3. 套用變更
-docker-compose --env-file cloudflare/.env run --rm terraform -c "cd waf && terraform apply"
-
-# 4. 查看輸出
-docker-compose --env-file cloudflare/.env run --rm terraform -c "cd waf && terraform output"
+# 通用指令模板
+docker-compose --env-file cloudflare/.env run --rm terraform "cd waf && terraform <command>"
 ```
 
 ## 規則表達式語法
@@ -273,59 +145,6 @@ rules_count      # 規則總數
 rules_summary    # 規則摘要（動作、描述、狀態）
 ```
 
-## 常見場景
-
-### 場景 1：保護管理介面
-
-僅允許特定 IP 訪問管理介面：
-
-```hcl
-{
-  action      = "block"
-  description = "保護管理介面"
-  enabled     = true
-  expression  = "(http.host eq \"admin.example.com\" and ip.src ne YOUR_IP)"
-}
-```
-
-### 場景 2：保護開發環境
-
-限制開發環境只能從公司網路訪問：
-
-```hcl
-{
-  action      = "block"
-  description = "限制開發環境訪問"
-  enabled     = true
-  expression  = "(http.host contains \"dev.\" and not ip.src in {192.168.1.0/24})"
-}
-```
-
-### 場景 3：防止特定地區攻擊
-
-封鎖來自高風險地區的流量：
-
-```hcl
-{
-  action      = "block"
-  description = "地理位置封鎖"
-  enabled     = true
-  expression  = "(ip.geoip.country in {\"CN\" \"RU\" \"KP\"})"
-}
-```
-
-### 場景 4：API 端點保護
-
-對 API 請求進行額外驗證：
-
-```hcl
-{
-  action      = "managed_challenge"
-  description = "API 端點驗證"
-  enabled     = true
-  expression  = "(http.request.uri.path matches \"^/api/.*\" and not ip.src in {TRUSTED_IPS})"
-}
-```
 
 ## 測試規則
 
@@ -359,22 +178,6 @@ rules_summary    # 規則摘要（動作、描述、狀態）
 - 📊 **監控事件**：定期檢查 Cloudflare Security Events，確認規則正常運作
 - 💡 **優先檢查 Dashboard**：被封鎖時，先查看 Security Events 了解實際的來源 IP
 
-## 更新 IP 位址
-
-如果你的 IP 變更了，需要更新規則：
-
-```bash
-# 1. 修改 terraform.tfvars 中的 IP
-# 2. 重新部署
-docker-compose --env-file cloudflare/.env run --rm terraform -c "cd waf && terraform apply"
-```
-
-## 移除規則
-
-```bash
-# 刪除所有 WAF 規則
-docker-compose --env-file cloudflare/.env run --rm terraform -c "cd waf && terraform destroy"
-```
 
 ## 疑難排解
 

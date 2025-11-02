@@ -124,30 +124,13 @@ static_cors_allowed_headers = ["*"]
 static_cors_max_age_seconds = 3600
 ```
 
-### 步驟 2: 初始化 Terraform
+### 步驟 2: Terraform 操作
+
+> **注意**：所有指令需要在 `infra/cloud-manage` 目錄下執行
 
 ```bash
-docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform init
-```
-
-### 步驟 3: 檢查執行計畫
-
-```bash
-docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform plan
-```
-
-### 步驟 4: 部署資源
-
-```bash
-docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform apply
-```
-
-確認無誤後輸入 `yes` 執行部署。
-
-### 步驟 5: 查看輸出
-
-```bash
-docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform output
+# 通用指令模板
+docker-compose --env-file aws/.env run --rm terraform "cd s3 && terraform <command>"
 ```
 
 **重要輸出**:
@@ -155,14 +138,14 @@ docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform te
 - `backend_s3_policy_json` - IAM 政策 JSON (複製此內容)
 - `deployment_summary` - 完整部署摘要
 
-### 步驟 6: 建立 IAM User
+### 步驟 3: 建立 IAM User
 
 Terraform 不會自動建立 IAM User,需要手動操作:
 
 1. **複製 IAM 政策**
    ```bash
    # 輸出格式化的政策 JSON
-   docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform output -raw backend_s3_policy_json
+   docker-compose --env-file aws/.env run --rm terraform "cd s3 && terraform output -raw backend_s3_policy_json"
    ```
 
 2. **前往 AWS Console**
@@ -358,11 +341,7 @@ S3_STATIC_CDN_URL=https://cdn.mimimart.com
 
 ### 更新配置
 
-```bash
-# 修改 terraform.tfvars 後
-docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform plan
-docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform apply
-```
+修改 `terraform.tfvars` 後,執行 `terraform plan` 和 `terraform apply`。
 
 ### 查看 Bucket 內容
 
@@ -386,17 +365,9 @@ aws s3 ls s3://mimimart-prod-logs/ --recursive | \
 
 ### 銷毀資源
 
-```bash
-# 注意: 這將刪除所有 bucket 和內容!
-# 確保已備份重要資料
+⚠️ **警告**: 這將刪除所有 bucket 和內容!確保已備份重要資料。
 
-# 先清空 bucket (必要步驟,否則 destroy 會失敗)
-aws s3 rm s3://mimimart-prod-static/ --recursive
-aws s3 rm s3://mimimart-prod-logs/ --recursive
-
-# 執行銷毀
-docker-compose --env-file ../aws/.env run --rm -w /workspace/aws/s3 terraform terraform destroy
-```
+先使用 AWS CLI 清空 bucket (必要步驟,否則 destroy 會失敗),再執行 `terraform destroy`。
 
 ## ❓ 常見問題
 

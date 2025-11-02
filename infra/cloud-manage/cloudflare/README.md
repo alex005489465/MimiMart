@@ -53,15 +53,8 @@ Cloudflare Web Application Firewall 自訂規則管理，用於配置 IP 白名�
 > **注意**：所有指令需要在專案根目錄 `infra/cloud-manage` 下執行
 
 ```bash
-# 在指定的 Cloudflare 模組執行 Terraform
-docker-compose run --rm --env-file cloudflare/.env terraform -c "cd <module> && terraform <command>"
-
-# 範例：在 DNS 模組執行 init
-docker-compose run --rm --env-file cloudflare/.env terraform -c "cd dns && terraform init"
-
-# 範例：在 WAF 模組執行 plan 和 apply
-docker-compose run --rm --env-file cloudflare/.env terraform -c "cd waf && terraform plan"
-docker-compose run --rm --env-file cloudflare/.env terraform -c "cd waf && terraform apply"
+# 通用指令模板
+docker-compose --env-file cloudflare/.env run --rm terraform "cd <module> && terraform <command>"
 ```
 
 ## 配置原則

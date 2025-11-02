@@ -78,18 +78,11 @@ S3 物件儲存管理：
 
 ## 使用方式
 
-> **注意**：所有指令需要在專案根目錄 `env-prod` 下執行
+> **注意**：所有指令需要在 `infra/cloud-manage` 目錄下執行
 
 ```bash
-# 在指定的 AWS 模組執行 Terraform
-docker-compose --env-file aws/.env run --rm -w /workspace/aws/<module> terraform terraform <command>
-
-# 範例：在 VPC 模組執行 init
-docker-compose --env-file aws/.env run --rm -w /workspace/aws/vpc terraform terraform init
-
-# 範例：在 EC2 模組執行 plan 和 apply
-docker-compose --env-file aws/.env run --rm -w /workspace/aws/ec2 terraform terraform plan
-docker-compose --env-file aws/.env run --rm -w /workspace/aws/ec2 terraform terraform apply
+# 通用指令模板
+docker-compose --env-file aws/.env run --rm terraform "cd <module> && terraform <command>"
 ```
 
 ## 配置原則
