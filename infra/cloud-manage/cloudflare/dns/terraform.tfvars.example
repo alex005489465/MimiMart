@@ -1,9 +1,15 @@
 # 注意：以下變數由 Docker 環境變數提供，不需要在此檔案中設定：
 # - cloudflare_api_token (透過 TF_VAR_cloudflare_api_token)
 # - cloudflare_zone_id (透過 TF_VAR_cloudflare_zone_id)
-# - domain_name (透過 TF_VAR_domain_name)
 #
 # 這些變數在 cloudflare/.env 檔案中配置
+
+# ============================================================================
+# 域名配置
+# ============================================================================
+
+base_domain              = "example.com"
+public_bucket_subdomain  = "storage-public-dev"
 
 # ============================================================================
 # DNS 記錄配置

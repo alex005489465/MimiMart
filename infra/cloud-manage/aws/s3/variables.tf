@@ -110,3 +110,12 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+# ====================================================================
+# CDN 配置
+# ====================================================================
+
+variable "public_bucket_cdn_domain" {
+  description = "Public bucket 的 Cloudflare CDN 完整域名（例如: storage-public-dev.example.com）"
+  type        = string
+}

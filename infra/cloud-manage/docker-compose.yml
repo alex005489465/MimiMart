@@ -1,10 +1,12 @@
 services:
   terraform:
     image: hashicorp/terraform:latest
-    container_name: mimimart-terraform-${PLATFORM:-cloudflare}
+    container_name: terraform-${PLATFORM:-cloudflare}
     working_dir: /workspace/${PLATFORM:-cloudflare}
     volumes:
-      - .:/workspace
+      - ./aws:/workspace/aws
+      - ./cloudflare:/workspace/cloudflare
+      - ./modules:/workspace/modules
       - terraform-cache:/root/.terraform.d/plugin-cache
     environment:
       - TF_PLUGIN_CACHE_DIR=/root/.terraform.d/plugin-cache

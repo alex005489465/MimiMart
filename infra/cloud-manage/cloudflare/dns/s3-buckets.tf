@@ -22,11 +22,11 @@ data "terraform_remote_state" "s3" {
 # --------------------------------------------------------------------
 
 resource "cloudflare_record" "s3_public" {
-  # 只有當 S3 state 存在且包含 public_bucket_website_endpoint 時才建立
-  count = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null ? 1 : 0
+  # 只有當 S3 state 存在且包含 public_bucket_website_endpoint 且 public_bucket_subdomain 不為空時才建立
+  count = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null && var.public_bucket_subdomain != "" ? 1 : 0
 
   zone_id = var.cloudflare_zone_id
-  name    = "shop-storage-public-dev"
+  name    = var.public_bucket_subdomain
   content = data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint
   type    = "CNAME"
   proxied = true
@@ -42,8 +42,8 @@ output "s3_dns_records" {
   description = "S3 buckets DNS records information"
   value = {
     public_bucket = {
-      enabled      = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null
-      dns_name     = "shop-storage-public-dev.xenolume.com"
+      enabled      = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null && var.public_bucket_subdomain != ""
+      dns_name     = var.public_bucket_subdomain != "" ? "${var.public_bucket_subdomain}.${var.domain_name}" : "N/A - Not configured"
       s3_endpoint  = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, "N/A - S3 not deployed yet")
       proxied      = true
       access_note  = "IP-restricted to Cloudflare + Developer IPs"

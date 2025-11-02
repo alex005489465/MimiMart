@@ -8,10 +8,19 @@ credentials-file: /etc/cloudflared/config/credentials.json
 
 # Ingress 路由規則
 # 請求會由上而下匹配，第一個符合的規則會生效
+# 所有域名都轉發到 Nginx，由 Nginx 根據 server_name 進行路由
 ingress:
-  # 轉發所有請求到 Nginx
-  # Nginx 會進行細粒度的路徑控制
+  # 方式 1: 簡單配置 - 所有域名都轉發到 Nginx（推薦）
   - service: http://nginx:80
+
+  # 方式 2: 明確定義域名路由（可選，取消註解使用）
+  # - hostname: your-domain1.example.com
+  #   service: http://nginx:80
+  # - hostname: your-domain2.example.com
+  #   service: http://nginx:80
+  # - hostname: your-domain3.example.com
+  #   service: http://nginx:80
+  # - service: http_status:404  # catch-all（使用方式 2 時必須存在）
 
 # 日誌設定
 loglevel: info
@@ -20,15 +29,26 @@ loglevel: info
 # protocol: quic
 # no-autoupdate: true
 
-# 注意事項：
+# ==========================================
+# 配置說明
+# ==========================================
+#
 # 1. Tunnel ID 由 credentials.json 提供，無需手動填寫
-# 2. 需要在 Cloudflare Zero Trust Dashboard 設定 Public Hostname
-# 3. 若 Dashboard 有路由設定，會覆蓋此處的 ingress 規則
-# 4. 若要在此處設定域名路由，可使用以下格式：
 #
-# ingress:
-#   - hostname: your-domain.example.com
-#     service: http://nginx:80
-#   - service: http_status:404  # catch-all（必須存在）
+# 2. 域名設定方式（完全使用配置文件，不使用 Dashboard）：
 #
-# 5. service 指向容器名稱，因為所有容器在同一個 Docker 網路中
+#    步驟 1: 在 Cloudflare DNS 設定 CNAME 記錄（使用 Terraform）
+#    - 編輯 infra/cloud-manage/cloudflare/dns/terraform.tfvars
+#    - 添加 CNAME 記錄指向: <tunnel-id>.cfargotunnel.com
+#    - Tunnel ID 可從 credentials.json 的 TunnelID 欄位取得
+#    - 範例: cat cloudflared/config/credentials.json | jq -r '.TunnelID'
+#
+#    步驟 2: 在 Nginx 設定域名路由
+#    - 為每個域名建立獨立的 .conf 文件（參考 nginx/conf.d/ 中的範例）
+#    - 使用 server_name 匹配域名
+#
+# 3. Cloudflare Tunnel 路由模式選擇：
+#    - 方式 1（推薦）: 使用簡單配置，由 Nginx 處理所有域名路由
+#    - 方式 2（進階）: 在此處明確定義每個域名，需添加 catch-all 規則
+#
+# 4. service 指向容器名稱，所有容器須在同一個 Docker 網路中

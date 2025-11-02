@@ -14,13 +14,28 @@ variable "cloudflare_zone_id" {
 }
 
 # ============================================================================
+# 域名配置
+# ============================================================================
+
+variable "domain_name" {
+  description = "基礎域名（例如: example.com）"
+  type        = string
+}
+
+variable "public_bucket_subdomain" {
+  description = "Public S3 bucket 的子域名（例如: storage-public-dev）"
+  type        = string
+  default     = ""
+}
+
+# ============================================================================
 # DNS 記錄配置
 # ============================================================================
 
 variable "dns_records" {
   description = "DNS 記錄列表"
   type = list(object({
-    name     = string           # DNS 記錄名稱，基礎域名之前的部分（例如：git-ui.mimimart、api、@）
+    name     = string           # DNS 記錄名稱，基礎域名之前的部分（例如：app、api、@）
     type     = string           # 記錄類型（A、AAAA、CNAME、MX、TXT 等）
     content  = string           # 記錄內容（IP 地址、域名或文字）
     proxied  = optional(bool)   # 是否啟用 Cloudflare 代理（預設：false）

@@ -35,8 +35,13 @@ node init-credentials.js
 ```bash
 cd ..
 cp nginx/nginx.conf.example nginx/nginx.conf
-cp nginx/conf.d/backend.conf.example nginx/conf.d/backend.conf
+cp nginx/conf.d/domain-example-payment.conf.example nginx/conf.d/payment.conf
 cp cloudflared/config/config.yml.example cloudflared/config/config.yml
+
+# 編輯 payment.conf 替換佔位符
+# - your-payment-domain.example.com → 實際域名
+# - your_backend_container → mimimart-java
+# - your_backend_port → 8080
 ```
 
 ### 4. 啟動服務
@@ -58,6 +63,79 @@ curl https://<your-domain>/health
 ```
 
 預期回應：HTTP 200 with "OK"
+
+## 多域名配置
+
+本網關支援透過單一 Tunnel 服務多個域名，每個域名使用獨立的 Nginx 配置文件。
+
+### 配置流程
+
+#### 1. 為每個域名建立 Nginx 配置
+
+```bash
+cd nginx/conf.d
+
+# 選擇合適的範例文件複製
+cp domain-example-payment.conf.example payment.conf    # 金流回調
+cp domain-example-api.conf.example api.conf            # API 服務
+cp domain-example-webhook.conf.example webhook.conf    # Webhook 接收
+
+# 編輯配置文件，替換佔位符：
+# - your-<purpose>-domain.example.com → 實際域名
+# - your_backend_container → mimimart-java
+# - your_backend_port → 8080
+```
+
+#### 2. 設定 DNS 記錄（使用 Terraform）
+
+```bash
+# 取得 Tunnel ID
+cat cloudflared/config/credentials.json | jq -r '.TunnelID'
+# 輸出範例: d7fdbe06-90a8-42aa-9795-079b4122e3c9
+
+# 編輯 Terraform 配置
+cd ../../../cloud-manage/cloudflare/dns
+nano terraform.tfvars
+```
+
+在 `terraform.tfvars` 中添加 DNS 記錄：
+
+```hcl
+dns_records = [
+  {
+    name    = "payment"
+    type    = "CNAME"
+    content = "d7fdbe06-90a8-42aa-9795-079b4122e3c9.cfargotunnel.com"
+    proxied = true
+    comment = "Payment callback domain"
+  },
+  {
+    name    = "api"
+    type    = "CNAME"
+    content = "d7fdbe06-90a8-42aa-9795-079b4122e3c9.cfargotunnel.com"
+    proxied = true
+    comment = "API domain"
+  }
+]
+```
+
+執行 Terraform：
+
+```bash
+terraform plan
+terraform apply
+```
+
+#### 3. 重新載入 Nginx
+
+```bash
+cd ../../../dev-env/gateway
+docker-compose exec nginx nginx -s reload
+```
+
+### 詳細說明
+
+完整的多域名配置指引請參考 `nginx/conf.d/README.md`。
 
 ## 管理指令
 

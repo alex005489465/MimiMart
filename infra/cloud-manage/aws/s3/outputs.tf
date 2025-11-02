@@ -115,7 +115,7 @@ output "deployment_summary" {
       purpose  = "Public resources storage (IP-RESTRICTED)"
       access   = "Cloudflare CDN + Developer IPs only"
       endpoint = aws_s3_bucket_website_configuration.public.website_endpoint
-      cdn_url  = "http://shop-storage-public-dev.xenolume.com (configured via Cloudflare DNS)"
+      cdn_url  = "http://${var.public_bucket_cdn_domain} (configured via Cloudflare DNS)"
     }
     environment = var.environment
     next_steps = [
@@ -133,7 +133,7 @@ output "deployment_summary" {
       "",
       "4. Create IAM User in AWS Console:",
       "   - Go to AWS Console → IAM → Users → Create User",
-      "   - User name: 'mimimart-dev-backend-user'",
+      "   - User name: '{project}-{env}-backend-user'",
       "   - Attach the copied policy as an inline policy",
       "   - Create Access Key and save credentials securely",
       "",

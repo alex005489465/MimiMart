@@ -120,20 +120,20 @@ dns_records = [
 
 ## 部署步驟
 
-> **注意**：所有指令需要在專案根目錄 `env-prod` 下執行
+> **注意**：所有指令需要在 `infra/cloud-manage` 目錄下執行
 
 ```bash
 # 1. 初始化 Terraform
-docker-compose --env-file cloudflare/.env run --rm -w /workspace/cloudflare/dns terraform terraform init
+docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform init"
 
 # 2. 檢查變更計畫
-docker-compose --env-file cloudflare/.env run --rm -w /workspace/cloudflare/dns terraform terraform plan
+docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform plan"
 
 # 3. 套用變更
-docker-compose --env-file cloudflare/.env run --rm -w /workspace/cloudflare/dns terraform terraform apply
+docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform apply"
 
 # 4. 查看輸出
-docker-compose --env-file cloudflare/.env run --rm -w /workspace/cloudflare/dns terraform terraform output
+docker-compose run --rm --env-file cloudflare/.env terraform "cd dns && terraform output"
 ```
 
 ## 配置參數說明

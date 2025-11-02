@@ -1,36 +1,33 @@
-# MimiMart 後端 API 路由配置
-# 僅轉發特定路徑到後端容器
+# 金流回調域名配置範例
+# 用途: 處理第三方金流（如 ECPay）的回調請求
+#
+# 使用方式:
+# 1. 複製此文件: cp domain-example-payment.conf.example payment.conf
+# 2. 替換佔位符:
+#    - your-payment-domain.example.com → 實際的金流回調域名
+#    - your_backend_container → 後端容器名稱（如 mimimart-java）
+#    - your_backend_port → 後端端口（如 8080）
+# 3. 根據需求調整路由規則
 
-# Upstream 定義
-upstream mimimart_backend {
-    server mimimart-java:8080;
+upstream payment_backend {
+    server your_backend_container:your_backend_port;
     keepalive 32;
 }
 
-# 主要伺服器區塊
 server {
     listen 80;
-    server_name _;
+    server_name your-payment-domain.example.com;
 
     # 安全標頭
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
 
-    # 健康檢查端點
-    location /health {
-        access_log off;
-        return 200 "healthy\n";
-        add_header Content-Type text/plain;
-    }
-
     # ECPay 金流回調端點
     location /api/payment/ecpay/ {
-        # 日誌
-        access_log /var/log/nginx/backend.log main;
+        access_log /var/log/nginx/payment.log main;
 
-        # Proxy 設定
-        proxy_pass http://mimimart_backend;
+        proxy_pass http://payment_backend;
         proxy_http_version 1.1;
 
         # 保留真實 IP 和協定
@@ -46,7 +43,6 @@ server {
         proxy_set_header CF-Ray $http_cf_ray;
         proxy_set_header CF-Visitor $http_cf_visitor;
 
-        # 連接設定
         proxy_set_header Connection "";
         proxy_buffering off;
         proxy_request_buffering off;
@@ -57,12 +53,11 @@ server {
         proxy_read_timeout 60s;
     }
 
-    # 其他 API 路徑（可選，根據需求開啟）
-    # location /api/ {
-    #     access_log /var/log/nginx/backend.log main;
-    #     proxy_pass http://mimimart_backend;
+    # 其他金流路徑（可選）
+    # location /api/payment/linepay/ {
+    #     access_log /var/log/nginx/payment.log main;
+    #     proxy_pass http://payment_backend;
     #     proxy_http_version 1.1;
-    #
     #     proxy_set_header Host $host;
     #     proxy_set_header X-Real-IP $remote_addr;
     #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -70,13 +65,12 @@ server {
     #     proxy_set_header Connection "";
     # }
 
-    # 拒絕所有其他請求
+    # 拒絕其他請求
     location / {
         access_log off;
         return 404 "Not Found\n";
         add_header Content-Type text/plain;
     }
 
-    # 隱藏 nginx 版本資訊
     server_tokens off;
 }

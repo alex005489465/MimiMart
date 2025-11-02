@@ -42,9 +42,9 @@ member_enable_versioning = false
 
 # CORS 設定: 允許的來源網域
 member_cors_allowed_origins = [
-  "http://localhost:5173",                      # 前端本地開發(Vite)
-  "http://localhost:5174",                      # 前端本地開發(備用端口)
-  "http://shop-storage-member-dev.yourdomain.com" # Cloudflare CDN
+  "http://localhost:5173",                    # 前端本地開發(Vite)
+  "http://localhost:5174",                    # 前端本地開發(備用端口)
+  "http://storage-member-dev.example.com"     # Cloudflare CDN
 ]
 
 # CORS 設定: 允許的 HTTP 方法
@@ -57,11 +57,49 @@ member_cors_allowed_headers = ["*"]
 member_cors_max_age_seconds = 3600
 
 # --------------------------------------------------------------------
+# Public Bucket 命名
+#
+# 注意: S3 bucket 名稱必須全球唯一
+# 建議格式: {project}-{env}-{purpose}-{year}
+# --------------------------------------------------------------------
+
+public_bucket_name = "your-project-dev-public-2025"
+
+# --------------------------------------------------------------------
+# Public Bucket 配置
+# --------------------------------------------------------------------
+
+# 是否啟用版本控制 (開發環境建議關閉以節省成本)
+public_enable_versioning = false
+
+# CORS 設定: 允許的來源網域
+public_cors_allowed_origins = [
+  "http://localhost:5173",                   # 前端本地開發(Vite)
+  "http://localhost:5174",                   # 前端本地開發(備用端口)
+  "http://storage-public-dev.example.com"    # Cloudflare CDN
+]
+
+# CORS 設定: 允許的 HTTP 方法
+public_cors_allowed_methods = ["GET", "HEAD"]
+
+# CORS 設定: 允許的請求標頭
+public_cors_allowed_headers = ["*"]
+
+# CORS 設定: 預檢請求快取時間 (秒)
+public_cors_max_age_seconds = 3600
+
+# --------------------------------------------------------------------
+# CDN 配置
+# --------------------------------------------------------------------
+
+public_bucket_cdn_domain = "storage-public-dev.example.com"
+
+# --------------------------------------------------------------------
 # 額外標籤 (可選)
 # --------------------------------------------------------------------
 
 additional_tags = {
-  Application = "shop-backend"
-  Feature     = "member-avatar"
+  Application = "your-application"
+  Feature     = "storage"
   CostCenter  = "Engineering"
 }

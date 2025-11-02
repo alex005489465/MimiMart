@@ -5,6 +5,9 @@ cloudflared/config/config.yml
 # Nginx 配置（可能包含專案特定設定）
 nginx/nginx.conf
 nginx/conf.d/*.conf
+# 保留範例文件和說明文件
+!nginx/conf.d/*.conf.example
+!nginx/conf.d/README.md
 
 # 日誌
 *.log
