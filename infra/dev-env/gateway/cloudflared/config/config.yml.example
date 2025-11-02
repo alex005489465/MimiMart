@@ -1,10 +1,14 @@
 # Cloudflare Tunnel 配置檔案
-#
-# Tunnel ID 會自動從 credentials.json 讀取，無需在此處重複設定
+
+# Tunnel ID（必填）
+# 獲取方式：
+#   1. 從 Cloudflare Dashboard: Zero Trust > Networks > Tunnels > 選擇您的 Tunnel > 複製 Tunnel ID
+#   2. 從憑證文件手動提取: cat credentials.json | grep TunnelID
+tunnel: YOUR_TUNNEL_ID_HERE
 
 # 憑證檔案路徑（容器內路徑）
-# cloudflared 會自動從此文件讀取 Tunnel ID 和認證資訊
-credentials-file: /etc/cloudflared/config/credentials.json
+# cloudflared 會自動從此文件讀取認證資訊
+credentials-file: /etc/cloudflared/credentials.json
 
 # Ingress 路由規則
 # 請求會由上而下匹配，第一個符合的規則會生效
@@ -33,7 +37,11 @@ loglevel: info
 # 配置說明
 # ==========================================
 #
-# 1. Tunnel ID 由 credentials.json 提供，無需手動填寫
+# 1. Tunnel ID 設定（必要）
+#    - 必須在 config.yml 中明確指定 tunnel ID
+#    - 獲取方式：
+#      a) Cloudflare Dashboard: Zero Trust > Networks > Tunnels > 複製 Tunnel ID
+#      b) 從 credentials.json 手動提取: cat credentials.json | grep TunnelID
 #
 # 2. 域名設定方式（完全使用配置文件，不使用 Dashboard）：
 #
