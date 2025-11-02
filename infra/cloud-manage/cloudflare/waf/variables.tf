@@ -12,6 +12,11 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
+variable "domain_name" {
+  description = "基礎域名（從 .env 的 TF_VAR_domain_name 取得）"
+  type        = string
+}
+
 # ============================================================================
 # WAF 規則配置
 # ============================================================================
@@ -24,4 +29,19 @@ variable "waf_rules" {
     enabled     = optional(bool, true)
   }))
   default = []
+}
+
+# ============================================================================
+# Storage Protection 配置
+# ============================================================================
+variable "enable_storage_protection" {
+  description = "是否啟用 Storage 子域名的 IP 限制保護"
+  type        = bool
+  default     = false
+}
+
+variable "storage_subdomain" {
+  description = "要保護的 Storage 子域名（不含域名後綴）"
+  type        = string
+  default     = ""
 }

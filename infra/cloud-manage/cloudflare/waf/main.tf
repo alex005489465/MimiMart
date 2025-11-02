@@ -17,6 +17,34 @@ provider "cloudflare" {
 }
 
 # ============================================================================
+# 引用 IP Ranges 模組
+# ============================================================================
+module "ip_ranges" {
+  source = "../../modules/ip-ranges"
+}
+
+# ============================================================================
+# 本地變數 - 動態生成 WAF 規則
+# ============================================================================
+locals {
+  # 將 admin_only IP 列表格式化為 Cloudflare 表達式格式
+  admin_ips_formatted = join(" ", module.ip_ranges.admin_only)
+
+  # 組合自訂規則和動態生成的規則
+  all_waf_rules = concat(
+    var.waf_rules,
+    var.enable_storage_protection ? [
+      {
+        action      = "block"
+        expression  = "(http.host eq \"${var.storage_subdomain}.${var.domain_name}\" and not ip.src in {${local.admin_ips_formatted}})"
+        description = "限制 ${var.storage_subdomain} 只能從管理員 IP 訪問"
+        enabled     = true
+      }
+    ] : []
+  )
+}
+
+# ============================================================================
 # WAF Custom Rules - IP 白名單規則
 # ============================================================================
 resource "cloudflare_ruleset" "waf_custom_rules" {
@@ -27,7 +55,7 @@ resource "cloudflare_ruleset" "waf_custom_rules" {
   phase       = "http_request_firewall_custom"
 
   dynamic "rules" {
-    for_each = var.waf_rules
+    for_each = local.all_waf_rules
     content {
       action      = rules.value.action
       expression  = rules.value.expression

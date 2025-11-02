@@ -1,11 +1,20 @@
 # 注意：以下變數由 Docker 環境變數提供，不需要在此檔案中設定：
 # - cloudflare_api_token (透過 TF_VAR_cloudflare_api_token)
 # - cloudflare_zone_id (透過 TF_VAR_cloudflare_zone_id)
+# - domain_name (透過 TF_VAR_domain_name)
 #
 # 這些變數在 cloudflare/.env 檔案中配置
 
 # ============================================================================
-# WAF 規則配置
+# Storage Protection 配置（推薦）
+# ============================================================================
+# 自動從 ip-ranges 模組讀取開發者 IP，保護 Storage 子域名
+
+enable_storage_protection = false  # 設為 true 啟用保護
+storage_subdomain         = ""     # 例如: "storage-public-dev"
+
+# ============================================================================
+# 自訂 WAF 規則（進階使用）
 # ============================================================================
 
 # 範例：限制特定域名只能從特定 IP 訪問
