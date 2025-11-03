@@ -13,7 +13,8 @@ aws/
 ├── security-groups/       # 安全組模組
 ├── key-pair/              # SSH Key Pair 金鑰對模組
 ├── ec2/                   # EC2 計算實例模組
-└── s3/                    # S3 物件儲存模組
+├── s3/                    # S3 物件儲存模組
+└── ses/                   # SES 郵件服務模組
 ```
 
 ## 前置設定
@@ -75,6 +76,19 @@ S3 物件儲存管理：
 
 詳見：[s3/README.md](s3/README.md)
 
+### SES 模組 (`ses/`)
+
+SES 郵件服務管理：
+- **域名驗證**：驗證域名所有權 (xenolume.com)
+- **DKIM 簽章**：提升郵件信譽與送達率
+- **自訂 MAIL FROM**：使用子域名 (noreply.xenolume.com)
+- **IAM SMTP 使用者**：自動建立最小權限使用者與 SMTP 憑證
+- **Configuration Set**：郵件追蹤與統計
+
+⚠️ **注意**：此模組需要額外的 IAM 管理權限才能部署
+
+詳見：[ses/README.md](ses/README.md)
+
 ## 部署順序
 
 1. EIP（無依賴）
@@ -83,6 +97,7 @@ S3 物件儲存管理：
 4. Key Pair（無依賴，EC2 的前置需求）
 5. EC2（依賴 VPC、Security Groups、Key Pair、選擇性依賴 EIP）
 6. S3（無依賴）
+7. SES（無依賴，但需要 IAM 管理權限）
 
 ## 使用方式
 
@@ -104,6 +119,22 @@ docker-compose --env-file aws/.env run --rm terraform "cd <module> && terraform 
 - 定期輪換 AWS Access Key
 - 使用 IAM 最小權限原則
 - 啟用 CloudTrail 審計日誌
+
+## IAM 權限需求
+
+不同的模組需要不同的 AWS IAM 權限：
+
+| 模組 | 基本權限 | 額外權限 |
+|------|---------|---------|
+| VPC | `ec2:*Vpc*` | - |
+| EIP | `ec2:*Address*` | - |
+| Security Groups | `ec2:*SecurityGroup*` | - |
+| Key Pair | `ec2:*KeyPair*` | - |
+| EC2 | `ec2:*Instance*`, `ec2:*NetworkInterface*` | - |
+| S3 | `s3:*` | - |
+| **SES** | `ses:*` | **`iam:CreateUser`, `iam:CreateAccessKey`, `iam:CreatePolicy`, `iam:AttachUserPolicy`, `sns:CreateTopic`** |
+
+⚠️ **注意**：SES 模組需要 IAM 管理權限，詳見 [ses/README.md](ses/README.md)
 
 ## 參考資源
 

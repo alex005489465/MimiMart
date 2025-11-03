@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowSendEmail",
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+      ],
+      "Resource": [
+        "arn:aws:ses:ap-south-1:YOUR-AWS-ACCOUNT-ID:identity/example.com",
+        "arn:aws:ses:ap-south-1:YOUR-AWS-ACCOUNT-ID:identity/example.com/*"
+      ]
+    },
+    {
+      "Sid": "AllowUseConfigurationSet",
+      "Effect": "Allow",
+      "Action": [
+        "ses:PutConfigurationSetDeliveryOptions",
+        "ses:GetConfigurationSet"
+      ],
+      "Resource": "arn:aws:ses:ap-south-1:YOUR-AWS-ACCOUNT-ID:configuration-set/project-prod-ses-config"
+    }
+  ]
+}
