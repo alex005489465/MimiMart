@@ -14,11 +14,11 @@ variable "cloudflare_account_id" {
 }
 
 # ============================================================================
-# Pages 專案配置
+# Admin Frontend Pages 專案配置
 # ============================================================================
 
 variable "pages_project_name" {
-  description = "Pages 專案名稱（只能包含小寫字母、數字和連字符）"
+  description = "Admin Pages 專案名稱（只能包含小寫字母、數字和連字符）"
   type        = string
 
   validation {
@@ -28,20 +28,45 @@ variable "pages_project_name" {
 }
 
 variable "production_branch" {
-  description = "生產分支名稱"
+  description = "Admin 生產分支名稱"
   type        = string
 }
 
-# ============================================================================
-# 域名配置
-# ============================================================================
-
 variable "custom_domain" {
-  description = "Pages 專案的完整自訂域名（例如: admin.example.com）"
+  description = "Admin Pages 專案的完整自訂域名（例如: admin.example.com）"
   type        = string
 
   validation {
     condition     = can(regex("^[a-z0-9.-]+\\.[a-z]{2,}$", var.custom_domain))
+    error_message = "域名格式不正確"
+  }
+}
+
+# ============================================================================
+# Shop Frontend Pages 專案配置
+# ============================================================================
+
+variable "shop_pages_project_name" {
+  description = "Shop Pages 專案名稱（只能包含小寫字母、數字和連字符）"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.shop_pages_project_name))
+    error_message = "專案名稱只能包含小寫字母、數字和連字符"
+  }
+}
+
+variable "shop_production_branch" {
+  description = "Shop 生產分支名稱"
+  type        = string
+}
+
+variable "shop_custom_domain" {
+  description = "Shop Pages 專案的完整自訂域名（例如: shop.example.com）"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9.-]+\\.[a-z]{2,}$", var.shop_custom_domain))
     error_message = "域名格式不正確"
   }
 }
