@@ -20,10 +20,20 @@ echo "[步驟 1/4] 更新系統套件..."
 dnf update -y
 
 # ========================================
-# 2. 安裝 Docker
+# 2. 安裝 Docker 28.5.1
 # ========================================
-echo "[步驟 2/4] 安裝 Docker..."
-dnf install -y docker
+echo "[步驟 2/4] 安裝 Docker 28.5.1..."
+
+# 先安裝 Amazon Linux 版本以獲取 systemd 服務配置
+dnf install -y docker-25.0.13-1.amzn2023.0.1
+
+# 下載並替換為 Docker 28.5.1 二進制檔案
+cd /tmp
+curl -fsSL https://download.docker.com/linux/static/stable/aarch64/docker-28.5.1.tgz -o docker.tgz
+tar xzf docker.tgz
+systemctl stop docker
+cp /tmp/docker/* /usr/bin/
+rm -rf /tmp/docker /tmp/docker.tgz
 
 # 啟動 Docker 服務
 echo "啟動 Docker 服務..."
@@ -34,15 +44,12 @@ systemctl enable docker
 docker --version
 
 # ========================================
-# 3. 安裝 Docker Compose
+# 3. 安裝 Docker Compose v2.40.2
 # ========================================
-echo "[步驟 3/4] 安裝 Docker Compose..."
+echo "[步驟 3/4] 安裝 Docker Compose v2.40.2..."
 
-# 取得最新版本號
-DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
-
-# 下載並安裝 Docker Compose
-curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# 下載並安裝 Docker Compose v2.40.2
+curl -L "https://github.com/docker/compose/releases/download/v2.40.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
 # 設定執行權限
 chmod +x /usr/local/bin/docker-compose
@@ -54,9 +61,26 @@ ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
 docker-compose --version
 
 # ========================================
-# 4. 配置使用者權限
+# 4. 安裝 Docker Buildx
 # ========================================
-echo "[步驟 4/4] 配置使用者權限..."
+echo "[步驟 4/5] 安裝 Docker Buildx..."
+
+# 為 ec2-user 建立 Docker CLI 插件目錄
+mkdir -p /home/ec2-user/.docker/cli-plugins
+
+# 取得最新 Buildx 版本並下載
+BUILDX_VERSION=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+curl -L "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-arm64" -o /home/ec2-user/.docker/cli-plugins/docker-buildx
+chmod +x /home/ec2-user/.docker/cli-plugins/docker-buildx
+chown -R ec2-user:ec2-user /home/ec2-user/.docker
+
+# 驗證 Buildx 安裝
+su - ec2-user -c "docker buildx version"
+
+# ========================================
+# 5. 配置使用者權限
+# ========================================
+echo "[步驟 5/5] 配置使用者權限..."
 
 # 將 ec2-user 加入 docker 群組 (允許無需 sudo 執行 docker)
 usermod -aG docker ec2-user

@@ -1,0 +1,104 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.4
+    container_name: mimimart-mysql
+    expose:
+      - "3306"  # 只在內部網路開放
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - /opt/mimimart/data/mysql:/var/lib/mysql
+      - ./mysql/config/my.cnf:/etc/mysql/conf.d/custom.cnf
+    command: >
+      bash -c "
+      chmod 644 /etc/mysql/conf.d/custom.cnf &&
+      chown mysql:mysql /etc/mysql/conf.d/custom.cnf &&
+      docker-entrypoint.sh mysqld
+      "
+    networks:
+      - mimimart-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 128M
+
+  # phpMyAdmin for Database Management
+  phpmyadmin:
+    build:
+      context: ./phpmyadmin
+      dockerfile: Dockerfile
+    container_name: mimimart-phpmyadmin
+    expose:
+      - "80"  # 只在內部網路開放，透過 nginx 轉發
+    environment:
+      PMA_HOST: ${PMA_HOST}
+      PMA_PORT: ${PMA_PORT}
+      # PMA_USER: ${PMA_USER}
+      # PMA_PASSWORD: ${PMA_PASSWORD}
+      UPLOAD_LIMIT: ${UPLOAD_LIMIT}
+    depends_on:
+      - mysql
+    networks:
+      - mimimart-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+
+  # Redis for Cache and Queue
+  redis:
+    image: redis:alpine
+    container_name: mimimart-redis
+    expose:
+      - "6379"  # 只在內部網路開放
+    volumes:
+      - /opt/mimimart/data/redis:/data
+    networks:
+      - mimimart-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+
+  # RedisInsight for Redis Management
+  # redis-insight:
+  #   image: redis/redisinsight:latest
+  #   container_name: mimimart-redis-insight
+  #   ports:
+  #     - "${REDIS_INSIGHT_PORT}:5540"
+  #   environment:
+  #     - RI_REDIS_HOST=redis
+  #     - RI_REDIS_PORT=6379
+  #     - RI_REDIS_ALIAS=MimiMart Redis
+  #   volumes:
+  #     - ./redis-insight/volumes:/data
+  #     - ./redis-insight/databases.json:/data/databases.json:ro
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - mimimart-network
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  #         cpus: '0.5'
+  #       reservations:
+  #         memory: 128M
+
+networks:
+  mimimart-network:
+    name: mimimart-network
+    driver: bridge
