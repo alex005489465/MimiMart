@@ -9,7 +9,8 @@ cloudflare/
 ├── .env                    # Cloudflare 認證資訊（所有模組共用）
 ├── .env.example           # 認證資訊範例
 ├── dns/                   # DNS 記錄模組
-└── waf/                   # Web 應用防火牆模組
+├── waf/                   # Web 應用防火牆模組
+└── pages/                 # Cloudflare Pages 模組
 ```
 
 ## 前置設定
@@ -25,8 +26,9 @@ cp .env.example .env
 
 取得資訊：
 - **API Token**: 前往 https://dash.cloudflare.com/profile/api-tokens
-  - DNS 模組需要「編輯 Zone DNS」權限
+  - DNS 模組需要「Zone:DNS:Edit」權限
   - WAF 模組需要「Zone:Firewall Services:Edit」和「Zone:WAF:Edit」權限
+  - Pages 模組需要「Account:Cloudflare Pages:Edit」權限
 - **Zone ID 與 Account ID**: 登入 Cloudflare Dashboard → 選擇網域 → 右側欄位顯示
 
 ## 已部署模組
@@ -43,10 +45,17 @@ Cloudflare Web Application Firewall 自訂規則管理，用於配置 IP 白名�
 
 詳見：[waf/README.md](waf/README.md)
 
+### Pages 模組 (`pages/`)
+
+Cloudflare Pages 專案管理，用於部署前端單頁應用程式（SPA），支援自訂域名和環境變數配置
+
+詳見：[pages/README.md](pages/README.md)
+
 ## 部署順序
 
-1. **DNS**（無依賴）- 設定域名解析
-2. **WAF**（無依賴）- 配置安全規則
+1. **Pages**（可選）- 建立 Pages 專案（如需部署前端應用）
+2. **DNS**（無依賴）- 設定域名解析（包含 Pages 自訂域名）
+3. **WAF**（無依賴）- 配置安全規則
 
 ## 使用方式
 
@@ -74,3 +83,4 @@ docker-compose --env-file cloudflare/.env run --rm terraform "cd <module> && ter
 - [Cloudflare Provider 文檔](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs)
 - [Cloudflare DNS 文檔](https://developers.cloudflare.com/dns/)
 - [Cloudflare WAF 文檔](https://developers.cloudflare.com/waf/)
+- [Cloudflare Pages 文檔](https://developers.cloudflare.com/pages/)

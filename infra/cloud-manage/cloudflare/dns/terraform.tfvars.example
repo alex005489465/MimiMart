@@ -9,7 +9,7 @@
 # ============================================================================
 
 base_domain              = "example.com"
-public_bucket_subdomain  = "storage-public-dev"
+public_bucket_subdomain  = "storage1"
 
 # ============================================================================
 # DNS 記錄配置
@@ -39,6 +39,18 @@ dns_records = [
   #   proxied = true
   #   ttl     = 1
   #   comment = "部落格服務"
+  # },
+
+  # CNAME 記錄範例：Cloudflare Pages
+  # 注意：content 需要使用 Pages 自動生成的域名（*.pages.dev）
+  # 可以從 Pages 模組的 terraform output 取得
+  # {
+  #   name    = "app1"
+  #   type    = "CNAME"
+  #   content = "app1.pages.dev"
+  #   proxied = true
+  #   ttl     = 1
+  #   comment = "前端應用 - Cloudflare Pages"
   # },
 
   # MX 記錄範例：郵件伺服器
