@@ -4,36 +4,35 @@ import com.mimimart.application.service.EmailQuotaService;
 import com.mimimart.application.service.EmailRateLimitService;
 import com.mimimart.application.service.EmailSendLogService;
 import com.mimimart.application.service.EmailService;
+import com.mimimart.infrastructure.email.sender.EmailSender;
 import com.mimimart.shared.valueobject.EmailType;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * 郵件服務實作
+ *
+ * <p>採用策略模式委派給 {@link EmailSender} 處理實際的郵件發送，
+ * 支援多種發送方式（SMTP、AWS SES 等）的動態切換。
+ *
+ * @author MimiMart Team
+ * @since 1.0.0
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender mailSender;
+    private final EmailSender emailSender;
     private final TemplateEngine templateEngine;
     private final EmailQuotaService emailQuotaService;
     private final EmailRateLimitService emailRateLimitService;
     private final EmailSendLogService emailSendLogService;
-
-    @Value("${spring.mail.username}")
-    private String fromEmail;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -130,7 +129,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
-     * 發送 HTML 格式郵件
+     * 發送 HTML 格式郵件（委派給策略實作）
      *
      * @param to 收件人
      * @param subject 主旨
@@ -138,18 +137,6 @@ public class EmailServiceImpl implements EmailService {
      * @throws MessagingException 郵件發送例外
      */
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(
-                message,
-                MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
-                StandardCharsets.UTF_8.name()
-        );
-
-        helper.setFrom(fromEmail);
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(htmlContent, true);
-
-        mailSender.send(message);
+        emailSender.send(to, subject, htmlContent);
     }
 }

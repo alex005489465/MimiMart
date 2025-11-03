@@ -54,18 +54,18 @@ spring:
           min-idle: 0
           max-wait: -1ms
 
-  # 郵件配置
+  # 郵件配置 (SMTP 模式使用)
   mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    host: ${MAIL_HOST:mailpit}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:noreply@yourdomain.com}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: ${MAIL_SMTP_AUTH}
+          auth: ${MAIL_SMTP_AUTH:false}
           starttls:
-            enable: ${MAIL_SMTP_STARTTLS}
+            enable: ${MAIL_SMTP_STARTTLS:false}
 
 # SpringDoc OpenAPI 配置
 springdoc:
@@ -134,11 +134,23 @@ mimimart:
     api-url: ${ECPAY_API_URL}
     return-url: ${ECPAY_RETURN_URL}
     callback-url: ${ECPAY_CALLBACK_URL}
-  # 郵件配額配置
+  # 郵件服務配置
   email:
+    # 郵件發送策略 (smtp | aws-ses)
+    provider: ${EMAIL_PROVIDER:smtp}
+    # 寄件者資訊 (兩種模式共用)
+    from:
+      address: ${MAIL_FROM_ADDRESS:noreply@yourdomain.com}
+      name: ${MAIL_FROM_NAME:MimiMart}
+    # AWS SES 配置 (當 provider=aws-ses 時使用)
+    aws:
+      ses:
+        region: ${AWS_REGION:ap-south-1}
+    # 郵件配額配置 (兩種模式共用)
     quota:
       monthly-limit: ${EMAIL_MONTHLY_LIMIT}  # 每月發信上限
       alert-thresholds: ${EMAIL_ALERT_THRESHOLDS}  # 告警閾值(%)
+    # 郵件頻率限制 (兩種模式共用)
     rate-limit:
       verification:
         max-attempts: ${EMAIL_VERIFICATION_MAX_ATTEMPTS}  # 驗證郵件最大次數

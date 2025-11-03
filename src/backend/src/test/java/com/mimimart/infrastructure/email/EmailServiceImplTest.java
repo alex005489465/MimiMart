@@ -1,8 +1,12 @@
 package com.mimimart.infrastructure.email;
 
+import com.mimimart.application.service.EmailQuotaService;
+import com.mimimart.application.service.EmailRateLimitService;
+import com.mimimart.application.service.EmailSendLogService;
 import com.mimimart.application.service.EmailService;
+import com.mimimart.infrastructure.email.sender.EmailSender;
+import com.mimimart.shared.valueobject.EmailType;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +15,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -30,18 +33,23 @@ import static org.mockito.Mockito.*;
 class EmailServiceImplTest {
 
     @Mock
-    private JavaMailSender mailSender;
+    private EmailSender emailSender;
 
     @Mock
     private TemplateEngine templateEngine;
 
     @Mock
-    private MimeMessage mimeMessage;
+    private EmailQuotaService emailQuotaService;
+
+    @Mock
+    private EmailRateLimitService emailRateLimitService;
+
+    @Mock
+    private EmailSendLogService emailSendLogService;
 
     @InjectMocks
     private EmailServiceImpl emailService;
 
-    private static final String FROM_EMAIL = "noreply@mimimart.com";
     private static final String FRONTEND_URL = "http://localhost:3000";
     private static final String TEST_EMAIL = "test@example.com";
     private static final String TEST_NAME = "測試會員";
@@ -49,14 +57,12 @@ class EmailServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(emailService, "fromEmail", FROM_EMAIL);
         ReflectionTestUtils.setField(emailService, "frontendUrl", FRONTEND_URL);
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
     }
 
     @Test
     @DisplayName("發送歡迎郵件 - 成功")
-    void sendWelcomeEmail_Success() {
+    void sendWelcomeEmail_Success() throws Exception {
         // Given
         String htmlContent = "<html>Welcome</html>";
         when(templateEngine.process(eq("email/welcome"), any(Context.class)))
@@ -67,13 +73,15 @@ class EmailServiceImplTest {
 
         // Then
         verify(templateEngine).process(eq("email/welcome"), any(Context.class));
-        verify(mailSender).send(mimeMessage);
+        verify(emailSender).send(eq(TEST_EMAIL), eq("歡迎加入 MimiMart！"), eq(htmlContent));
+        verify(emailQuotaService).checkAndIncrementQuota();
+        verify(emailSendLogService).logEmailSent(isNull(), eq(TEST_EMAIL), eq(EmailType.WELCOME), eq("歡迎加入 MimiMart！"));
     }
 
 
     @Test
     @DisplayName("發送驗證郵件 - 成功")
-    void sendVerificationEmail_Success() {
+    void sendVerificationEmail_Success() throws Exception {
         // Given
         String htmlContent = "<html>Verify your email</html>";
         when(templateEngine.process(eq("email/verification"), any(Context.class)))
@@ -85,7 +93,9 @@ class EmailServiceImplTest {
         // Then
         ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
         verify(templateEngine).process(eq("email/verification"), contextCaptor.capture());
-        verify(mailSender).send(mimeMessage);
+        verify(emailSender).send(eq(TEST_EMAIL), eq("請驗證您的 Email"), eq(htmlContent));
+        verify(emailQuotaService).checkAndIncrementQuota();
+        verify(emailSendLogService).logEmailSent(isNull(), eq(TEST_EMAIL), eq(EmailType.VERIFICATION), eq("請驗證您的 Email"));
 
         Context context = contextCaptor.getValue();
         assertThat(context.getVariable("memberName")).isEqualTo(TEST_NAME);
@@ -98,7 +108,7 @@ class EmailServiceImplTest {
 
     @Test
     @DisplayName("發送密碼重設郵件 - 成功")
-    void sendPasswordResetEmail_Success() {
+    void sendPasswordResetEmail_Success() throws Exception {
         // Given
         String htmlContent = "<html>Reset your password</html>";
         when(templateEngine.process(eq("email/password-reset"), any(Context.class)))
@@ -110,7 +120,9 @@ class EmailServiceImplTest {
         // Then
         ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
         verify(templateEngine).process(eq("email/password-reset"), contextCaptor.capture());
-        verify(mailSender).send(mimeMessage);
+        verify(emailSender).send(eq(TEST_EMAIL), eq("重設您的密碼"), eq(htmlContent));
+        verify(emailQuotaService).checkAndIncrementQuota();
+        verify(emailSendLogService).logEmailSent(isNull(), eq(TEST_EMAIL), eq(EmailType.PASSWORD_RESET), eq("重設您的密碼"));
 
         Context context = contextCaptor.getValue();
         assertThat(context.getVariable("memberName")).isEqualTo(TEST_NAME);
