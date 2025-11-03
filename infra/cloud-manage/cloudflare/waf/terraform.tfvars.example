@@ -6,12 +6,12 @@
 # 這些變數在 cloudflare/.env 檔案中配置
 
 # ============================================================================
-# Storage Protection 配置（推薦）
+# phpMyAdmin Protection 配置
 # ============================================================================
-# 自動從 ip-ranges 模組讀取開發者 IP，保護 Storage 子域名
+# 自動從 ip-ranges 模組讀取開發者 IP，保護 phpMyAdmin 子域名
 
-enable_storage_protection = false  # 設為 true 啟用保護
-storage_subdomain         = ""     # 例如: "storage-public-dev"
+enable_phpmyadmin_protection = false  # 設為 true 啟用保護
+phpmyadmin_subdomain         = ""     # 例如: "database"
 
 # ============================================================================
 # 自訂 WAF 規則（進階使用）
@@ -19,44 +19,79 @@ storage_subdomain         = ""     # 例如: "storage-public-dev"
 
 # 範例：限制特定域名只能從特定 IP 訪問
 waf_rules = [
-  # 規則 1：保護多個管理介面（同時支援 IPv4 和 IPv6）
+  # 規則 1：多個內部服務保護（使用動態 IP 佔位符）
+  # 支援從 ip-ranges 模組自動讀取 IP，使用 ${admin_ips} 佔位符
   {
     action      = "block"
-    description = "封鎖非白名單 IP 訪問管理介面"
+    description = "內部服務 - 僅限管理員 IP 存取"
     enabled     = true
-    expression  = "(http.host in {\"admin.example.com\" \"git.example.com\"} and not ip.src in {203.0.113.50 2001:db8::1})"
+    expression  = <<-EOT
+      (http.host in {
+        "app1.example.com"
+        "app2.example.com"
+        "app3.example.com"
+      } and not ip.src in {
+        $${admin_ips}
+      })
+    EOT
   },
 
-  # 規則 2：單一域名 IP 白名單（僅 IPv4）
+  # 規則 2：保護多個服務（手動指定 IPv4 和 IPv6）
+  # {
+  #   action      = "block"
+  #   description = "封鎖非白名單 IP 訪問特定服務"
+  #   enabled     = true
+  #   expression  = <<-EOT
+  #     (http.host in {
+  #       "service1.example.com"
+  #       "service2.example.com"
+  #     } and not ip.src in {
+  #       203.0.113.50/32
+  #       2001:db8::1/128
+  #     })
+  #   EOT
+  # },
+
+  # 規則 3：單一域名 IP 白名單（僅 IPv4，簡單語法）
   # {
   #   action      = "block"
   #   description = "封鎖非白名單 IP 訪問特定域名"
   #   enabled     = true
-  #   expression  = "(http.host eq \"admin.example.com\" and ip.src ne 203.0.113.50)"
+  #   expression  = "(http.host eq \"private.example.com\" and ip.src ne 203.0.113.50)"
   # },
 
-  # 規則 3：封鎖特定國家/地區
+  # 規則 4：封鎖特定國家/地區
   # {
   #   action      = "block"
   #   description = "封鎖來自特定國家的請求"
   #   enabled     = false
-  #   expression  = "(ip.geoip.country in {\"CN\" \"RU\"})"
+  #   expression  = <<-EOT
+  #     (ip.geoip.country in {
+  #       "CN"
+  #       "RU"
+  #     })
+  #   EOT
   # },
 
-  # 規則 4：保護 API 端點
+  # 規則 5：保護特定路徑
   # {
   #   action      = "challenge"
-  #   description = "對 API 端點啟用驗證"
+  #   description = "對特定路徑啟用驗證"
   #   enabled     = false
-  #   expression  = "(http.request.uri.path contains \"/api/\")"
+  #   expression  = "(http.request.uri.path contains \"/protected/\")"
   # },
 
-  # 規則 5：IP 範圍白名單（CIDR）
+  # 規則 6：IP 範圍白名單（CIDR）
   # {
   #   action      = "block"
-  #   description = "限制只能從公司網段訪問"
+  #   description = "限制只能從特定網段訪問"
   #   enabled     = true
-  #   expression  = "(http.host eq \"internal.example.com\" and not ip.src in {192.168.1.0/24 10.0.0.0/8})"
+  #   expression  = <<-EOT
+  #     (http.host eq "restricted.example.com" and not ip.src in {
+  #       192.168.1.0/24
+  #       10.0.0.0/8
+  #     })
+  #   EOT
   # },
 ]
 
@@ -69,6 +104,17 @@ waf_rules = [
 #   - http.host contains "example.com"    # 包含
 #   - http.host in {"a.com" "b.com"}      # 多個域名
 #
+# 推薦格式（使用 heredoc，每個域名一行）：
+#   expression = <<-EOT
+#     (http.host in {
+#       "domain1.example.com"
+#       "domain2.example.com"
+#     } and not ip.src in {
+#       203.0.113.50/32
+#       2001:db8::1/128
+#     })
+#   EOT
+#
 # IP 匹配：
 #   - ip.src eq 203.0.113.50                      # 單一 IPv4
 #   - ip.src ne 203.0.113.50                      # 不等於（不建議用於白名單）
@@ -77,13 +123,18 @@ waf_rules = [
 #   - ip.src in {203.0.113.0/24}                  # IP 範圍（CIDR）
 #   - ip.src in {203.0.113.50 2001:db8::1}        # 同時支援 IPv4 和 IPv6
 #
+# 動態 IP 佔位符（自動從 ip-ranges 模組讀取）：
+#   - ${admin_ips}  # 會被替換為 module.ip_ranges.admin_only 的所有 IP
+#   - 使用方式: not ip.src in {$${admin_ips}}
+#   - ⚠️ 注意雙 $ 符號（$$），這是 Terraform 的轉義語法
+#
 # ⚠️ 重要：如果你的網路同時支援 IPv4 和 IPv6，請務必兩者都加入白名單！
 #    瀏覽器可能優先使用 IPv6，如果只允許 IPv4 會被封鎖。
 #
 # 路徑匹配：
-#   - http.request.uri.path eq "/admin"
-#   - http.request.uri.path contains "/api/"
-#   - http.request.uri.path matches "^/admin.*"
+#   - http.request.uri.path eq "/dashboard"
+#   - http.request.uri.path contains "/restricted/"
+#   - http.request.uri.path matches "^/private.*"
 #
 # 地理位置：
 #   - ip.geoip.country eq "TW"

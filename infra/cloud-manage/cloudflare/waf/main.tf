@@ -30,9 +30,19 @@ locals {
   # 將 admin_only IP 列表格式化為 Cloudflare 表達式格式
   admin_ips_formatted = join(" ", module.ip_ranges.admin_only)
 
+  # 處理自訂規則中的 IP 變數替換
+  processed_waf_rules = [
+    for rule in var.waf_rules : {
+      action      = rule.action
+      expression  = replace(rule.expression, "$${admin_ips}", local.admin_ips_formatted)
+      description = rule.description
+      enabled     = lookup(rule, "enabled", true)
+    }
+  ]
+
   # 組合自訂規則和動態生成的規則
   all_waf_rules = concat(
-    var.waf_rules,
+    local.processed_waf_rules,
     var.enable_storage_protection ? [
       {
         action      = "block"
