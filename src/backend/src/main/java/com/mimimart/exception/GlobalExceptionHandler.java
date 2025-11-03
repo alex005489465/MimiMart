@@ -3,6 +3,8 @@ package com.mimimart.exception;
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.domain.banner.exception.BannerNotFoundException;
 import com.mimimart.domain.banner.exception.InvalidBannerOrderException;
+import com.mimimart.domain.email.exception.EmailQuotaExceededException;
+import com.mimimart.domain.email.exception.EmailRateLimitExceededException;
 import com.mimimart.domain.member.exception.*;
 import com.mimimart.domain.order.exception.*;
 import com.mimimart.shared.exception.DomainException;
@@ -246,6 +248,28 @@ public class GlobalExceptionHandler {
         logger.warn("未授權訂單存取: {}", ex.getMessage());
         return ResponseEntity.ok(
             ApiResponse.error("UNAUTHORIZED_ORDER_ACCESS", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理郵件配額超限異常
+     */
+    @ExceptionHandler(EmailQuotaExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEmailQuotaExceeded(EmailQuotaExceededException ex) {
+        logger.warn("郵件配額超限: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("EMAIL_QUOTA_EXCEEDED", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理郵件發送頻率超限異常
+     */
+    @ExceptionHandler(EmailRateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEmailRateLimitExceeded(EmailRateLimitExceededException ex) {
+        logger.warn("郵件發送頻率超限: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("EMAIL_RATE_LIMIT_EXCEEDED", ex.getMessage())
         );
     }
 

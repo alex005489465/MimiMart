@@ -13,6 +13,7 @@ import com.mimimart.domain.member.exception.VerificationTokenExpiredException;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import com.mimimart.infrastructure.security.JwtUtil;
+import com.mimimart.shared.valueobject.EmailType;
 import com.mimimart.shared.valueobject.MemberStatus;
 import com.mimimart.shared.valueobject.UserType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,17 +37,20 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
+    private final EmailRateLimitService emailRateLimitService;
 
     public AuthService(MemberRepository memberRepository,
                       PasswordEncoder passwordEncoder,
                       JwtUtil jwtUtil,
                       RefreshTokenService refreshTokenService,
-                      EmailService emailService) {
+                      EmailService emailService,
+                      EmailRateLimitService emailRateLimitService) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
         this.emailService = emailService;
+        this.emailRateLimitService = emailRateLimitService;
     }
 
     /**
@@ -219,6 +223,9 @@ public class AuthService {
             throw new EmailAlreadyVerifiedException("Email 已經驗證過了");
         }
 
+        // 檢查會員發信頻率限制
+        emailRateLimitService.checkAndRecordRateLimit(member.getId(), EmailType.VERIFICATION);
+
         // 生成新的驗證 Token
         String verificationToken = UUID.randomUUID().toString();
         member.setVerificationToken(verificationToken);
@@ -237,6 +244,9 @@ public class AuthService {
         // 查詢會員
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberNotFoundException("會員不存在"));
+
+        // 檢查會員發信頻率限制
+        emailRateLimitService.checkAndRecordRateLimit(member.getId(), EmailType.PASSWORD_RESET);
 
         // 生成密碼重設 Token（30 分鐘有效期）
         String resetToken = UUID.randomUUID().toString();

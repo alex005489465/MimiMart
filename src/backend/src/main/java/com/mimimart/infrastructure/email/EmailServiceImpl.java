@@ -1,6 +1,10 @@
 package com.mimimart.infrastructure.email;
 
+import com.mimimart.application.service.EmailQuotaService;
+import com.mimimart.application.service.EmailRateLimitService;
+import com.mimimart.application.service.EmailSendLogService;
 import com.mimimart.application.service.EmailService;
+import com.mimimart.shared.valueobject.EmailType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +28,9 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final EmailQuotaService emailQuotaService;
+    private final EmailRateLimitService emailRateLimitService;
+    private final EmailSendLogService emailSendLogService;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -33,6 +40,11 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendWelcomeEmail(String email, String memberName) {
+        String subject = "歡迎加入 MimiMart！";
+
+        // 檢查月度配額
+        emailQuotaService.checkAndIncrementQuota();
+
         try {
             Context context = new Context();
             context.setVariable("memberName", memberName);
@@ -40,9 +52,14 @@ public class EmailServiceImpl implements EmailService {
 
             String htmlContent = templateEngine.process("email/welcome", context);
 
-            sendHtmlEmail(email, "歡迎加入 MimiMart！", htmlContent);
+            sendHtmlEmail(email, subject, htmlContent);
+
+            // 記錄發送成功
+            emailSendLogService.logEmailSent(null, email, EmailType.WELCOME, subject);
             log.info("歡迎郵件已發送至: {}", email);
         } catch (MessagingException e) {
+            // 記錄發送失敗
+            emailSendLogService.logEmailFailed(null, email, EmailType.WELCOME, subject, e.getMessage());
             log.error("發送歡迎郵件失敗: {}", email, e);
             throw new RuntimeException("發送歡迎郵件失敗", e);
         }
@@ -50,6 +67,13 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendVerificationEmail(String email, String memberName, String verificationToken) {
+        String subject = "請驗證您的 Email";
+
+        // 檢查月度配額
+        emailQuotaService.checkAndIncrementQuota();
+
+        // 註：會員頻率限制在 AuthService 層檢查，因為這裡沒有 memberId
+
         try {
             String verificationUrl = frontendUrl + "/verify-email?token=" + verificationToken;
 
@@ -60,9 +84,14 @@ public class EmailServiceImpl implements EmailService {
 
             String htmlContent = templateEngine.process("email/verification", context);
 
-            sendHtmlEmail(email, "請驗證您的 Email", htmlContent);
+            sendHtmlEmail(email, subject, htmlContent);
+
+            // 記錄發送成功
+            emailSendLogService.logEmailSent(null, email, EmailType.VERIFICATION, subject);
             log.info("驗證郵件已發送至: {}", email);
         } catch (MessagingException e) {
+            // 記錄發送失敗
+            emailSendLogService.logEmailFailed(null, email, EmailType.VERIFICATION, subject, e.getMessage());
             log.error("發送驗證郵件失敗: {}", email, e);
             throw new RuntimeException("發送驗證郵件失敗", e);
         }
@@ -70,6 +99,13 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendPasswordResetEmail(String email, String memberName, String resetToken) {
+        String subject = "重設您的密碼";
+
+        // 檢查月度配額
+        emailQuotaService.checkAndIncrementQuota();
+
+        // 註：會員頻率限制在 AuthService 層檢查，因為這裡沒有 memberId
+
         try {
             String resetUrl = frontendUrl + "/reset-password?token=" + resetToken;
 
@@ -80,9 +116,14 @@ public class EmailServiceImpl implements EmailService {
 
             String htmlContent = templateEngine.process("email/password-reset", context);
 
-            sendHtmlEmail(email, "重設您的密碼", htmlContent);
+            sendHtmlEmail(email, subject, htmlContent);
+
+            // 記錄發送成功
+            emailSendLogService.logEmailSent(null, email, EmailType.PASSWORD_RESET, subject);
             log.info("密碼重設郵件已發送至: {}", email);
         } catch (MessagingException e) {
+            // 記錄發送失敗
+            emailSendLogService.logEmailFailed(null, email, EmailType.PASSWORD_RESET, subject, e.getMessage());
             log.error("發送密碼重設郵件失敗: {}", email, e);
             throw new RuntimeException("發送密碼重設郵件失敗", e);
         }

@@ -39,6 +39,21 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
 
+  # Redis 配置
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
   # 郵件配置
   mail:
     host: ${MAIL_HOST}
@@ -119,6 +134,18 @@ mimimart:
     api-url: ${ECPAY_API_URL}
     return-url: ${ECPAY_RETURN_URL}
     callback-url: ${ECPAY_CALLBACK_URL}
+  # 郵件配額配置
+  email:
+    quota:
+      monthly-limit: ${EMAIL_MONTHLY_LIMIT}  # 每月發信上限
+      alert-thresholds: ${EMAIL_ALERT_THRESHOLDS}  # 告警閾值(%)
+    rate-limit:
+      verification:
+        max-attempts: ${EMAIL_VERIFICATION_MAX_ATTEMPTS}  # 驗證郵件最大次數
+        window-minutes: ${EMAIL_VERIFICATION_WINDOW_MINUTES}  # 時間窗口(分鐘)
+      password-reset:
+        max-attempts: ${EMAIL_PASSWORD_RESET_MAX_ATTEMPTS}  # 密碼重設最大次數
+        window-minutes: ${EMAIL_PASSWORD_RESET_WINDOW_MINUTES}  # 時間窗口(分鐘)
 
 # 日誌配置
 logging:
