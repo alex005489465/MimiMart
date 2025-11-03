@@ -1,0 +1,76 @@
+# 金流回調域名配置範例
+# 用途: 處理第三方金流（如 ECPay）的回調請求
+#
+# 使用方式:
+# 1. 複製此文件: cp domain-example-payment.conf.example payment.conf
+# 2. 替換佔位符:
+#    - your-payment-domain.example.com → 實際的金流回調域名
+#    - your_backend_container → 後端容器名稱（如 mimimart-java）
+#    - your_backend_port → 後端端口（如 8080）
+# 3. 根據需求調整路由規則
+
+upstream payment_backend {
+    server your_backend_container:your_backend_port;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name your-payment-domain.example.com;
+
+    # 安全標頭
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # ECPay 金流回調端點
+    location /api/payment/ecpay/ {
+        access_log /var/log/nginx/payment.log main;
+
+        proxy_pass http://payment_backend;
+        proxy_http_version 1.1;
+
+        # 保留真實 IP 和協定
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+
+        # Cloudflare 特定標頭
+        proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
+        proxy_set_header CF-Ray $http_cf_ray;
+        proxy_set_header CF-Visitor $http_cf_visitor;
+
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_request_buffering off;
+
+        # 超時設定
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 其他金流路徑（可選）
+    # location /api/payment/linepay/ {
+    #     access_log /var/log/nginx/payment.log main;
+    #     proxy_pass http://payment_backend;
+    #     proxy_http_version 1.1;
+    #     proxy_set_header Host $host;
+    #     proxy_set_header X-Real-IP $remote_addr;
+    #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    #     proxy_set_header X-Forwarded-Proto $scheme;
+    #     proxy_set_header Connection "";
+    # }
+
+    # 拒絕其他請求
+    location / {
+        access_log off;
+        return 404 "Not Found\n";
+        add_header Content-Type text/plain;
+    }
+
+    server_tokens off;
+}

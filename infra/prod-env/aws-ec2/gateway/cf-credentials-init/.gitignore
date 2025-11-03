@@ -1,0 +1,6 @@
+# Token 文件（包含敏感資訊）
+.env.token
+
+# Node.js
+node_modules/
+npm-debug.log*

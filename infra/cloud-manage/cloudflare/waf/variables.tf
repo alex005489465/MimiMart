@@ -45,3 +45,18 @@ variable "storage_subdomain" {
   type        = string
   default     = ""
 }
+
+# ============================================================================
+# phpMyAdmin Protection 配置
+# ============================================================================
+variable "enable_phpmyadmin_protection" {
+  description = "是否啟用 phpMyAdmin 子域名的 IP 限制保護"
+  type        = bool
+  default     = false
+}
+
+variable "phpmyadmin_subdomain" {
+  description = "要保護的 phpMyAdmin 子域名（不含域名後綴）"
+  type        = string
+  default     = ""
+}

@@ -40,6 +40,14 @@ locals {
         description = "限制 ${var.storage_subdomain} 只能從管理員 IP 訪問"
         enabled     = true
       }
+    ] : [],
+    var.enable_phpmyadmin_protection ? [
+      {
+        action      = "block"
+        expression  = "(http.host eq \"${var.phpmyadmin_subdomain}.${var.domain_name}\" and not ip.src in {${local.admin_ips_formatted}})"
+        description = "限制 ${var.phpmyadmin_subdomain} 只能從管理員 IP 訪問"
+        enabled     = true
+      }
     ] : []
   )
 }
