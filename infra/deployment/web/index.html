@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MimiMart CI/CD</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>MimiMart CI/CD 管理</h1>
+      <button id="themeToggle" class="theme-toggle" aria-label="切換主題">
+        <span class="sun">☀️</span>
+        <span class="moon">🌙</span>
+      </button>
+    </div>
+
+    <div class="status">
+      狀態: <span id="status">檢查中...</span>
+    </div>
+
+    <div class="projects">
+      <div class="project-card">
+        <h2>Admin Frontend</h2>
+        <p>管理後台前端</p>
+        <div class="actions">
+          <button onclick="build('admin-frontend')" class="btn-build">構建</button>
+          <button onclick="deploy('admin-frontend')" class="btn-deploy">部署</button>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <h2>Shop Frontend</h2>
+        <p>商城前端</p>
+        <div class="actions">
+          <button onclick="build('shop-frontend')" class="btn-build">構建</button>
+          <button onclick="deploy('shop-frontend')" class="btn-deploy">部署</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="output" class="output"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3100/api';
+
+    // 主題切換
+    const themeToggle = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+
+    // 從本地存儲讀取主題設定
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-theme', savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = htmlElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      htmlElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+
+    // 檢查狀態
+    async function checkStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/status`);
+        const data = await res.json();
+        document.getElementById('status').textContent = '運行中 ✓';
+        document.getElementById('status').className = 'status-ok';
+      } catch (error) {
+        document.getElementById('status').textContent = '離線 ✗';
+        document.getElementById('status').className = 'status-error';
+      }
+    }
+
+    // 構建
+    async function build(project) {
+      const output = document.getElementById('output');
+      output.innerHTML = `<p class="info">正在構建 ${project}...</p>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/build/${project}`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          output.innerHTML = `
+            <div class="success">
+              <h3>構建成功！</h3>
+              <p>專案: ${data.project}</p>
+              <p>時間: ${new Date(data.result.timestamp).toLocaleString('zh-TW')}</p>
+              <p>產物: ${data.result.distPath}</p>
+            </div>
+          `;
+        } else {
+          output.innerHTML = `
+            <div class="error">
+              <h3>構建失敗</h3>
+              <p>${data.error}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        output.innerHTML = `<div class="error">請求失敗: ${error.message}</div>`;
+      }
+    }
+
+    // 部署
+    async function deploy(project) {
+      const output = document.getElementById('output');
+      output.innerHTML = `<p class="info">正在部署 ${project}...</p>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/deploy/${project}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ skipBuild: false })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          output.innerHTML = `
+            <div class="success">
+              <h3>部署成功！</h3>
+              <p>專案: ${data.project}</p>
+              <p>時間: ${new Date(data.deployResult.timestamp).toLocaleString('zh-TW')}</p>
+              <p>Pages URL: <a href="${data.deployResult.pagesUrl}" target="_blank">${data.deployResult.pagesUrl}</a></p>
+              ${data.deployResult.customDomain ? `<p>自訂域名: <a href="${data.deployResult.customDomain}" target="_blank">${data.deployResult.customDomain}</a></p>` : ''}
+            </div>
+          `;
+        } else {
+          output.innerHTML = `
+            <div class="error">
+              <h3>部署失敗</h3>
+              <p>${data.error}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        output.innerHTML = `<div class="error">請求失敗: ${error.message}</div>`;
+      }
+    }
+
+    // 初始化
+    checkStatus();
+    setInterval(checkStatus, 10000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "pagesProjectName": "your-cloudflare-pages-project-name",
+  "customDomain": "your-custom-domain.com",
+  "buildCommand": "npm run build:prod"
+}

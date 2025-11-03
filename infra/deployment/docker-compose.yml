@@ -1,0 +1,44 @@
+services:
+  ci-cd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mimimart-ci-cd
+    ports:
+      - "3100:3100"
+    env_file:
+      - .env
+    volumes:
+      # 源碼唯讀掛載
+      - ../../src:/src:ro
+
+      # 配置文件
+      - ./config:/app/config:ro
+
+      # 產物目錄（讀寫）
+      - ./dist:/dist
+
+      # 持久化 npm 快取
+      - ./volumes/.npm:/root/.npm
+
+      # 持久化 Wrangler 登入狀態
+      - ./volumes/.wrangler:/root/.wrangler
+
+      # 靜態網頁（管理界面）
+      - ./web:/app/web:ro
+
+    networks:
+      - mimimart-network
+
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
+
+networks:
+  mimimart-network:
+    name: mimimart-network
+    external: true

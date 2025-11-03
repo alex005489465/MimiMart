@@ -1,0 +1,11 @@
+{
+  "name": "mimimart-ci-cd",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MimiMart CI/CD API Service",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  }
+}
