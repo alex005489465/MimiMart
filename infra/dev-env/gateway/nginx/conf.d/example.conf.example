@@ -1,27 +1,63 @@
-# 金流回調域名配置範例
-# 用途: 處理第三方金流（如 ECPay）的回調請求
+# Nginx 域名配置範例
+# 用途: 根據不同的 API 類型選擇合適的配置
 #
 # 使用方式:
-# 1. 複製此文件: cp domain-example-payment.conf.example payment.conf
+# 1. 複製此文件: cp example.conf.example your-api.conf
 # 2. 替換佔位符:
-#    - your-payment-domain.example.com → 實際的金流回調域名
+#    - your-api-domain.example.com → 實際的域名
 #    - your_backend_container → 後端容器名稱（如 mimimart-java）
 #    - your_backend_port → 後端端口（如 8080）
-# 3. 根據需求調整路由規則
+# 3. 根據 API 類型決定是否需要 CORS（見下方說明）
+#
+# ============================================================================
+# CORS 管理策略說明（重要！）
+# ============================================================================
+# 本專案的 CORS 統一在 Nginx 層級管理，Spring Boot 不處理 CORS
+#
+# 是否需要 CORS 的判斷依據：
+#
+# ✅ 需要 CORS：前端透過瀏覽器呼叫的 API
+#    - Admin API（管理後台）
+#    - Shop API（前台商城）
+#    範例：參考 dev-admin-api.conf、dev-shop-api.conf
+#
+# ❌ 不需要 CORS：Server-to-Server 通訊
+#    - 金流回調（ECPay、LinePay 等第三方服務直接呼叫）
+#    - Webhook 端點
+#    - 內部微服務通訊
+#    範例：參考 dev-payment.conf
+#
+# CORS 配置模板（需要時使用）：
+# 在 server 區塊外加入：
+#   map $http_origin $cors_origin_your_api {
+#       default "";
+#       "https://your-frontend.example.com" $http_origin;
+#       "http://localhost:5173" $http_origin;
+#   }
+# 在 server 區塊內加入：
+#   add_header Access-Control-Allow-Origin $cors_origin_your_api always;
+#   add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+#   add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With" always;
+#   add_header Access-Control-Allow-Credentials "true" always;
+#   add_header Access-Control-Max-Age 3600 always;
+#   if ($request_method = 'OPTIONS') { return 204; }
+# ============================================================================
 
-upstream payment_backend {
+upstream your_backend {
     server your_backend_container:your_backend_port;
     keepalive 32;
 }
 
 server {
     listen 80;
-    server_name your-payment-domain.example.com;
+    server_name your-api-domain.example.com;
 
     # 安全標頭
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
+
+    # 注意：根據上方說明決定是否需要加入 CORS 配置
 
     # ECPay 金流回調端點
     location /api/payment/ecpay/ {
