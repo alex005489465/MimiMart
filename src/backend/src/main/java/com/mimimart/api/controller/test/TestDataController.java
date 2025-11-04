@@ -2,6 +2,8 @@ package com.mimimart.api.controller.test;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.response.TestAdminAccountResponse;
+import com.mimimart.api.dto.test.CreateTestAccountRequest;
+import com.mimimart.api.dto.test.CreateTestAccountResponse;
 import com.mimimart.api.dto.test.TestAccountResponse;
 import com.mimimart.application.service.TestDataService;
 import com.mimimart.infrastructure.persistence.entity.Admin;
@@ -9,6 +11,7 @@ import com.mimimart.infrastructure.persistence.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -105,6 +108,83 @@ public class TestDataController {
 
         String message = String.format("成功獲取 %d 個測試管理員帳號 (預設密碼: %s)", count, password);
         return ResponseEntity.ok(ApiResponse.success(message, responses));
+    }
+
+    /**
+     * 創建或更新自訂測試帳號
+     */
+    @PostMapping("/accounts/create")
+    @Operation(
+            summary = "創建或更新自訂測試帳號",
+            description = "根據指定參數創建會員或管理員測試帳號。\n\n" +
+                    "**會員帳號（accountType=member）**：\n" +
+                    "- 必填：email, password\n" +
+                    "- 選填：name, phone, homeAddress\n" +
+                    "- 識別依據：email（如果 email 已存在則更新密碼）\n\n" +
+                    "**管理員帳號（accountType=admin）**：\n" +
+                    "- 必填：username, email, password\n" +
+                    "- 選填：name\n" +
+                    "- 識別依據：username（如果 username 已存在則更新密碼）\n\n" +
+                    "注意：如果帳號已存在，會更新密碼和其他提供的欄位。"
+    )
+    public ResponseEntity<ApiResponse<CreateTestAccountResponse>> createCustomTestAccount(
+            @Valid @RequestBody CreateTestAccountRequest request) {
+
+        CreateTestAccountResponse response;
+
+        if ("member".equalsIgnoreCase(request.getAccountType())) {
+            // 創建會員帳號
+            TestDataService.MemberActionResult result = testDataService.createOrUpdateCustomTestMember(
+                    request.getEmail(),
+                    request.getPassword(),
+                    request.getName(),
+                    request.getPhone(),
+                    request.getHomeAddress()
+            );
+
+            response = CreateTestAccountResponse.forMember(
+                    result.getMember().getEmail(),
+                    result.getMember().getName(),
+                    result.getAction()
+            );
+
+            String message = result.getAction().equals("created")
+                    ? "成功創建測試會員帳號"
+                    : "成功更新測試會員帳號";
+            return ResponseEntity.ok(ApiResponse.success(message, response));
+
+        } else if ("admin".equalsIgnoreCase(request.getAccountType())) {
+            // 創建管理員帳號
+            if (request.getUsername() == null || request.getUsername().isBlank()) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.error("VALIDATION_ERROR", "管理員帳號必須提供 username")
+                );
+            }
+
+            TestDataService.AdminActionResult result = testDataService.createOrUpdateCustomTestAdmin(
+                    request.getUsername(),
+                    request.getEmail(),
+                    request.getPassword(),
+                    request.getName()
+            );
+
+            response = CreateTestAccountResponse.forAdmin(
+                    result.getAdmin().getUsername(),
+                    result.getAdmin().getEmail(),
+                    result.getAdmin().getName(),
+                    result.getAction()
+            );
+
+            String message = result.getAction().equals("created")
+                    ? "成功創建測試管理員帳號"
+                    : "成功更新測試管理員帳號";
+            return ResponseEntity.ok(ApiResponse.success(message, response));
+
+        } else {
+            return ResponseEntity.badRequest().body(
+                    ApiResponse.error("VALIDATION_ERROR", "無效的帳號類型，必須是 member 或 admin")
+            );
+        }
     }
 
     /**

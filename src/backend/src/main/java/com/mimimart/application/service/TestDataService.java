@@ -217,4 +217,146 @@ public class TestDataService {
     public String getAdminDefaultPassword() {
         return ADMIN_DEFAULT_PASSWORD;
     }
+
+    /**
+     * 創建或更新自訂測試會員
+     *
+     * @param email       Email
+     * @param password    密碼
+     * @param name        姓名（可選）
+     * @param phone       電話（可選）
+     * @param homeAddress 地址（可選）
+     * @return 會員實體和操作類型（created 或 updated）
+     */
+    @Transactional
+    public MemberActionResult createOrUpdateCustomTestMember(
+            String email, String password, String name, String phone, String homeAddress) {
+        checkTestEndpointsEnabled();
+
+        Optional<Member> existingMember = memberRepository.findByEmail(email);
+
+        if (existingMember.isPresent()) {
+            // 更新現有會員
+            Member member = existingMember.get();
+            member.setPasswordHash(passwordEncoder.encode(password));
+            if (name != null && !name.isBlank()) {
+                member.setName(name);
+            }
+            if (phone != null && !phone.isBlank()) {
+                member.setPhone(phone);
+            }
+            if (homeAddress != null && !homeAddress.isBlank()) {
+                member.setHomeAddress(homeAddress);
+            }
+            Member updated = memberRepository.save(member);
+            log.info("更新測試會員: {}", email);
+            return new MemberActionResult(updated, "updated");
+        } else {
+            // 創建新會員
+            Member member = new Member();
+            member.setEmail(email);
+            member.setPasswordHash(passwordEncoder.encode(password));
+            member.setName(name != null && !name.isBlank() ? name : "測試會員");
+            member.setPhone(phone != null && !phone.isBlank() ? phone : "0912345678");
+            member.setHomeAddress(homeAddress != null && !homeAddress.isBlank() ? homeAddress : "台北市測試路1號");
+            member.setStatus(MemberStatus.ACTIVE);
+            member.setEmailVerified(true);
+            member.setVerificationToken(null);
+            member.setVerificationTokenExpiresAt(null);
+
+            Member created = memberRepository.save(member);
+            log.info("創建新的測試會員: {}", email);
+            return new MemberActionResult(created, "created");
+        }
+    }
+
+    /**
+     * 創建或更新自訂測試管理員
+     *
+     * @param username 用戶名
+     * @param email    Email
+     * @param password 密碼
+     * @param name     姓名（可選）
+     * @return 管理員實體和操作類型（created 或 updated）
+     */
+    @Transactional
+    public AdminActionResult createOrUpdateCustomTestAdmin(
+            String username, String email, String password, String name) {
+        checkTestEndpointsEnabled();
+
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("管理員帳號的用戶名不能為空");
+        }
+
+        Optional<Admin> existingAdmin = adminRepository.findByUsername(username);
+
+        if (existingAdmin.isPresent()) {
+            // 更新現有管理員
+            Admin admin = existingAdmin.get();
+            admin.setPasswordHash(passwordEncoder.encode(password));
+            if (email != null && !email.isBlank()) {
+                admin.setEmail(email);
+            }
+            if (name != null && !name.isBlank()) {
+                admin.setName(name);
+            }
+            Admin updated = adminRepository.save(admin);
+            log.info("更新測試管理員: {}", username);
+            return new AdminActionResult(updated, "updated");
+        } else {
+            // 創建新管理員
+            Admin admin = new Admin();
+            admin.setUsername(username);
+            admin.setEmail(email);
+            admin.setPasswordHash(passwordEncoder.encode(password));
+            admin.setName(name != null && !name.isBlank() ? name : "測試管理員");
+            admin.setStatus(AdminStatus.ACTIVE);
+
+            Admin created = adminRepository.save(admin);
+            log.info("創建新的測試管理員: {}", username);
+            return new AdminActionResult(created, "created");
+        }
+    }
+
+    /**
+     * 會員操作結果
+     */
+    public static class MemberActionResult {
+        private final Member member;
+        private final String action;
+
+        public MemberActionResult(Member member, String action) {
+            this.member = member;
+            this.action = action;
+        }
+
+        public Member getMember() {
+            return member;
+        }
+
+        public String getAction() {
+            return action;
+        }
+    }
+
+    /**
+     * 管理員操作結果
+     */
+    public static class AdminActionResult {
+        private final Admin admin;
+        private final String action;
+
+        public AdminActionResult(Admin admin, String action) {
+            this.admin = admin;
+            this.action = action;
+        }
+
+        public Admin getAdmin() {
+            return admin;
+        }
+
+        public String getAction() {
+            return action;
+        }
+    }
 }
