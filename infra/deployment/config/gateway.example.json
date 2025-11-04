@@ -1,0 +1,17 @@
+{
+  "ec2": {
+    "host": "your-ec2-ip",
+    "user": "ec2-user",
+    "sshKeyPath": "/root/.ssh/your-ec2-key.pem"
+  },
+  "paths": {
+    "cloudflaredConfig": "~/gateway/cloudflared/config/",
+    "nginxConfig": "~/gateway/nginx/conf.d/"
+  },
+  "services": {
+    "gateway": {
+      "composeFile": "~/gateway/docker-compose.yml",
+      "containers": ["nginx", "cloudflared"]
+    }
+  }
+}

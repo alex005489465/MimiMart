@@ -5,6 +5,8 @@ dist/*/.deploy-info.json
 
 # 持久化卷
 volumes/
+!volumes/.npm/.gitkeep
+!volumes/.wrangler/.gitkeep
 
 # Node modules
 server/node_modules/

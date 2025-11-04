@@ -9,23 +9,53 @@ services:
     env_file:
       - .env
     volumes:
-      # 源碼唯讀掛載
-      - ../../src:/src:ro
+      # API 服務代碼（掛載，不複製）
+      - ./server:/app
+
+      # npm 依賴目錄（持久化，讀寫）
+      - ./volumes/node_modules:/app/node_modules
+
+      # 靜態網頁（管理界面）
+      - ./web:/app/web:ro
 
       # 配置文件
       - ./config:/app/config:ro
 
+      # 源碼唯讀掛載
+      - ../../src:/src:ro
+
       # 產物目錄（讀寫）
       - ./dist:/dist
+
+      # 後端 JAR 輸出目錄（讀寫）
+      - ../prod-env/aws-ec2/backend/jar:/output/backend
 
       # 持久化 npm 快取
       - ./volumes/.npm:/root/.npm
 
+      # 持久化 Maven 本地倉庫（共用開發環境的依賴快取）
+      - ../dev-env/backend/volumes/.m2:/root/.m2
+
       # 持久化 Wrangler 登入狀態
       - ./volumes/.wrangler:/root/.wrangler
 
-      # 靜態網頁（管理界面）
-      - ./web:/app/web:ro
+      # 網關配置（唯讀，用於部署到 EC2）
+      - ../prod-env/aws-ec2/gateway:/gateway-config:ro
+
+      # SSH 金鑰（唯讀，掛載到臨時目錄）
+      # 使用專案內的 SSH 金鑰（由 Terraform 生成）
+      - ../cloud-manage/modules/ssh-keygen/output:/tmp/ssh-keys:ro
+
+    command: >
+      sh -c "
+      cd /app &&
+      npm install --production &&
+      mkdir -p /root/.ssh &&
+      cp -r /tmp/ssh-keys/* /root/.ssh/ &&
+      chmod 700 /root/.ssh &&
+      chmod 600 /root/.ssh/* &&
+      node /app/index.js
+      "
 
     networks:
       - mimimart-network
@@ -35,8 +65,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
-          cpus: '2.0'
+          memory: 3G  # 增加記憶體支援 Maven 構建（需要 2GB）
+          cpus: '4.0'
 
 networks:
   mimimart-network:

@@ -21,21 +21,52 @@
     </div>
 
     <div class="projects">
-      <div class="project-card">
-        <h2>Admin Frontend</h2>
-        <p>管理後台前端</p>
-        <div class="actions">
-          <button onclick="build('admin-frontend')" class="btn-build">構建</button>
-          <button onclick="deploy('admin-frontend')" class="btn-deploy">部署</button>
+      <h2 class="section-title">前端專案</h2>
+      <div class="project-grid">
+        <div class="project-card">
+          <h3>Admin Frontend</h3>
+          <p>管理後台前端</p>
+          <div class="actions">
+            <button onclick="build('admin-frontend')" class="btn-build">構建</button>
+            <button onclick="deploy('admin-frontend')" class="btn-deploy">部署</button>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>Shop Frontend</h3>
+          <p>商城前端</p>
+          <div class="actions">
+            <button onclick="build('shop-frontend')" class="btn-build">構建</button>
+            <button onclick="deploy('shop-frontend')" class="btn-deploy">部署</button>
+          </div>
         </div>
       </div>
 
-      <div class="project-card">
-        <h2>Shop Frontend</h2>
-        <p>商城前端</p>
-        <div class="actions">
-          <button onclick="build('shop-frontend')" class="btn-build">構建</button>
-          <button onclick="deploy('shop-frontend')" class="btn-deploy">部署</button>
+      <h2 class="section-title">後端專案</h2>
+      <div class="project-grid">
+        <div class="project-card backend">
+          <h3>Backend (Spring Boot)</h3>
+          <p>後端 API 服務</p>
+          <div class="actions">
+            <button onclick="buildBackend()" class="btn-build">構建 JAR</button>
+          </div>
+          <div class="backend-info">
+            <small>輸出: infra/prod-env/aws-ec2/backend/jar/app.jar</small>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">網關配置</h2>
+      <div class="project-grid">
+        <div class="project-card gateway">
+          <h3>Gateway (Nginx + Cloudflared)</h3>
+          <p>同步網關配置到 EC2 並重啟服務</p>
+          <div class="actions">
+            <button onclick="deployGateway()" class="btn-deploy">部署配置</button>
+          </div>
+          <div class="backend-info">
+            <small>同步: cloudflared/config + nginx/conf.d</small>
+          </div>
         </div>
       </div>
     </div>
@@ -135,6 +166,102 @@
             <div class="error">
               <h3>部署失敗</h3>
               <p>${data.error}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        output.innerHTML = `<div class="error">請求失敗: ${error.message}</div>`;
+      }
+    }
+
+    // 後端構建
+    async function buildBackend() {
+      const output = document.getElementById('output');
+      output.innerHTML = `<p class="info">正在構建後端 JAR（首次構建需下載依賴，可能需要數分鐘）...</p>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/build/backend`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          output.innerHTML = `
+            <div class="success">
+              <h3>後端構建成功！</h3>
+              <p>專案: ${data.project}</p>
+              <p>時間: ${new Date(data.result.timestamp).toLocaleString('zh-TW')}</p>
+              <p>構建耗時: ${data.result.buildDuration}</p>
+              <p>JAR 大小: ${data.result.jarSize}</p>
+              <p>輸出路徑: ${data.result.jarPath}</p>
+              <div class="backend-next-steps">
+                <h4>下一步：部署到 AWS EC2</h4>
+                <pre><code># 1. 上傳 JAR 和配置到 EC2
+scp -r infra/prod-env/aws-ec2/backend ec2-user@your-ec2-ip:~/
+
+# 2. SSH 連線到 EC2
+ssh ec2-user@your-ec2-ip
+
+# 3. 啟動服務
+cd ~/backend
+docker-compose up -d
+
+# 4. 查看日誌
+docker logs -f mimimart-java</code></pre>
+              </div>
+            </div>
+          `;
+        } else {
+          output.innerHTML = `
+            <div class="error">
+              <h3>後端構建失敗</h3>
+              <p>${data.error}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        output.innerHTML = `<div class="error">請求失敗: ${error.message}</div>`;
+      }
+    }
+
+    // 網關部署
+    async function deployGateway() {
+      const output = document.getElementById('output');
+      output.innerHTML = `<p class="info">正在部署網關配置到 EC2...</p>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/deploy/gateway`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          output.innerHTML = `
+            <div class="success">
+              <h3>網關配置部署成功！</h3>
+              <p>目標主機: ${data.result.target}</p>
+              <p>時間: ${new Date(data.result.timestamp).toLocaleString('zh-TW')}</p>
+              <p>重啟服務: ${data.result.services.join(', ')}</p>
+              <h4>容器狀態:</h4>
+              <pre><code>${data.result.containerStatus.join('\n')}</code></pre>
+              <div class="backend-info" style="margin-top: 15px;">
+                <small>✓ Cloudflare Tunnel 配置已同步</small><br>
+                <small>✓ Nginx 配置已同步並驗證</small><br>
+                <small>✓ 服務已重啟</small>
+              </div>
+            </div>
+          `;
+        } else {
+          output.innerHTML = `
+            <div class="error">
+              <h3>網關部署失敗</h3>
+              <p>${data.error}</p>
+              <div class="backend-info" style="margin-top: 10px;">
+                <small>請檢查:</small><br>
+                <small>1. SSH 金鑰是否已掛載 (~/.ssh)</small><br>
+                <small>2. gateway.json 配置是否正確</small><br>
+                <small>3. EC2 主機是否可連線</small>
+              </div>
             </div>
           `;
         }
