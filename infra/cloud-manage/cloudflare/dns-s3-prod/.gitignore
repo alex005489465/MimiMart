@@ -1,0 +1,20 @@
+# Terraform 狀態檔案（包含敏感資訊）
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate
+*.tfstate.*
+
+# Terraform 變數檔案（包含實際配置值）
+terraform.tfvars
+
+# Terraform 目錄
+.terraform/
+.terraform.lock.hcl
+
+# 備份檔案
+*.bak
+*~
+
+# OS 檔案
+.DS_Store
+Thumbs.db
