@@ -15,7 +15,9 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 /**
- * AWS SES SDK 郵件發送實作
+ * AWS SES SDK 郵件發送實作（已廢棄，請使用 Resend）
+ *
+ * <p><b>⚠️ 此實現已廢棄</b>：AWS SES 申請被拒絕，建議使用 Resend 替代方案。
  *
  * <p>使用 AWS SDK v2 直接呼叫 SES API 發送郵件。
  * 適用於生產環境，支援高併發與大量發送。
@@ -25,7 +27,9 @@ import jakarta.annotation.PreDestroy;
  *
  * @author MimiMart Team
  * @since 1.0.0
+ * @deprecated 請使用 {@link ResendEmailSender} 替代
  */
+@Deprecated
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "mimimart.email.provider", havingValue = "aws-ses")

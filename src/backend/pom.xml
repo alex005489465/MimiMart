@@ -135,6 +135,13 @@
             <version>2.28.29</version>
         </dependency>
 
+        <!-- Resend Java SDK (郵件服務) -->
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
         <!-- Spring Boot Test Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

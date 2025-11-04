@@ -1,0 +1,86 @@
+# ====================================================================
+# Terraform 變數配置範例 - Resend DNS 記錄
+# ====================================================================
+# 使用說明:
+#   1. 在 Resend Dashboard (https://resend.com/domains) 添加域名
+#   2. 複製 Resend 提供的 DNS 記錄值
+#   3. 複製此檔案為 terraform.tfvars
+#   4. 將下方佔位符替換為 Resend 提供的實際值
+#   5. terraform.tfvars 已在 .gitignore 中,不會被提交
+# ====================================================================
+
+# --------------------------------------------------------------------
+# Cloudflare 認證資訊
+# 注意: 這些變數應從 cloudflare/.env 檔案透過環境變數載入
+#       無需在此檔案中設定
+# --------------------------------------------------------------------
+
+# cloudflare_api_token = "[YOUR_CLOUDFLARE_API_TOKEN]"
+# cloudflare_zone_id   = "[YOUR_CLOUDFLARE_ZONE_ID]"
+
+# --------------------------------------------------------------------
+# 郵件子域名配置
+# --------------------------------------------------------------------
+
+# 郵件服務子域名（不含基礎域名）
+# 範例: "mail" 或 "email"
+mail_subdomain = "your-mail-subdomain"
+
+# --------------------------------------------------------------------
+# DKIM 記錄配置
+# --------------------------------------------------------------------
+
+# DKIM 記錄名稱（從 Resend Dashboard 複製）
+# 範例: "resend._domainkey.mail"
+dkim_record_name = "resend._domainkey.your-mail-subdomain"
+
+# DKIM 記錄值（從 Resend Dashboard 複製，通常很長的字串）
+# 範例: "p=AAAAAA..."
+dkim_record_value = "YOUR_DKIM_VALUE_FROM_RESEND"
+
+# --------------------------------------------------------------------
+# MX 記錄配置
+# --------------------------------------------------------------------
+
+# MX 記錄名稱（從 Resend Dashboard 複製）
+# 範例: "send.mail"
+mx_record_name = "send.your-mail-subdomain"
+
+# MX 記錄值（從 Resend Dashboard 複製）
+# 範例: "smtp.ap-northeast-1.amazon.com"
+mx_record_value = "YOUR_MX_VALUE_FROM_RESEND"
+
+# MX 記錄優先級（通常是 10）
+mx_priority = 10
+
+# --------------------------------------------------------------------
+# SPF 記錄配置
+# --------------------------------------------------------------------
+
+# SPF 記錄值（從 Resend Dashboard 複製）
+# 範例: "v=f1 include:amazon.com ~all"
+spf_record_value = "YOUR_SPF_VALUE_FROM_RESEND"
+
+# --------------------------------------------------------------------
+# DMARC 配置
+# --------------------------------------------------------------------
+
+# 是否啟用 DMARC 記錄（建議啟用）
+enable_dmarc = true
+
+# DMARC 記錄名稱
+# 範例: "_dmarc.mail"
+dmarc_record_name = "_dmarc.your-mail-subdomain"
+
+# DMARC 政策
+# - "v=DMARC1; p=none;" - 僅監控,不拒絕郵件（初期建議）
+# - "v=DMARC1; p=quarantine;" - 隔離可疑郵件
+# - "v=DMARC1; p=reject;" - 拒絕可疑郵件（最嚴格）
+dmarc_policy = "v=DMARC1; p=none;"
+
+# --------------------------------------------------------------------
+# DNS 配置
+# --------------------------------------------------------------------
+
+# DNS 記錄 TTL（1 表示 Auto，由 Cloudflare 自動決定）
+dns_ttl = 1

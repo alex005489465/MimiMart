@@ -136,13 +136,16 @@ mimimart:
     callback-url: ${ECPAY_CALLBACK_URL}
   # 郵件服務配置
   email:
-    # 郵件發送策略 (smtp | aws-ses)
+    # 郵件發送策略 (smtp | resend | aws-ses)
     provider: ${EMAIL_PROVIDER:smtp}
-    # 寄件者資訊 (兩種模式共用)
+    # 寄件者資訊 (所有模式共用)
     from:
       address: ${MAIL_FROM_ADDRESS:noreply@yourdomain.com}
       name: ${MAIL_FROM_NAME:MimiMart}
-    # AWS SES 配置 (當 provider=aws-ses 時使用)
+    # Resend 配置 (當 provider=resend 時使用)
+    resend:
+      api-key: ${RESEND_API_KEY:}
+    # AWS SES 配置 (當 provider=aws-ses 時使用，已廢棄)
     aws:
       ses:
         region: ${AWS_REGION:ap-south-1}
