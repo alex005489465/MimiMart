@@ -1,0 +1,17 @@
+# 環境變數
+.env
+
+# Docker volumes
+volumes/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# java build
+jar/

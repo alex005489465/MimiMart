@@ -1,0 +1,52 @@
+services:
+  # Java 21 生產環境 (Spring Boot with pre-built JAR)
+  java-app:
+    image: eclipse-temurin:21-jre
+    container_name: mimimart-java
+    restart: unless-stopped
+    working_dir: /app
+    command: java -jar app.jar
+    env_file:
+      - .env
+    environment:
+      # JVM 配置（優化為 2GB RAM 環境）
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+
+      # 容器時區設定
+      - TZ=Asia/Taipei
+
+      # Spring Boot 配置
+      - SPRING_PROFILES_ACTIVE=prod
+
+    ports:
+      - "8083:8080"        # Spring Boot 應用端口
+
+    volumes:
+      # 掛載 JAR 檔案
+      - ./jar/app.jar:/app/app.jar:ro
+
+      # 應用日誌目錄 (持久化)
+      - ./logs:/app/logs
+
+    networks:
+      - mimimart-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/8080' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+networks:
+  mimimart-network:
+    external: true
