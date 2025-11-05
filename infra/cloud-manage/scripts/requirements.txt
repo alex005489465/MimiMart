@@ -1,0 +1,4 @@
+# IP 自動更新腳本依賴套件
+# 安裝方式: pip install -r requirements.txt
+
+requests>=2.31.0
