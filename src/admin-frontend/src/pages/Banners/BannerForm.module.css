@@ -1,0 +1,295 @@
+/* 容器 */
+.container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* 頁面標題 */
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* 載入中 */
+.loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+/* 表單卡片 */
+.formCard {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  padding: 2rem;
+}
+
+/* 全域錯誤警告 */
+.errorAlert {
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+[data-theme="dark"] .errorAlert {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* 表單群組 */
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.required {
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.optional {
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 0.875rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input:disabled {
+  background-color: var(--bg-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.inputError {
+  border-color: #ef4444;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* 錯誤訊息 */
+.errorText {
+  display: block;
+  color: #ef4444;
+  font-size: 0.8125rem;
+  margin-top: 0.375rem;
+}
+
+/* 欄位提示 */
+.fieldHint {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-top: 0.375rem;
+  margin-bottom: 0;
+}
+
+/* 圖片上傳區域 */
+.imageUploadSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.existingImage,
+.imagePreview {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.existingImage img,
+.imagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.imageHint {
+  padding: 0.75rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  margin: 0;
+  text-align: center;
+}
+
+.clearImageButton {
+  width: 100%;
+  padding: 0.625rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clearImageButton:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.clearImageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 上傳區域 */
+.uploadArea {
+  position: relative;
+}
+
+.fileInput {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.uploadLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.uploadLabel:hover {
+  border-color: var(--primary-color);
+  background-color: var(--bg-secondary);
+}
+
+.uploadLabel svg {
+  color: var(--primary-color);
+}
+
+.uploadLabel span:first-of-type {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.uploadHint {
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+/* 按鈕群組 */
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.cancelButton,
+.submitButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.submitButton {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.submitButton:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .formCard {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column-reverse;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+  }
+
+  .uploadLabel {
+    padding: 1.5rem 1rem;
+  }
+}

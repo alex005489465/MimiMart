@@ -1,9 +1,11 @@
 import axios from 'axios'
 
 /**
- * API 基礎 URL（從環境變數取得）
+ * API 基礎 URL
+ * 開發環境：使用空字串讓請求走 Vite proxy
+ * 生產環境：從環境變數取得實際 API 位址
  */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 /**
  * 建立 axios 實例

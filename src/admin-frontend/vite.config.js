@@ -15,6 +15,22 @@ export default defineConfig({
     port: 5174,
     watch: {
       usePolling: true
+    },
+    proxy: {
+      '/api': {
+        target: 'http://mimimart-java:8080',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            // 手動添加 CORS 標頭
+            proxyRes.headers['Access-Control-Allow-Origin'] = '*'
+            proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+            proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            proxyRes.headers['Access-Control-Allow-Credentials'] = 'true'
+          })
+        }
+      }
     }
   }
 })
