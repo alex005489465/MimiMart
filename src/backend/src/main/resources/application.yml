@@ -161,6 +161,20 @@ mimimart:
       password-reset:
         max-attempts: ${EMAIL_PASSWORD_RESET_MAX_ATTEMPTS}  # 密碼重設最大次數
         window-minutes: ${EMAIL_PASSWORD_RESET_WINDOW_MINUTES}  # 時間窗口(分鐘)
+  # AI 服務配置
+  ai:
+    # OpenAI 配置 (DALL-E 圖片生成)
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      api-url: ${OPENAI_API_URL:https://api.openai.com/v1}
+      model: ${OPENAI_MODEL:dall-e-3}
+      image-size: ${OPENAI_IMAGE_SIZE:1024x1024}
+      image-quality: ${OPENAI_IMAGE_QUALITY:standard}  # standard | hd
+    # Deepseek 配置 (文字生成)
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY}
+      api-url: ${DEEPSEEK_API_URL:https://api.deepseek.com/v1}
+      model: ${DEEPSEEK_MODEL:deepseek-chat}
 
 # 日誌配置
 logging:

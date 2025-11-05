@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 引用 Spring Boot 預設配置 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- 定義屬性 -->
+    <property name="LOG_PATH" value="${LOG_PATH:-./logs}"/>
+    <property name="LOG_FILE" value="${LOG_FILE:-application}"/>
+    <property name="LOG_FILE_MAX_SIZE" value="${LOG_FILE_MAX_SIZE:-100MB}"/>
+    <property name="LOG_FILE_MAX_HISTORY" value="${LOG_FILE_MAX_HISTORY:-30}"/>
+    <property name="LOG_TOTAL_SIZE_CAP" value="${LOG_TOTAL_SIZE_CAP:-3GB}"/>
+
+    <!-- 檔案日誌輸出格式 -->
+    <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- 檔案 Appender（滾動策略） -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE}.log</file>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+        <!-- 滾動策略：按時間和大小 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 每日滾動，並在檔案大小超過限制時分割 -->
+            <fileNamePattern>${LOG_PATH}/archive/${LOG_FILE}-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <!-- 單一檔案大小上限 -->
+            <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
+            <!-- 保留天數 -->
+            <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
+            <!-- 所有日誌檔案總大小上限 -->
+            <totalSizeCap>${LOG_TOTAL_SIZE_CAP}</totalSizeCap>
+            <!-- 啟動時清理過期日誌 -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 非同步檔案輸出（提升效能） -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <!-- 開發環境：Console + File 雙重輸出 -->
+    <springProfile name="default">
+        <root level="${LOG_LEVEL_ROOT:-INFO}">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+
+        <logger name="com.mimimart" level="${LOG_LEVEL_APP:-DEBUG}"/>
+        <logger name="org.springframework.web" level="${LOG_LEVEL_WEB:-DEBUG}"/>
+        <logger name="org.hibernate.SQL" level="${LOG_LEVEL_SQL:-DEBUG}"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="${LOG_LEVEL_SQL_BINDER:-TRACE}"/>
+    </springProfile>
+
+    <!-- 生產環境：僅 File 輸出，減少容器標準輸出負擔 -->
+    <springProfile name="prod">
+        <root level="${LOG_LEVEL_ROOT:-INFO}">
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+
+        <logger name="com.mimimart" level="${LOG_LEVEL_APP:-INFO}"/>
+        <logger name="org.springframework.web" level="${LOG_LEVEL_WEB:-INFO}"/>
+        <logger name="org.hibernate.SQL" level="${LOG_LEVEL_SQL:-WARN}"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="${LOG_LEVEL_SQL_BINDER:-WARN}"/>
+    </springProfile>
+</configuration>

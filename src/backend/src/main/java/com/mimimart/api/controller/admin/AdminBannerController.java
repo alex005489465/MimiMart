@@ -16,8 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.mimimart.infrastructure.security.CustomUserDetails;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +36,10 @@ import java.util.stream.Collectors;
 public class AdminBannerController {
 
     private final BannerService bannerService;
+    private final com.mimimart.application.service.OpenAiImageService openAiImageService;
+    private final com.mimimart.application.service.DeepseekService deepseekService;
+    private final com.mimimart.infrastructure.storage.S3StorageService s3StorageService;
+    private final com.mimimart.application.service.AiGenerationLogService aiGenerationLogService;
 
     /**
      * 查詢所有輪播圖 (含停用)
@@ -317,5 +323,191 @@ public class AdminBannerController {
         BannerResponse response = BannerResponse.from(banner);
 
         return ResponseEntity.ok(ApiResponse.success("順序更新成功", response));
+    }
+
+    // ===== AI 輔助功能 =====
+
+    /**
+     * AI 生成輪播圖圖片
+     */
+    @PostMapping("/ai/generate-image")
+    @Operation(summary = "AI 生成輪播圖", description = "使用 OpenAI DALL-E 生成輪播圖圖片")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "生成成功",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "生成失敗"
+            )
+    })
+    public ResponseEntity<ApiResponse<AiImageResponse>> generateImage(
+            @Valid @RequestBody AiImageRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long adminId = userDetails.getUserId();
+
+        log.info("AI 生成輪播圖 - AdminId: {}, Prompt: {}", adminId, request.prompt());
+
+        String s3Key = openAiImageService.generateImage(
+                request.prompt(),
+                adminId,
+                "/api/admin/banner/ai/generate-image"
+        );
+
+        AiImageResponse response = new AiImageResponse(s3Key);
+        return ResponseEntity.ok(ApiResponse.success("圖片生成成功", response));
+    }
+
+    /**
+     * AI 生成輪播圖描述文案
+     */
+    @PostMapping("/ai/generate-description")
+    @Operation(summary = "AI 生成描述", description = "使用 Deepseek Chat 生成輪播圖文案")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "生成成功",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "生成失敗"
+            )
+    })
+    public ResponseEntity<ApiResponse<AiDescriptionResponse>> generateDescription(
+            @Valid @RequestBody AiDescriptionRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long adminId = userDetails.getUserId();
+
+        log.info("AI 生成描述 - AdminId: {}, Context: {}", adminId, request.context());
+
+        String description = deepseekService.generateDescription(
+                request.context(),
+                adminId,
+                "/api/admin/banner/ai/generate-description"
+        );
+
+        AiDescriptionResponse response = new AiDescriptionResponse(description);
+        return ResponseEntity.ok(ApiResponse.success("描述生成成功", response));
+    }
+
+    /**
+     * 下載 AI 生成的圖片
+     */
+    @GetMapping("/ai/download-image")
+    @Operation(summary = "下載 AI 圖片", description = "下載 AI 生成的臨時圖片")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "下載成功"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "圖片不存在"
+            )
+    })
+    public ResponseEntity<byte[]> downloadAiImage(@RequestParam String s3Key) {
+        log.info("下載 AI 圖片 - S3 Key: {}", s3Key);
+
+        byte[] imageData = s3StorageService.downloadAiImage(s3Key);
+        String contentType = s3StorageService.getContentType(s3Key);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(imageData);
+    }
+
+    /**
+     * 查詢 AI 生成歷史
+     */
+    @GetMapping("/ai/generation-history")
+    @Operation(summary = "查詢 AI 生成歷史", description = "查詢當前管理員的 AI 生成歷史記錄")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "查詢成功",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            )
+    })
+    public ResponseEntity<ApiResponse<List<AiGenerationHistoryResponse>>> getGenerationHistory(
+            @RequestParam(required = false) com.mimimart.shared.valueobject.GenerationType type,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long adminId = userDetails.getUserId();
+
+        log.info("查詢 AI 生成歷史 - AdminId: {}, Type: {}", adminId, type);
+
+        List<com.mimimart.infrastructure.persistence.entity.AiGenerationLog> logs;
+        if (type != null) {
+            logs = aiGenerationLogService.getLogsByType(type, 0, 20).getContent();
+        } else {
+            logs = aiGenerationLogService.getLogsByAdmin(adminId);
+        }
+
+        List<AiGenerationHistoryResponse> response = logs.stream()
+                .map(AiGenerationHistoryResponse::from)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.success("查詢成功", response));
+    }
+
+    // ===== AI 請求/回應 DTO =====
+
+    public record AiImageRequest(
+            @Parameter(description = "圖片描述 prompt", required = true)
+            String prompt
+    ) {}
+
+    public record AiImageResponse(
+            @Parameter(description = "S3 圖片 Key")
+            String s3Key
+    ) {}
+
+    public record AiDescriptionRequest(
+            @Parameter(description = "上下文資訊", required = true)
+            String context
+    ) {}
+
+    public record AiDescriptionResponse(
+            @Parameter(description = "生成的描述")
+            String description
+    ) {}
+
+    public record AiGenerationHistoryResponse(
+            Long id,
+            String apiEndpoint,
+            com.mimimart.shared.valueobject.GenerationType generationType,
+            com.mimimart.shared.valueobject.AiProvider aiProvider,
+            String modelName,
+            String prompt,
+            String responseContent,
+            String s3Key,
+            Integer tokensUsed,
+            java.math.BigDecimal costUsd,
+            com.mimimart.shared.valueobject.AiGenerationStatus status,
+            String errorMessage,
+            java.time.LocalDateTime createdAt
+    ) {
+        public static AiGenerationHistoryResponse from(com.mimimart.infrastructure.persistence.entity.AiGenerationLog log) {
+            return new AiGenerationHistoryResponse(
+                    log.getId(),
+                    log.getApiEndpoint(),
+                    log.getGenerationType(),
+                    log.getAiProvider(),
+                    log.getModelName(),
+                    log.getPrompt(),
+                    log.getResponseContent(),
+                    log.getS3Key(),
+                    log.getTokensUsed(),
+                    log.getCostUsd(),
+                    log.getStatus(),
+                    log.getErrorMessage(),
+                    log.getCreatedAt()
+            );
+        }
     }
 }

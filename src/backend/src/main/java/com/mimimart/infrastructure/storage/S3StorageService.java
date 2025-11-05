@@ -56,6 +56,8 @@ public class S3StorageService {
                 region, bucketName, publicBucketName, publicBaseUrl);
     }
 
+    // ===== 會員頭貼相關方法 =====
+
     /**
      * 上傳會員頭貼到 S3
      *
@@ -71,7 +73,7 @@ public class S3StorageService {
             String safeFilename = file.getOriginalFilename();
             String s3Key = String.format("avatars/%d/%s_%s", memberId, timestamp, safeFilename);
 
-            // 上傳到 S3
+            // 上傳到 S3 私有 bucket
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(s3Key)
@@ -202,6 +204,111 @@ public class S3StorageService {
         } catch (S3Exception e) {
             log.error("取得 Content-Type 失敗 - S3 Key: {}, Error: {}", s3Key, e.getMessage(), e);
             return "application/octet-stream"; // 預設值
+        }
+    }
+
+    // ===== AI 生成圖片相關方法 =====
+    // TODO: AI 生成圖片(ai-generated/)自動清理尚未實作
+    //   方案1: S3 Lifecycle Policy 設定 30 天自動刪除 (推薦)
+    //   方案2: Spring Boot Scheduled Task 定期清理過期檔案
+
+    /**
+     * 上傳 AI 生成的圖片到 S3 私有 bucket
+     *
+     * @param imageData    圖片資料
+     * @param contentType  Content-Type (例: image/png)
+     * @param fileExtension 檔案副檔名 (例: .png)
+     * @return S3 物件的 key
+     * @throws RuntimeException 當上傳失敗時
+     */
+    public String uploadAiImage(byte[] imageData, String contentType, String fileExtension) {
+        try {
+            // 生成 S3 key: ai-generated/ai-{timestamp}{extension}
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String s3Key = String.format("ai-generated/ai-%s%s", timestamp, fileExtension);
+
+            // 上傳到 S3 私有 bucket
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .contentType(contentType)
+                    .contentLength((long) imageData.length)
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(imageData));
+
+            log.info("AI 圖片上傳成功 - S3 Key: {}, Size: {} bytes", s3Key, imageData.length);
+            return s3Key;
+
+        } catch (S3Exception e) {
+            log.error("AI 圖片上傳失敗 - Error: {}", e.getMessage(), e);
+            throw new RuntimeException("AI 圖片上傳失敗: " + e.awsErrorDetails().errorMessage(), e);
+        }
+    }
+
+    /**
+     * 從 S3 下載 AI 生成的圖片
+     *
+     * @param s3Key S3 物件的 key
+     * @return 檔案內容的位元組陣列
+     * @throws RuntimeException 當下載失敗時
+     */
+    public byte[] downloadAiImage(String s3Key) {
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .build();
+
+            // 讀取 S3 物件內容
+            try (InputStream inputStream = s3Client.getObject(getObjectRequest);
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+
+                log.info("AI 圖片下載成功 - S3 Key: {}", s3Key);
+                return outputStream.toByteArray();
+            }
+
+        } catch (NoSuchKeyException e) {
+            log.error("AI 圖片不存在 - S3 Key: {}", s3Key);
+            throw new RuntimeException("AI 圖片不存在", e);
+        } catch (S3Exception e) {
+            log.error("AI 圖片下載失敗 - S3 Key: {}, Error: {}", s3Key, e.getMessage(), e);
+            throw new RuntimeException("AI 圖片下載失敗: " + e.awsErrorDetails().errorMessage(), e);
+        } catch (IOException e) {
+            log.error("讀取 AI 圖片失敗 - S3 Key: {}, Error: {}", s3Key, e.getMessage(), e);
+            throw new RuntimeException("讀取 AI 圖片失敗", e);
+        }
+    }
+
+    /**
+     * 刪除 AI 生成的圖片
+     *
+     * @param s3Key S3 物件的 key
+     */
+    public void deleteAiImage(String s3Key) {
+        try {
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+            log.info("AI 圖片刪除成功 - S3 Key: {}", s3Key);
+
+        } catch (S3Exception e) {
+            // 如果物件不存在,也視為刪除成功(冪等性)
+            if (e.statusCode() == 404) {
+                log.warn("AI 圖片不存在,視為刪除成功 - S3 Key: {}", s3Key);
+            } else {
+                log.error("AI 圖片刪除失敗 - S3 Key: {}, Error: {}", s3Key, e.getMessage(), e);
+                throw new RuntimeException("AI 圖片刪除失敗: " + e.awsErrorDetails().errorMessage(), e);
+            }
         }
     }
 
