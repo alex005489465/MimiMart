@@ -1,0 +1,25 @@
+# ============================================================================
+# Cloud Connector 配置範例 - 多環境
+# ============================================================================
+# 使用說明: 複製此檔案為 terraform.tfvars 並填入實際值
+#
+# 注意：以下變數由 Docker 環境變數提供，不需要在此檔案中設定：
+# - cloudflare_api_token (透過 TF_VAR_cloudflare_api_token)
+# - cloudflare_zone_id (透過 TF_VAR_cloudflare_zone_id)
+
+environments = [
+  # 環境 1 範例
+  {
+    description = "[ENV1_DESCRIPTION]"                            # 例如: Route app1 CDN to S3 bucket
+    enabled     = true
+    expression  = "(http.host eq \"[YOUR_ENV1_CDN_DOMAIN]\")"    # 例如: cdn-app1.example.com
+    s3_host     = "[YOUR_ENV1_BUCKET].s3.[REGION].amazonaws.com" # 例如: app1-storage.s3.ap-south-1.amazonaws.com
+  },
+  # 環境 2 範例
+  {
+    description = "[ENV2_DESCRIPTION]"                            # 例如: Route app2 CDN to S3 bucket
+    enabled     = true
+    expression  = "(http.host eq \"[YOUR_ENV2_CDN_DOMAIN]\")"    # 例如: cdn-app2.example.com
+    s3_host     = "[YOUR_ENV2_BUCKET].s3.[REGION].amazonaws.com" # 例如: app2-storage.s3.ap-south-1.amazonaws.com
+  }
+]

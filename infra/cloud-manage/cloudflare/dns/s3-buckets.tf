@@ -27,8 +27,8 @@ resource "cloudflare_record" "s3_public" {
 
   zone_id = var.cloudflare_zone_id
   name    = var.public_bucket_subdomain
-  # 使用 S3 Website endpoint (支援自訂域名，僅 HTTP)
-  content = data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint
+  # 使用 S3 REST API endpoint (支援 HTTPS)
+  content = "${data.terraform_remote_state.s3.outputs.public_bucket_name}.s3.${data.terraform_remote_state.s3.outputs.public_bucket_region}.amazonaws.com"
   type    = "CNAME"
   proxied = true
   ttl     = 1

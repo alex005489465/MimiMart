@@ -1,0 +1,28 @@
+# Terraform 狀態檔案
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform 目錄
+.terraform/
+.terraform.lock.hcl
+
+# 敏感配置檔案
+terraform.tfvars
+*.auto.tfvars
+
+# 覆寫檔案
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Crash 日誌
+crash.log
+crash.*.log
+
+# 其他
+.DS_Store
+*.swp
+*.swo
+*~
