@@ -5,6 +5,13 @@ spring:
   application:
     name: mimimart-backend
 
+  # 檔案上傳配置
+  servlet:
+    multipart:
+      max-file-size: 10MB      # 單一檔案最大大小
+      max-request-size: 50MB   # 整個請求最大大小
+      enabled: true
+
   # MySQL 8.4.6 資料庫配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -16,6 +16,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -270,6 +271,18 @@ public class GlobalExceptionHandler {
         logger.warn("郵件發送頻率超限: {}", ex.getMessage());
         return ResponseEntity.ok(
             ApiResponse.error("EMAIL_RATE_LIMIT_EXCEEDED", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理檔案上傳大小超限異常
+     * Spring Boot 框架層的檔案大小檢查,在請求進入 Controller 之前觸發
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        logger.warn("檔案上傳大小超限: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("FILE_SIZE_EXCEEDED", "檔案大小超過限制,單一檔案最大 10MB")
         );
     }
 

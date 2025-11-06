@@ -22,16 +22,17 @@ data "terraform_remote_state" "s3" {
 # --------------------------------------------------------------------
 
 resource "cloudflare_record" "s3_public" {
-  # 只有當 S3 state 存在且包含 public_bucket_website_endpoint 且 public_bucket_subdomain 不為空時才建立
-  count = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null && var.public_bucket_subdomain != "" ? 1 : 0
+  # 只有當 S3 state 存在且 public_bucket_subdomain 不為空時才建立
+  count = try(data.terraform_remote_state.s3.outputs.public_bucket_name, null) != null && var.public_bucket_subdomain != "" ? 1 : 0
 
   zone_id = var.cloudflare_zone_id
   name    = var.public_bucket_subdomain
+  # 使用 S3 Website endpoint (支援自訂域名，僅 HTTP)
   content = data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint
   type    = "CNAME"
   proxied = true
   ttl     = 1
-  comment = "Auto-managed: S3 public bucket CDN endpoint (IP-restricted)"
+  comment = "Auto-managed: S3 public bucket CDN endpoint (HTTPS supported)"
 }
 
 # --------------------------------------------------------------------
@@ -42,10 +43,11 @@ output "s3_dns_records" {
   description = "S3 buckets DNS records information"
   value = {
     public_bucket = {
-      enabled      = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, null) != null && var.public_bucket_subdomain != ""
+      enabled      = try(data.terraform_remote_state.s3.outputs.public_bucket_name, null) != null && var.public_bucket_subdomain != ""
       dns_name     = var.public_bucket_subdomain != "" ? "${var.public_bucket_subdomain}.${var.domain_name}" : "N/A - Not configured"
-      s3_endpoint  = try(data.terraform_remote_state.s3.outputs.public_bucket_website_endpoint, "N/A - S3 not deployed yet")
+      s3_endpoint  = try("${data.terraform_remote_state.s3.outputs.public_bucket_name}.s3.${data.terraform_remote_state.s3.outputs.public_bucket_region}.amazonaws.com", "N/A - S3 not deployed yet")
       proxied      = true
+      protocol     = "HTTPS"
       access_note  = "IP-restricted to Cloudflare + Developer IPs"
     }
   }

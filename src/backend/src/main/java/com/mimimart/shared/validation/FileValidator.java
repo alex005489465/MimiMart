@@ -29,8 +29,8 @@ public class FileValidator {
             ".gif"
     );
 
-    // 最大檔案大小: 5MB
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+    // 最大檔案大小: 10MB
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     /**
      * 驗證圖片檔案
@@ -45,7 +45,7 @@ public class FileValidator {
 
         // 驗證檔案大小
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("檔案大小超過限制 (最大 5MB)");
+            throw new IllegalArgumentException("檔案大小超過限制 (最大 10MB)");
         }
 
         // 驗證 MIME 類型
