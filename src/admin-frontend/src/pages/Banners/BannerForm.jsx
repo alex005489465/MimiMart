@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import bannerService from '../../services/bannerService'
 import { isRequired, isPositiveInteger } from '../../utils/validation'
 import { formatFileSize } from '../../utils/format'
+import AiImageGenerator from '../../components/AiImageGenerator/AiImageGenerator'
+import AiDescriptionGenerator from '../../components/AiDescriptionGenerator/AiDescriptionGenerator'
 import styles from './BannerForm.module.css'
 
 /**
@@ -30,6 +32,9 @@ function BannerForm() {
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [error, setError] = useState('')
   const [errors, setErrors] = useState({})
+
+  // AI 功能 Tab 切換
+  const [activeImageTab, setActiveImageTab] = useState('upload') // 'upload' | 'ai'
 
   // 編輯模式：載入現有資料
   useEffect(() => {
@@ -118,6 +123,39 @@ function BannerForm() {
     const fileInput = document.getElementById('imageFile')
     if (fileInput) {
       fileInput.value = ''
+    }
+  }
+
+  // AI 圖片生成完成回調
+  const handleAiImageGenerated = (file) => {
+    setImageFile(file)
+    // 生成預覽圖
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result)
+    }
+    reader.readAsDataURL(file)
+    // 清除錯誤訊息
+    setErrors(prev => ({
+      ...prev,
+      imageFile: ''
+    }))
+    // 切換回上傳 Tab 顯示預覽
+    setActiveImageTab('upload')
+  }
+
+  // AI 文案生成完成回調
+  const handleAiDescriptionGenerated = (description) => {
+    setFormData(prev => ({
+      ...prev,
+      title: description
+    }))
+    // 清除錯誤訊息
+    if (errors.title) {
+      setErrors(prev => ({
+        ...prev,
+        title: ''
+      }))
     }
   }
 
@@ -263,88 +301,119 @@ function BannerForm() {
             )}
           </div>
 
+          {/* AI 文案生成 */}
+          <AiDescriptionGenerator onDescriptionGenerated={handleAiDescriptionGenerated} />
+
           {/* 圖片上傳 */}
           <div className={styles.formGroup}>
-            <label htmlFor="imageFile" className={styles.label}>
+            <label className={styles.label}>
               Banner 圖片 {!isEditMode && <span className={styles.required}>*</span>}
             </label>
-            <div className={styles.imageUploadSection}>
-              {/* 現有圖片預覽 (編輯模式) */}
-              {isEditMode && existingImageUrl && !imagePreview && (
-                <div className={styles.existingImage}>
-                  <img src={existingImageUrl} alt="目前的 Banner" />
-                  <p className={styles.imageHint}>
-                    目前圖片（如需更換，請上傳新圖片）
-                  </p>
+
+            {/* Tab 切換 */}
+            <div className={styles.tabContainer}>
+              <button
+                type="button"
+                className={`${styles.tab} ${activeImageTab === 'upload' ? styles.tabActive : ''}`}
+                onClick={() => setActiveImageTab('upload')}
+              >
+                上傳圖片
+              </button>
+              <button
+                type="button"
+                className={`${styles.tab} ${activeImageTab === 'ai' ? styles.tabActive : ''}`}
+                onClick={() => setActiveImageTab('ai')}
+              >
+                AI 生成
+              </button>
+            </div>
+
+            {/* Tab 內容 */}
+            <div className={styles.tabContent}>
+              {activeImageTab === 'upload' && (
+                <div className={styles.imageUploadSection}>
+                  {/* 現有圖片預覽 (編輯模式) */}
+                  {isEditMode && existingImageUrl && !imagePreview && (
+                    <div className={styles.existingImage}>
+                      <img src={existingImageUrl} alt="目前的 Banner" />
+                      <p className={styles.imageHint}>
+                        目前圖片（如需更換，請上傳新圖片）
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 新圖片預覽 */}
+                  {imagePreview && (
+                    <div className={styles.imagePreview}>
+                      <img src={imagePreview} alt="預覽" />
+                      <button
+                        type="button"
+                        onClick={handleClearImage}
+                        className={styles.clearImageButton}
+                        disabled={isLoading}
+                      >
+                        清除圖片
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 上傳按鈕 */}
+                  <div className={styles.uploadArea}>
+                    <input
+                      type="file"
+                      id="imageFile"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className={styles.fileInput}
+                      disabled={isLoading}
+                    />
+                    <label htmlFor="imageFile" className={styles.uploadLabel}>
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M17 8L12 3L7 8"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M12 3V15"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>點擊選擇圖片</span>
+                      <span className={styles.uploadHint}>
+                        {imageFile
+                          ? `${imageFile.name} (${formatFileSize(imageFile.size)})`
+                          : '支援 JPG、PNG、GIF，大小不超過 5MB'}
+                      </span>
+                    </label>
+                  </div>
+
+                  {errors.imageFile && (
+                    <span className={styles.errorText}>{errors.imageFile}</span>
+                  )}
                 </div>
               )}
 
-              {/* 新圖片預覽 */}
-              {imagePreview && (
-                <div className={styles.imagePreview}>
-                  <img src={imagePreview} alt="預覽" />
-                  <button
-                    type="button"
-                    onClick={handleClearImage}
-                    className={styles.clearImageButton}
-                    disabled={isLoading}
-                  >
-                    清除圖片
-                  </button>
-                </div>
-              )}
-
-              {/* 上傳按鈕 */}
-              <div className={styles.uploadArea}>
-                <input
-                  type="file"
-                  id="imageFile"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className={styles.fileInput}
-                  disabled={isLoading}
-                />
-                <label htmlFor="imageFile" className={styles.uploadLabel}>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M17 8L12 3L7 8"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M12 3V15"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span>點擊選擇圖片</span>
-                  <span className={styles.uploadHint}>
-                    {imageFile
-                      ? `${imageFile.name} (${formatFileSize(imageFile.size)})`
-                      : '支援 JPG、PNG、GIF，大小不超過 5MB'}
-                  </span>
-                </label>
-              </div>
-
-              {errors.imageFile && (
-                <span className={styles.errorText}>{errors.imageFile}</span>
+              {activeImageTab === 'ai' && (
+                <AiImageGenerator onImageGenerated={handleAiImageGenerated} />
               )}
             </div>
           </div>

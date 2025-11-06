@@ -121,6 +121,44 @@
   margin-bottom: 0;
 }
 
+/* Tab 切換區域 */
+.tabContainer {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  margin-top: 0.75rem;
+  gap: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  background: transparent;
+  border: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.tabActive {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  font-weight: 600;
+}
+
+.tabContent {
+  min-height: 200px;
+}
+
 /* 圖片上傳區域 */
 .imageUploadSection {
   display: flex;
