@@ -98,98 +98,7 @@
   opacity: 0.9;
 }
 
-/* 表格容器 */
-.tableWrapper {
-  background-color: var(--bg-primary);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  overflow-x: auto;
-  overflow-y: visible;
-  border: 1px solid var(--border-color);
-}
-
-/* 表格 */
-.table {
-  width: 100%;
-  min-width: 1200px;
-  border-collapse: collapse;
-}
-
-.table thead {
-  background-color: var(--bg-secondary);
-}
-
-.table th {
-  padding: 1rem;
-  text-align: left;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.table tbody tr {
-  border-bottom: 1px solid var(--border-color);
-  transition: background-color 0.2s ease;
-}
-
-.table tbody tr:hover {
-  background-color: var(--bg-secondary);
-}
-
-.table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.table td {
-  padding: 1rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  vertical-align: middle;
-}
-
-/* 圖片單元格 */
-.imageCell {
-  display: flex;
-  align-items: center;
-}
-
-.thumbnail {
-  width: 120px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-}
-
-/* 表頭樣式 */
-.actionsHeader {
-  min-width: 120px;
-  width: 120px;
-}
-
-.titleHeader {
-  min-width: 350px;
-  width: 350px;
-}
-
-/* 標題單元格 */
-.titleCell {
-  font-weight: 500;
-  color: var(--text-primary);
-  max-width: 350px;
-  min-width: 350px;
-  word-wrap: break-word;
-  white-space: normal;
-  line-height: 1.5;
-}
-
-/* 連結單元格 */
-.linkCell {
-  max-width: 200px;
-  min-width: 150px;
-}
-
+/* 連結樣式 */
 .link {
   color: var(--primary-color);
   text-decoration: none;
@@ -209,11 +118,11 @@
   opacity: 0.6;
 }
 
-/* 順序單元格 */
-.orderCell {
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: center;
+/* 無資料顯示 */
+.noData {
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-style: italic;
 }
 
 /* 狀態徽章 */
@@ -243,20 +152,6 @@
 
 .statusBadge.inactive:hover {
   background-color: #4b5563;
-}
-
-/* 日期單元格 */
-.dateCell {
-  white-space: nowrap;
-  font-size: 0.8125rem;
-  min-width: 140px;
-}
-
-/* 無資料顯示 */
-.noData {
-  color: var(--text-secondary);
-  opacity: 0.7;
-  font-style: italic;
 }
 
 /* 操作按鈕 */
@@ -297,108 +192,4 @@
 .deleteButton:hover {
   background-color: #ef4444;
   color: white;
-}
-
-/* 響應式設計 */
-@media (max-width: 1024px) {
-  .table {
-    font-size: 0.8125rem;
-  }
-
-  .table th,
-  .table td {
-    padding: 0.75rem;
-  }
-
-  .thumbnail {
-    width: 80px;
-    height: 40px;
-  }
-
-  .titleCell {
-    max-width: 150px;
-  }
-
-  .link {
-    max-width: 120px;
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .title {
-    font-size: 1.5rem;
-  }
-
-  .createButton {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* 表格改為卡片式佈局 */
-  .tableWrapper {
-    border: none;
-    box-shadow: none;
-  }
-
-  .table thead {
-    display: none;
-  }
-
-  .table,
-  .table tbody,
-  .table tr,
-  .table td {
-    display: block;
-  }
-
-  .table tbody tr {
-    margin-bottom: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 1rem;
-  }
-
-  .table td {
-    padding: 0.5rem 0;
-    border: none;
-  }
-
-  .table td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: var(--text-primary);
-    display: inline-block;
-    width: 80px;
-  }
-
-  .imageCell {
-    justify-content: flex-start;
-  }
-
-  .thumbnail {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 2 / 1;
-  }
-
-  .titleCell,
-  .link {
-    max-width: none;
-    white-space: normal;
-  }
-
-  .actions {
-    justify-content: flex-start;
-    margin-top: 0.5rem;
-  }
 }

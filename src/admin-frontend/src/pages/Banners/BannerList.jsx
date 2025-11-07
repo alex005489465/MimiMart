@@ -4,6 +4,8 @@ import bannerService from '../../services/bannerService'
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal'
 import { formatDateTime } from '../../utils/format'
 import styles from './BannerList.module.css'
+import tableStyles from './BannerList.table.module.css'
+import cardStyles from './BannerList.card.module.css'
 
 /**
  * Banner 列表頁面
@@ -160,13 +162,13 @@ function BannerList() {
           </button>
         </div>
       ) : (
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
+        <div className={`${tableStyles.tableWrapper} ${cardStyles.tableWrapper}`}>
+          <table className={`${tableStyles.table} ${cardStyles.table}`}>
             <thead>
               <tr>
-                <th className={styles.actionsHeader}>操作</th>
+                <th className={tableStyles.actionsHeader}>操作</th>
                 <th>圖片</th>
-                <th className={styles.titleHeader}>標題</th>
+                <th className={tableStyles.titleHeader}>標題</th>
                 <th>跳轉連結</th>
                 <th>順序</th>
                 <th>狀態</th>
@@ -179,8 +181,8 @@ function BannerList() {
             <tbody>
               {banners.map((banner) => (
                 <tr key={banner.id}>
-                  <td>
-                    <div className={styles.actions}>
+                  <td data-label="操作">
+                    <div className={`${styles.actions} ${cardStyles.actions}`}>
                       <button
                         onClick={() => handleEdit(banner.id)}
                         className={styles.editButton}
@@ -232,17 +234,17 @@ function BannerList() {
                       </button>
                     </div>
                   </td>
-                  <td>
-                    <div className={styles.imageCell}>
+                  <td data-label="圖片">
+                    <div className={`${tableStyles.imageCell} ${cardStyles.imageCell}`}>
                       <img
                         src={banner.imageUrl}
                         alt={banner.title}
-                        className={styles.thumbnail}
+                        className={`${tableStyles.thumbnail} ${cardStyles.thumbnail}`}
                       />
                     </div>
                   </td>
-                  <td className={styles.titleCell}>{banner.title}</td>
-                  <td className={styles.linkCell}>
+                  <td data-label="標題" className={`${tableStyles.titleCell} ${cardStyles.titleCell}`}>{banner.title}</td>
+                  <td data-label="跳轉連結" className={`${tableStyles.linkCell} ${cardStyles.linkCell}`}>
                     {banner.linkUrl ? (
                       <a
                         href={banner.linkUrl}
@@ -256,8 +258,8 @@ function BannerList() {
                       <span className={styles.noLink}>無</span>
                     )}
                   </td>
-                  <td className={styles.orderCell}>{banner.displayOrder}</td>
-                  <td>
+                  <td data-label="順序" className={`${tableStyles.orderCell} ${cardStyles.orderCell}`}>{banner.displayOrder}</td>
+                  <td data-label="狀態">
                     <button
                       onClick={() => handleToggleStatus(banner)}
                       className={`${styles.statusBadge} ${
@@ -267,16 +269,16 @@ function BannerList() {
                       {banner.status === 'ACTIVE' ? '啟用' : '停用'}
                     </button>
                   </td>
-                  <td className={styles.dateCell}>
+                  <td data-label="上架時間" className={`${tableStyles.dateCell} ${cardStyles.dateCell}`}>
                     {banner.publishedAt ? formatDateTime(banner.publishedAt) : <span className={styles.noData}>立即上架</span>}
                   </td>
-                  <td className={styles.dateCell}>
+                  <td data-label="下架時間" className={`${tableStyles.dateCell} ${cardStyles.dateCell}`}>
                     {banner.unpublishedAt ? formatDateTime(banner.unpublishedAt) : <span className={styles.noData}>永不下架</span>}
                   </td>
-                  <td className={styles.dateCell}>
+                  <td data-label="建立時間" className={`${tableStyles.dateCell} ${cardStyles.dateCell}`}>
                     {formatDateTime(banner.createdAt)}
                   </td>
-                  <td className={styles.dateCell}>
+                  <td data-label="更新時間" className={`${tableStyles.dateCell} ${cardStyles.dateCell}`}>
                     {formatDateTime(banner.updatedAt)}
                   </td>
                 </tr>

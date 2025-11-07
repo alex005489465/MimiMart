@@ -1,0 +1,126 @@
+/* 表格容器 */
+.tableWrapper {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  overflow-y: visible;
+  border: 1px solid var(--border-color);
+}
+
+/* 表格 */
+.table {
+  width: 100%;
+  min-width: 1200px;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: var(--bg-secondary);
+}
+
+.table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+/* 圖片單元格 */
+.imageCell {
+  display: flex;
+  align-items: center;
+}
+
+.thumbnail {
+  width: 120px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+/* 表頭樣式 */
+.actionsHeader {
+  min-width: 120px;
+  width: 120px;
+}
+
+.titleHeader {
+  min-width: 350px;
+  width: 350px;
+}
+
+/* 標題單元格 */
+.titleCell {
+  font-weight: 500;
+  color: var(--text-primary);
+  max-width: 350px;
+  min-width: 350px;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+/* 連結單元格 */
+.linkCell {
+  max-width: 200px;
+  min-width: 150px;
+}
+
+/* 順序單元格 */
+.orderCell {
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* 日期單元格 */
+.dateCell {
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  min-width: 140px;
+}
+
+/* 平板響應式 */
+@media (max-width: 1024px) {
+  .table {
+    font-size: 0.8125rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.75rem;
+  }
+
+  .thumbnail {
+    width: 80px;
+    height: 40px;
+  }
+
+  .titleCell {
+    max-width: 150px;
+  }
+}
