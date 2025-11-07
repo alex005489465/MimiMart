@@ -22,14 +22,11 @@ public class CreateProductRequest {
 
     private String description;
 
-    @NotNull(message = "價格不能為空")
-    @DecimalMin(value = "0.01", message = "價格必須大於 0")
-    @Digits(integer = 8, fraction = 2, message = "價格格式不正確")
+    @NotNull(message = "商品售價不能為空")
+    @DecimalMin(value = "0.01", message = "商品售價必須大於 0")
+    @DecimalMax(value = "99999999.99", message = "商品售價不能超過 99,999,999.99")
+    @Digits(integer = 8, fraction = 2, message = "商品售價格式不正確 (最大 99,999,999.99)")
     private BigDecimal price;
-
-    @DecimalMin(value = "0.01", message = "原價必須大於 0")
-    @Digits(integer = 8, fraction = 2, message = "原價格式不正確")
-    private BigDecimal originalPrice;
 
     @Size(max = 500, message = "圖片 URL 長度不能超過 500 個字元")
     private String imageUrl;

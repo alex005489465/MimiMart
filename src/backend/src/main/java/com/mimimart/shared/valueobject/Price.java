@@ -7,115 +7,64 @@ import java.math.RoundingMode;
 import java.util.Objects;
 
 /**
- * 價格值對象 (不可變)
- * 封裝價格邏輯和驗證
+ * 價格值物件 (不可變)
+ * 封裝商品售價的邏輯與驗證
  */
 public class Price {
 
     private final BigDecimal price;
-    private final BigDecimal originalPrice;
 
-    private Price(BigDecimal price, BigDecimal originalPrice) {
-        validatePrice(price, originalPrice);
+    private Price(BigDecimal price) {
+        validatePrice(price);
         this.price = price.setScale(2, RoundingMode.HALF_UP);
-        this.originalPrice = originalPrice != null ? originalPrice.setScale(2, RoundingMode.HALF_UP) : null;
     }
 
     /**
-     * 建立價格 (僅售價)
+     * 建立價格值物件
+     *
+     * @param price 商品售價,必須大於 0,範圍: 0.01 ~ 99,999,999.99
+     * @return Price 值物件
+     * @throws InvalidPriceException 當價格不符合規則時
      */
     public static Price of(BigDecimal price) {
-        return new Price(price, null);
-    }
-
-    /**
-     * 建立價格 (含原價)
-     */
-    public static Price of(BigDecimal price, BigDecimal originalPrice) {
-        return new Price(price, originalPrice);
+        return new Price(price);
     }
 
     /**
      * 驗證價格
      */
-    private void validatePrice(BigDecimal price, BigDecimal originalPrice) {
+    private void validatePrice(BigDecimal price) {
         if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidPriceException("價格必須大於 0");
+            throw new InvalidPriceException("商品售價必須大於 0");
         }
 
-        if (originalPrice != null) {
-            if (originalPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new InvalidPriceException("原價必須大於 0");
-            }
-            if (originalPrice.compareTo(price) < 0) {
-                throw new InvalidPriceException("原價不能低於售價");
-            }
+        if (price.compareTo(new BigDecimal("99999999.99")) > 0) {
+            throw new InvalidPriceException("商品售價不能超過 99,999,999.99");
         }
     }
 
     /**
-     * 取得售價
+     * 取得商品售價
      */
     public BigDecimal getPrice() {
         return price;
-    }
-
-    /**
-     * 取得原價
-     */
-    public BigDecimal getOriginalPrice() {
-        return originalPrice;
-    }
-
-    /**
-     * 檢查是否有折扣
-     */
-    public boolean hasDiscount() {
-        return originalPrice != null && originalPrice.compareTo(price) > 0;
-    }
-
-    /**
-     * 計算折扣百分比 (例如: 0.20 表示 20% off)
-     */
-    public BigDecimal getDiscountPercentage() {
-        if (!hasDiscount()) {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal discount = originalPrice.subtract(price);
-        return discount.divide(originalPrice, 4, RoundingMode.HALF_UP);
-    }
-
-    /**
-     * 計算折扣金額
-     */
-    public BigDecimal getDiscountAmount() {
-        if (!hasDiscount()) {
-            return BigDecimal.ZERO;
-        }
-
-        return originalPrice.subtract(price);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Price price1 = (Price) o;
-        return Objects.equals(price, price1.price) && Objects.equals(originalPrice, price1.originalPrice);
+        Price priceObj = (Price) o;
+        return Objects.equals(price, priceObj.price);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(price, originalPrice);
+        return Objects.hash(price);
     }
 
     @Override
     public String toString() {
-        if (hasDiscount()) {
-            return String.format("Price{price=%s, originalPrice=%s, discount=%.0f%%}",
-                price, originalPrice, getDiscountPercentage().multiply(BigDecimal.valueOf(100)));
-        }
         return String.format("Price{price=%s}", price);
     }
 }

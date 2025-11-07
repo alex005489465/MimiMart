@@ -38,16 +38,10 @@ public class Product {
     private String description;
 
     /**
-     * 售價/促銷價
+     * 商品售價
      */
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
-
-    /**
-     * 原價 (用於顯示折扣)
-     */
-    @Column(name = "original_price", precision = 10, scale = 2)
-    private BigDecimal originalPrice;
 
     /**
      * 商品圖片 URL
@@ -142,13 +136,6 @@ public class Product {
      */
     public boolean isAvailable() {
         return isActive && isPublished && !isDeleted && isInPublishPeriod();
-    }
-
-    /**
-     * 檢查是否有折扣
-     */
-    public boolean hasDiscount() {
-        return originalPrice != null && originalPrice.compareTo(price) > 0;
     }
 
     /**

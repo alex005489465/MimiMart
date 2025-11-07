@@ -105,7 +105,6 @@ public class TestFixtures {
         product.setName(name);
         product.setDescription("購物車測試用商品");
         product.setPrice(BigDecimal.valueOf(99 + index * 100));
-        product.setOriginalPrice(null);
         product.setCategoryId(categoryId);
         product.setIsPublished(true);
         product.setIsDeleted(false);

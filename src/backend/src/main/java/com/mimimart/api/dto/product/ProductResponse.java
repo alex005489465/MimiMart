@@ -19,7 +19,6 @@ public class ProductResponse {
     private Long id;
     private String name;
     private BigDecimal price;
-    private BigDecimal originalPrice;
     private String imageUrl;
     private Long categoryId;
     private Boolean isPublished;
@@ -33,7 +32,6 @@ public class ProductResponse {
             product.getId(),
             product.getName(),
             product.getPrice(),
-            product.getOriginalPrice(),
             product.getImageUrl(),
             product.getCategoryId(),
             product.getIsPublished(),
