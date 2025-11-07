@@ -162,8 +162,10 @@ function Layout() {
           <div className={mergeStyles('navSection')}>
             <h3 className={mergeStyles('navTitle')}>商品管理</h3>
             <NavLink
-              to="#"
-              className={mergeStyles('navLink')}
+              to="/products"
+              className={({ isActive }) =>
+                cx(mergeStyles('navLink'), isActive && styles.active)
+              }
               onClick={closeSidebar}
               title="商品列表"
             >
@@ -171,8 +173,10 @@ function Layout() {
               <span className={mergeStyles('navText')}>商品列表</span>
             </NavLink>
             <NavLink
-              to="#"
-              className={mergeStyles('navLink')}
+              to="/categories"
+              className={({ isActive }) =>
+                cx(mergeStyles('navLink'), isActive && styles.active)
+              }
               onClick={closeSidebar}
               title="分類管理"
             >

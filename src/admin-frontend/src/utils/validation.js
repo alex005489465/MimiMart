@@ -95,3 +95,13 @@ export function isPositiveInteger(value) {
   const num = Number(value)
   return Number.isInteger(num) && num > 0
 }
+
+/**
+ * 驗證正數（包含小數）
+ * @param {any} value - 值
+ * @returns {boolean}
+ */
+export function isPositiveNumber(value) {
+  const num = Number(value)
+  return !isNaN(num) && num > 0
+}

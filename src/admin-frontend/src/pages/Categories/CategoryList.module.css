@@ -1,0 +1,275 @@
+/* 容器 */
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 頁面標題與操作區 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.createButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.createButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 載入中與錯誤狀態 */
+.loading,
+.error {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.error {
+  color: #ef4444;
+}
+
+.retryButton {
+  margin-top: 1rem;
+  padding: 0.625rem 1.25rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: opacity 0.2s ease;
+}
+
+.retryButton:hover {
+  opacity: 0.9;
+}
+
+/* 空狀態 */
+.empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+}
+
+.empty p {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.emptyButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9375rem;
+  transition: opacity 0.2s ease;
+}
+
+.emptyButton:hover {
+  opacity: 0.9;
+}
+
+/* 表格容器 */
+.tableWrapper {
+  overflow-x: auto;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 表格樣式 */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table thead {
+  background-color: var(--bg-secondary);
+}
+
+.table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+.table td {
+  padding: 1rem;
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+/* 表格特定欄位 */
+.actionsHeader {
+  width: 100px;
+}
+
+.nameHeader {
+  min-width: 150px;
+}
+
+.descriptionHeader {
+  min-width: 250px;
+}
+
+.nameCell {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.descriptionCell {
+  max-width: 400px;
+}
+
+.dateCell {
+  white-space: nowrap;
+  font-size: 0.8125rem;
+}
+
+/* 無資料顯示 */
+.noData {
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* 操作按鈕 */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.editButton,
+.deleteButton {
+  padding: 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.editButton {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.editButton:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.deleteButton {
+  background-color: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.deleteButton:hover {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  /* 表格在手機上改為卡片式布局 */
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+  }
+
+  .table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+  }
+
+  .table td {
+    padding: 0.5rem 0;
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+
+  .descriptionCell {
+    max-width: 100%;
+  }
+}

@@ -5,7 +5,7 @@ services:
     container_name: mimimart-java
     restart: unless-stopped
     working_dir: /workspace
-    command: tail -f /dev/null  # 保持容器運行
+    command: mvn spring-boot:run
     env_file:
       - .env
     environment:

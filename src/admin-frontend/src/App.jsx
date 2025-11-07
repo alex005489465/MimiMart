@@ -5,6 +5,10 @@ import Login from './pages/Login/Login'
 import Dashboard from './pages/Dashboard/Dashboard'
 import BannerList from './pages/Banners/BannerList'
 import BannerForm from './pages/Banners/BannerForm'
+import ProductList from './pages/Products/ProductList'
+import ProductForm from './pages/Products/ProductForm'
+import CategoryList from './pages/Categories/CategoryList'
+import CategoryForm from './pages/Categories/CategoryForm'
 import './App.css'
 
 function App() {
@@ -21,6 +25,12 @@ function App() {
             <Route path="/banners" element={<BannerList />} />
             <Route path="/banners/new" element={<BannerForm />} />
             <Route path="/banners/edit/:id" element={<BannerForm />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/products/new" element={<ProductForm />} />
+            <Route path="/products/edit/:id" element={<ProductForm />} />
+            <Route path="/categories" element={<CategoryList />} />
+            <Route path="/categories/new" element={<CategoryForm />} />
+            <Route path="/categories/edit/:id" element={<CategoryForm />} />
           </Route>
 
           {/* 404 導向登入頁 */}
