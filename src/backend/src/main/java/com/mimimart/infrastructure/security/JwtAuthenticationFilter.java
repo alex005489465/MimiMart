@@ -27,11 +27,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final com.mimimart.application.service.TokenBlacklistService tokenBlacklistService;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil,
-                                   CustomUserDetailsService customUserDetailsService) {
+                                   CustomUserDetailsService customUserDetailsService,
+                                   com.mimimart.application.service.TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.customUserDetailsService = customUserDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -44,6 +47,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = extractTokenFromRequest(request);
 
             if (token != null && jwtUtil.validateToken(token)) {
+                // 檢查 Token 是否在黑名單中
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    logger.warn("Token 已在黑名單中，拒絕請求");
+                    // 不設定 Authentication，讓 Spring Security 處理為未認證
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 // 從 Token 提取 Email 和 UserType
                 String email = jwtUtil.extractEmail(token);
                 UserType userType = jwtUtil.extractUserType(token);

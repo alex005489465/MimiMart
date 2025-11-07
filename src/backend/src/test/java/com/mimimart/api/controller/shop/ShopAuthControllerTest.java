@@ -145,10 +145,17 @@ class ShopAuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/shop/auth/logout - 成功登出")
+    @DisplayName("POST /api/shop/auth/logout - 成功登出並將 Token 加入黑名單")
     void testLogout_Success() throws Exception {
-        // When & Then
+        // Given: 先登入取得 Access Token
+        String email = "logout.test@example.com";
+        String password = "password123";
+        authService.register(email, password, "登出測試會員");
+        AuthService.LoginResult loginResult = authService.login(email, password);
+
+        // When & Then: 使用 Access Token 登出
         mockMvc.perform(post("/api/shop/auth/logout")
+                        .header("Authorization", "Bearer " + loginResult.accessToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))

@@ -140,7 +140,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("會員登出 - 成功撤銷所有 Refresh Token")
+    @DisplayName("會員登出 - 成功撤銷所有 Refresh Token 並將 Access Token 加入黑名單")
     void testLogout_Success() {
         // Given
         String email = "logout@example.com";
@@ -148,11 +148,12 @@ class AuthServiceTest {
         Member member = authService.register(email, password, "登出測試會員");
         AuthService.LoginResult loginResult = authService.login(email, password);
 
-        // When
-        authService.logout(member.getId());
+        // When: 登出時提供 Access Token
+        authService.logout(member.getId(), loginResult.accessToken);
 
-        // Then
+        // Then: Refresh Token 應該被撤銷
         assertFalse(refreshTokenRepository.findByToken(loginResult.refreshToken).isPresent());
+        // Note: Token Blacklist 的驗證在 TokenBlacklistServiceTest 中進行
     }
 
     @Test

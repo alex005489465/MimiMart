@@ -6,14 +6,16 @@ import com.mimimart.api.dto.request.*;
 import com.mimimart.api.dto.response.*;
 import com.mimimart.application.service.AuthService;
 import com.mimimart.infrastructure.persistence.entity.Member;
+import com.mimimart.infrastructure.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 前台會員認證 Controller
@@ -80,12 +82,25 @@ public class ShopAuthController {
 
     /**
      * 會員登出
+     * 撤銷所有 Refresh Token 並將當前 Access Token 加入黑名單
      */
     @PostMapping("/logout")
-    @Operation(summary = "會員登出", description = "撤銷所有 Refresh Token")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody(required = false) Object request) {
-        // 從 SecurityContext 取得會員 ID (需要在 Controller 中實作)
-        // 此處簡化處理
+    @Operation(summary = "會員登出", description = "撤銷所有 Refresh Token 並將 Access Token 加入黑名單")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request) {
+
+        // 從 Authorization Header 提取 Access Token
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String accessToken = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            accessToken = authHeader.substring(7);
+        }
+
+        // 執行登出邏輯
+        authService.logout(userDetails.getUserId(), accessToken);
+
         return ResponseEntity.ok(ApiResponse.success("登出成功"));
     }
 

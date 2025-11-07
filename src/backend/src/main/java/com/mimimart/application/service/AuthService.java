@@ -38,19 +38,22 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
     private final EmailRateLimitService emailRateLimitService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public AuthService(MemberRepository memberRepository,
                       PasswordEncoder passwordEncoder,
                       JwtUtil jwtUtil,
                       RefreshTokenService refreshTokenService,
                       EmailService emailService,
-                      EmailRateLimitService emailRateLimitService) {
+                      EmailRateLimitService emailRateLimitService,
+                      TokenBlacklistService tokenBlacklistService) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
         this.emailService = emailService;
         this.emailRateLimitService = emailRateLimitService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     /**
@@ -121,10 +124,29 @@ public class AuthService {
 
     /**
      * 會員登出
+     * 撤銷所有 Refresh Token 並將 Access Token 加入黑名單
+     *
+     * @param memberId    會員 ID
+     * @param accessToken Access Token（可為 null）
      */
     @Transactional
-    public void logout(Long memberId) {
+    public void logout(Long memberId, String accessToken) {
+        // 撤銷所有 Refresh Token
         refreshTokenService.revokeAllTokens(memberId, UserType.MEMBER);
+
+        // 將 Access Token 加入黑名單（如果提供）
+        if (accessToken != null && !accessToken.isEmpty()) {
+            try {
+                // 驗證 Token 並提取過期時間
+                if (jwtUtil.validateToken(accessToken)) {
+                    java.util.Date expiresAt = jwtUtil.extractClaims(accessToken).getExpiration();
+                    tokenBlacklistService.addToBlacklist(accessToken, expiresAt);
+                }
+            } catch (Exception e) {
+                // Token 無效或已過期，忽略錯誤
+                // 登出操作不應因 Token 問題而失敗
+            }
+        }
     }
 
     /**
