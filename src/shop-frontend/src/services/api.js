@@ -1,8 +1,8 @@
 /**
  * Axios 實例配置與請求/回應攔截器
+ * 使用 Zustand authStore 管理 token
  */
 import axios from 'axios';
-import { storage } from '../utils/storage';
 
 // 從環境變數取得 API Base URL
 // 開發環境使用空字串(透過 Vite Proxy),生產環境使用完整 URL
@@ -20,7 +20,8 @@ const apiClient = axios.create({
 // 請求攔截器 - 自動加入 Authorization Header
 apiClient.interceptors.request.use(
   (config) => {
-    const token = storage.getAccessToken();
+    // 從 localStorage 讀取 token（因為 Zustand persist 存在這裡）
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -45,7 +46,7 @@ apiClient.interceptors.response.use(
 
       try {
         // 嘗試使用 Refresh Token 更新 Access Token
-        const refreshToken = storage.getRefreshToken();
+        const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
           const response = await axios.post(
             `${API_BASE_URL}/api/shop/auth/refresh-token`,
@@ -54,7 +55,7 @@ apiClient.interceptors.response.use(
 
           if (response.data.success) {
             const newAccessToken = response.data.data;
-            storage.setAccessToken(newAccessToken);
+            localStorage.setItem('token', newAccessToken);
 
             // 更新原請求的 Authorization Header
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -65,7 +66,8 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh Token 也失效,清除認證資料並導向登入頁
-        storage.clearAuth();
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

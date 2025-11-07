@@ -1,66 +1,22 @@
-.homePage {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.main {
-  flex: 1;
-}
+/* 首頁樣式 */
 
 .welcomeSection {
-  padding: 4rem 1.5rem;
-  background-color: var(--color-bg-secondary);
-  transition: background-color 0.3s ease;
+  padding: 80px 0;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  text-align: center;
-}
-
-.sectionTitle {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--color-text-primary);
-  margin-bottom: 1rem;
-  transition: color 0.3s ease;
-}
-
-.sectionDescription {
-  font-size: 1.125rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 auto;
-  transition: color 0.3s ease;
-}
-
-.footer {
-  background-color: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-  padding: 2rem 1.5rem;
-  text-align: center;
-  border-top: 1px solid var(--color-border);
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-.footer .container {
-  max-width: 1200px;
+  padding: 0 24px;
 }
 
 /* 響應式設計 */
 @media (max-width: 768px) {
   .welcomeSection {
-    padding: 3rem 1rem;
+    padding: 48px 0;
   }
 
-  .sectionTitle {
-    font-size: 1.5rem;
-  }
-
-  .sectionDescription {
-    font-size: 1rem;
+  .container {
+    padding: 0 16px;
   }
 }

@@ -1,32 +1,28 @@
 /**
  * 受保護路由元件
- * 檢查使用者是否已登入,未登入則導向登入頁面
+ * 檢查使用者是否已登入，未登入則導向登入頁面
+ * 使用 Zustand 狀態管理和 Ant Design Spin
  */
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { Spin } from 'antd';
+import useAuthStore from '../../stores/authStore';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuthStore();
 
-  // 載入中顯示 Loading
-  if (loading) {
+  // 載入中顯示 Ant Design Spin
+  if (isLoading) {
     return (
       <div
         style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: 'calc(100vh - 80px)',
+          minHeight: 'calc(100vh - 64px - 300px)', // 減去 header 和 footer 高度
+          padding: '48px 0',
         }}
       >
-        <div
-          style={{
-            fontSize: '1.5rem',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          載入中...
-        </div>
+        <Spin size="large" tip="載入中..." />
       </div>
     );
   }

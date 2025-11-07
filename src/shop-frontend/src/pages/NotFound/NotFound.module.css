@@ -1,0 +1,9 @@
+/* 404 頁面樣式 */
+
+.notFoundPage {
+  min-height: calc(100vh - 64px - 300px); /* 減去 header 和 footer */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}

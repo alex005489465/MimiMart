@@ -1,0 +1,149 @@
+/* Header 樣式 */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 64px;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: bold;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.3s;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logoIcon {
+  font-size: 28px;
+  color: #1890ff;
+}
+
+.logoText {
+  font-size: 20px;
+}
+
+/* 桌面版導航 */
+.desktopNav {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 搜尋欄 */
+.searchContainer {
+  display: flex;
+  flex: 0 1 400px;
+  min-width: 200px;
+}
+
+.searchBar {
+  width: 100%;
+}
+
+/* 右側工具列 */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.cartBadge {
+  display: flex;
+  align-items: center;
+}
+
+.userMenuButton {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+}
+
+.username {
+  margin-left: 4px;
+}
+
+/* 行動版選單按鈕 */
+.mobileMenuButton {
+  display: none;
+}
+
+/* 響應式設計 */
+@media (max-width: 992px) {
+  .desktopNav {
+    display: none;
+  }
+
+  .mobileMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .searchContainer {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .username {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .searchContainer {
+    display: none;
+  }
+
+  .actions {
+    gap: 4px;
+  }
+}

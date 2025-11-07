@@ -1,0 +1,44 @@
+/* 購物車頁面樣式 */
+
+.cartPage {
+  min-height: calc(100vh - 64px - 300px); /* 減去 header 和 footer */
+  padding: 48px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 24px;
+}
+
+.summary {
+  text-align: right;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .cartPage {
+    padding: 24px 0;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .summary {
+    text-align: center;
+  }
+}

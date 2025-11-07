@@ -1,0 +1,77 @@
+/* Footer 樣式 */
+
+.footer {
+  margin-top: auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 24px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  margin-bottom: 16px !important;
+  font-weight: 600;
+}
+
+.link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s;
+  opacity: 0.85;
+}
+
+.link:hover {
+  opacity: 1;
+  color: #1890ff;
+}
+
+.contact {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.icon {
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.social {
+  margin-top: 8px;
+}
+
+.socialIcon {
+  font-size: 24px;
+  transition: all 0.3s;
+}
+
+.socialIcon:hover {
+  color: #1890ff;
+  transform: translateY(-2px);
+}
+
+.copyright {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .container {
+    padding: 32px 16px 16px;
+  }
+
+  .copyright {
+    margin-top: 32px;
+    padding-top: 16px;
+  }
+}
