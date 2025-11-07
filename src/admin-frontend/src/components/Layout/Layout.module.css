@@ -1,8 +1,9 @@
+/* 佈局共用基礎樣式 */
+
 /* 佈局容器 */
 .layoutContainer {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 260px 1fr;
   grid-template-rows: 64px 1fr;
   grid-template-areas:
     "header header"
@@ -16,21 +17,44 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 100;
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+/* 漢堡選單按鈕 */
+.hamburgerButton {
+  flex-direction: column;
+  justify-content: space-around;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburgerLine {
+  width: 100%;
+  height: 3px;
+  background-color: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.3s ease;
 }
 
 .logo {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--primary-color);
+  margin: 0;
 }
 
 .headerRight {
@@ -39,18 +63,95 @@
   gap: 1rem;
 }
 
-.userInfo {
+/* 使用者選單 */
+.userMenuContainer {
+  position: relative;
+}
+
+.userMenuButton {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.userMenuButton:hover {
+  background: var(--bg-primary);
+  border-color: var(--primary-color);
 }
 
 .username {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.dropdownIcon {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+
+.userMenuDropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 200px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 200;
+}
+
+.userMenuHeader {
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+}
+
+.userMenuName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.userMenuDivider {
+  height: 1px;
+  background: var(--border-color);
+}
+
+.userMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.userMenuItem:hover {
+  background: var(--bg-secondary);
+}
+
+.userMenuLabel {
+  flex: 1;
+  font-weight: 500;
+}
+
+.logoutIcon {
+  font-size: 1rem;
 }
 
 .logoutButton {
@@ -70,7 +171,12 @@
   transform: translateY(-1px);
 }
 
-/* 側邊欄 */
+/* 遮罩層基礎樣式 */
+.overlay {
+  display: none;
+}
+
+/* 側邊欄基礎樣式 */
 .sidebar {
   grid-area: sidebar;
   background: var(--bg-primary);
@@ -86,7 +192,7 @@
 }
 
 .navSection {
-  padding: 0 1rem;
+  /* 由各版本定義 */
 }
 
 .navTitle {
@@ -101,8 +207,6 @@
 .navLink {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
   margin-bottom: 0.25rem;
   color: var(--text-secondary);
   border-radius: var(--radius-md);
@@ -124,41 +228,25 @@
 
 .navIcon {
   font-size: 1.25rem;
-  width: 1.5rem;
   text-align: center;
+  flex-shrink: 0;
+}
+
+.navText {
+  flex: 1;
 }
 
 /* 主要內容區 */
 .mainContent {
   grid-area: main;
-  padding: 2rem;
   overflow-y: auto;
 }
 
-/* 響應式設計 */
-@media (max-width: 1024px) {
-  .layoutContainer {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "header"
-      "main";
-  }
-
-  .sidebar {
-    display: none;
-  }
+/* 響應式控制類別（由各版本覆寫） */
+.desktopOnly {
+  /* 由各版本定義 */
 }
 
-@media (max-width: 768px) {
-  .header {
-    padding: 0 1rem;
-  }
-
-  .logo {
-    font-size: 1rem;
-  }
-
-  .mainContent {
-    padding: 1rem;
-  }
+.mobileOnly {
+  /* 由各版本定義 */
 }

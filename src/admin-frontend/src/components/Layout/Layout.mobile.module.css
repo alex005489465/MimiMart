@@ -1,0 +1,127 @@
+/* 手機版佈局樣式 (max-width: 768px) */
+@media (max-width: 768px) {
+  /* Grid 佈局改為單欄 */
+  .layoutContainer {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "main";
+  }
+
+  /* Header 調整 */
+  .header {
+    padding: 0 1rem;
+  }
+
+  /* 顯示漢堡選單 */
+  .hamburgerButton {
+    display: flex;
+  }
+
+  /* Logo 縮小 */
+  .logo {
+    font-size: 1rem;
+  }
+
+  /* Header 右側間距縮小 */
+  .headerRight {
+    gap: 0.5rem;
+  }
+
+  /* 隱藏桌面版元素 */
+  .desktopOnly {
+    display: none;
+  }
+
+  /* 顯示手機版元素 */
+  .mobileOnly {
+    display: block;
+  }
+
+  /* 側邊欄 - 固定定位 + 滑入動畫 */
+  .sidebar {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 95;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 側邊欄開啟狀態 */
+  .sidebar.sidebarOpen {
+    transform: translateX(0);
+  }
+
+  /* 導航區塊恢復正常 */
+  .navSection {
+    padding: 0 1rem;
+  }
+
+  /* 導航標題顯示 */
+  .navTitle {
+    display: block;
+  }
+
+  /* 導航項目恢復正常 */
+  .navLink {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+    justify-content: flex-start;
+  }
+
+  /* 導航文字顯示 */
+  .navText {
+    display: block;
+  }
+
+  /* 圖示恢復正常 */
+  .navIcon {
+    width: 1.5rem;
+  }
+
+  /* 移除 tooltip（手機版不需要） */
+  .navLink::after,
+  .navLink::before {
+    display: none;
+  }
+
+  /* 遮罩層顯示 */
+  .overlay {
+    display: block;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    opacity: 1;
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* 遮罩層淡入動畫 */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* 主要內容區調整 */
+  .mainContent {
+    padding: 1rem;
+  }
+
+  /* 使用者選單下拉位置調整 */
+  .userMenuDropdown {
+    right: 0;
+    left: auto;
+    min-width: 180px;
+  }
+}

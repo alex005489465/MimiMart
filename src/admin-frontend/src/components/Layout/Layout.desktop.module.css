@@ -1,0 +1,63 @@
+/* 桌面版佈局樣式 */
+
+/* Grid 佈局 */
+.layoutContainer {
+  grid-template-columns: 260px 1fr;
+}
+
+/* Header */
+.header {
+  padding: 0 2rem;
+}
+
+/* 漢堡選單隱藏 */
+.hamburgerButton {
+  display: none;
+}
+
+/* 側邊欄 */
+.sidebar {
+  width: 260px;
+}
+
+/* 導航項目完整顯示 */
+.navSection {
+  padding: 0 1rem;
+}
+
+.navTitle {
+  display: block;
+}
+
+.navLink {
+  padding: 0.75rem 1rem;
+  gap: 0.75rem;
+}
+
+.navText {
+  display: block;
+}
+
+.navIcon {
+  width: 1.5rem;
+}
+
+/* 主要內容區 */
+.mainContent {
+  padding: 2rem;
+}
+
+/* 顯示桌面版元素 */
+.desktopOnly {
+  display: block;
+}
+
+/* 隱藏手機版元素 */
+.mobileOnly {
+  display: none;
+}
+
+/* 遮罩層隱藏 */
+.overlay {
+  display: none;
+}
