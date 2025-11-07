@@ -43,6 +43,8 @@ const bannerService = {
    * @param {File} data.imageFile - 圖片檔案
    * @param {string} [data.linkUrl] - 點擊連結 (可選)
    * @param {number} data.displayOrder - 顯示順序
+   * @param {string} [data.publishedAt] - 上架時間 (可選，NULL 表示立即上架)
+   * @param {string} [data.unpublishedAt] - 下架時間 (可選，NULL 表示永不下架)
    * @returns {Promise<Object>} 建立的 Banner 資料
    */
   async create(data) {
@@ -54,6 +56,12 @@ const bannerService = {
         formData.append('linkUrl', data.linkUrl)
       }
       formData.append('displayOrder', data.displayOrder)
+      if (data.publishedAt) {
+        formData.append('publishedAt', data.publishedAt)
+      }
+      if (data.unpublishedAt) {
+        formData.append('unpublishedAt', data.unpublishedAt)
+      }
 
       const response = await apiClient.post('/api/admin/banner/create', formData, {
         headers: {
@@ -74,6 +82,8 @@ const bannerService = {
    * @param {string} data.title - 標題
    * @param {string} [data.linkUrl] - 點擊連結
    * @param {number} data.displayOrder - 顯示順序
+   * @param {string} [data.publishedAt] - 上架時間 (可選，NULL 表示立即上架)
+   * @param {string} [data.unpublishedAt] - 下架時間 (可選，NULL 表示永不下架)
    * @returns {Promise<Object>} 更新後的 Banner 資料
    */
   async update(data) {
@@ -94,6 +104,8 @@ const bannerService = {
    * @param {string} [data.title] - 新標題 (可選)
    * @param {string} [data.linkUrl] - 新連結 (可選)
    * @param {number} [data.displayOrder] - 新顯示順序 (可選)
+   * @param {string} [data.publishedAt] - 上架時間 (可選，NULL 表示立即上架)
+   * @param {string} [data.unpublishedAt] - 下架時間 (可選，NULL 表示永不下架)
    * @returns {Promise<Object>} 更新後的 Banner 資料
    */
   async updateWithImage(data) {
@@ -109,6 +121,12 @@ const bannerService = {
       }
       if (data.displayOrder !== undefined) {
         formData.append('displayOrder', data.displayOrder)
+      }
+      if (data.publishedAt) {
+        formData.append('publishedAt', data.publishedAt)
+      }
+      if (data.unpublishedAt) {
+        formData.append('unpublishedAt', data.unpublishedAt)
       }
 
       const response = await apiClient.post('/api/admin/banner/update-with-image', formData, {

@@ -164,56 +164,21 @@ function BannerList() {
           <table className={styles.table}>
             <thead>
               <tr>
+                <th className={styles.actionsHeader}>操作</th>
                 <th>圖片</th>
-                <th>標題</th>
+                <th className={styles.titleHeader}>標題</th>
                 <th>跳轉連結</th>
                 <th>順序</th>
                 <th>狀態</th>
+                <th>上架時間</th>
+                <th>下架時間</th>
                 <th>建立時間</th>
-                <th>操作</th>
+                <th>更新時間</th>
               </tr>
             </thead>
             <tbody>
               {banners.map((banner) => (
                 <tr key={banner.id}>
-                  <td>
-                    <div className={styles.imageCell}>
-                      <img
-                        src={banner.imageUrl}
-                        alt={banner.title}
-                        className={styles.thumbnail}
-                      />
-                    </div>
-                  </td>
-                  <td className={styles.titleCell}>{banner.title}</td>
-                  <td>
-                    {banner.linkUrl ? (
-                      <a
-                        href={banner.linkUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.link}
-                      >
-                        {banner.linkUrl}
-                      </a>
-                    ) : (
-                      <span className={styles.noLink}>無</span>
-                    )}
-                  </td>
-                  <td className={styles.orderCell}>{banner.displayOrder}</td>
-                  <td>
-                    <button
-                      onClick={() => handleToggleStatus(banner)}
-                      className={`${styles.statusBadge} ${
-                        banner.status === 'ACTIVE' ? styles.active : styles.inactive
-                      }`}
-                    >
-                      {banner.status === 'ACTIVE' ? '啟用' : '停用'}
-                    </button>
-                  </td>
-                  <td className={styles.dateCell}>
-                    {formatDateTime(banner.createdAt)}
-                  </td>
                   <td>
                     <div className={styles.actions}>
                       <button
@@ -266,6 +231,53 @@ function BannerList() {
                         </svg>
                       </button>
                     </div>
+                  </td>
+                  <td>
+                    <div className={styles.imageCell}>
+                      <img
+                        src={banner.imageUrl}
+                        alt={banner.title}
+                        className={styles.thumbnail}
+                      />
+                    </div>
+                  </td>
+                  <td className={styles.titleCell}>{banner.title}</td>
+                  <td className={styles.linkCell}>
+                    {banner.linkUrl ? (
+                      <a
+                        href={banner.linkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.link}
+                      >
+                        {banner.linkUrl}
+                      </a>
+                    ) : (
+                      <span className={styles.noLink}>無</span>
+                    )}
+                  </td>
+                  <td className={styles.orderCell}>{banner.displayOrder}</td>
+                  <td>
+                    <button
+                      onClick={() => handleToggleStatus(banner)}
+                      className={`${styles.statusBadge} ${
+                        banner.status === 'ACTIVE' ? styles.active : styles.inactive
+                      }`}
+                    >
+                      {banner.status === 'ACTIVE' ? '啟用' : '停用'}
+                    </button>
+                  </td>
+                  <td className={styles.dateCell}>
+                    {banner.publishedAt ? formatDateTime(banner.publishedAt) : <span className={styles.noData}>立即上架</span>}
+                  </td>
+                  <td className={styles.dateCell}>
+                    {banner.unpublishedAt ? formatDateTime(banner.unpublishedAt) : <span className={styles.noData}>永不下架</span>}
+                  </td>
+                  <td className={styles.dateCell}>
+                    {formatDateTime(banner.createdAt)}
+                  </td>
+                  <td className={styles.dateCell}>
+                    {formatDateTime(banner.updatedAt)}
                   </td>
                 </tr>
               ))}
