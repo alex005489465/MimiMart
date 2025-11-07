@@ -1,31 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import styles from './Dashboard.module.css'
 
 /**
  * 管理後台儀表板頁面（內容區）
  */
 function Dashboard() {
-  const [adminUser, setAdminUser] = useState(null)
-
-  useEffect(() => {
-    // 從 localStorage 讀取使用者資訊
-    const userStr = localStorage.getItem('adminUser')
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr)
-        setAdminUser(user)
-      } catch (err) {
-        console.error('解析使用者資料失敗:', err)
-      }
-    }
-  }, [])
+  const { user } = useAuth()
 
   return (
     <div className={styles.dashboardContent}>
       <div className={styles.contentHeader}>
         <h2 className={styles.pageTitle}>儀表板</h2>
         <p className={styles.pageDescription}>
-          歡迎回來{adminUser ? `，${adminUser.username}` : ''}！
+          歡迎回來{user ? `，${user.username}` : ''}！
         </p>
       </div>
 

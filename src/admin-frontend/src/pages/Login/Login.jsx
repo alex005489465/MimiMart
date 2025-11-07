@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import authService from '@/services/authService'
+import { useAuth } from '@/context/AuthContext'
 import styles from './Login.module.css'
 
 /**
@@ -8,6 +8,7 @@ import styles from './Login.module.css'
  */
 function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -44,8 +45,8 @@ function Login() {
     setError('')
 
     try {
-      // 呼叫實際的登入 API
-      await authService.login(formData)
+      // 呼叫 AuthContext 的登入方法
+      await login(formData)
 
       // 登入成功，導向儀表板
       navigate('/dashboard')

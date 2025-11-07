@@ -102,7 +102,9 @@ public class AdminProductController {
             request.getPrice(),
             request.getOriginalPrice(),
             request.getImageUrl(),
-            request.getCategoryId()
+            request.getCategoryId(),
+            request.getPublishedAt(),
+            request.getUnpublishedAt()
         );
 
         ProductDetailResponse response = ProductDetailResponse.from(product);
@@ -124,7 +126,9 @@ public class AdminProductController {
             request.getPrice(),
             request.getOriginalPrice(),
             request.getImageUrl(),
-            request.getCategoryId()
+            request.getCategoryId(),
+            request.getPublishedAt(),
+            request.getUnpublishedAt()
         );
 
         ProductDetailResponse response = ProductDetailResponse.from(product);
@@ -163,5 +167,29 @@ public class AdminProductController {
         ProductDetailResponse response = ProductDetailResponse.from(product);
 
         return ResponseEntity.ok(ApiResponse.success("下架成功", response));
+    }
+
+    /**
+     * 啟用商品
+     */
+    @PostMapping("/activate")
+    @Operation(summary = "啟用商品", description = "將商品設為啟用狀態")
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> activateProduct(@Valid @RequestBody ProductIdRequest request) {
+        Product product = productService.activateProduct(request.getProductId());
+        ProductDetailResponse response = ProductDetailResponse.from(product);
+
+        return ResponseEntity.ok(ApiResponse.success("啟用成功", response));
+    }
+
+    /**
+     * 停用商品
+     */
+    @PostMapping("/deactivate")
+    @Operation(summary = "停用商品", description = "將商品設為停用狀態（自動下架）")
+    public ResponseEntity<ApiResponse<ProductDetailResponse>> deactivateProduct(@Valid @RequestBody ProductIdRequest request) {
+        Product product = productService.deactivateProduct(request.getProductId());
+        ProductDetailResponse response = ProductDetailResponse.from(product);
+
+        return ResponseEntity.ok(ApiResponse.success("停用成功", response));
     }
 }

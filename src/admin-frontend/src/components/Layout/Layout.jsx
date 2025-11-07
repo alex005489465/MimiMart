@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import authService from '@/services/authService'
+import { useAuth } from '@/context/AuthContext'
 import ThemeToggle from '../ThemeToggle/ThemeToggle'
 import styles from './Layout.module.css'
 import desktopStyles from './Layout.desktop.module.css'
@@ -13,7 +13,7 @@ import mobileStyles from './Layout.mobile.module.css'
  */
 function Layout() {
   const navigate = useNavigate()
-  const [adminUser, setAdminUser] = useState(null)
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -26,25 +26,12 @@ function Layout() {
     mobileStyles[className]
   )
 
+  // 檢查登入狀態
   useEffect(() => {
-    // 檢查登入狀態
-    const isAuthenticated = localStorage.getItem('isAuthenticated')
-    const userStr = localStorage.getItem('adminUser')
-
-    if (!isAuthenticated || !userStr) {
-      // 未登入，導向登入頁
-      navigate('/')
-      return
-    }
-
-    try {
-      const user = JSON.parse(userStr)
-      setAdminUser(user)
-    } catch (err) {
-      console.error('解析使用者資料失敗:', err)
+    if (!isLoading && !isAuthenticated) {
       navigate('/')
     }
-  }, [navigate])
+  }, [isAuthenticated, isLoading, navigate])
 
   /**
    * 切換側邊欄開關
@@ -71,11 +58,10 @@ function Layout() {
    * 處理登出
    */
   const handleLogout = () => {
-    authService.logout()
-    navigate('/')
+    logout()
   }
 
-  if (!adminUser) {
+  if (isLoading || !user) {
     return null // 或顯示載入中畫面
   }
 
@@ -108,7 +94,7 @@ function Layout() {
               className={styles.userMenuButton}
               onClick={toggleUserMenu}
             >
-              <span className={styles.username}>{adminUser.username}</span>
+              <span className={styles.username}>{user.username}</span>
               <span className={styles.dropdownIcon}>▼</span>
             </button>
 
@@ -116,7 +102,7 @@ function Layout() {
             {isUserMenuOpen && (
               <div className={styles.userMenuDropdown}>
                 <div className={styles.userMenuHeader}>
-                  <span className={styles.userMenuName}>{adminUser.username}</span>
+                  <span className={styles.userMenuName}>{user.username}</span>
                 </div>
                 <div className={styles.userMenuDivider}></div>
                 <div className={`${styles.mobileOnly} ${desktopStyles.mobileOnly} ${tabletStyles.mobileOnly} ${mobileStyles.mobileOnly}`}>

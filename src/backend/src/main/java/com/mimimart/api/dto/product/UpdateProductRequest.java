@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 更新商品請求 DTO
@@ -38,4 +39,14 @@ public class UpdateProductRequest {
 
     @NotNull(message = "分類 ID 不能為空")
     private Long categoryId;
+
+    /**
+     * 上架時間 (NULL 表示不限制)
+     */
+    private LocalDateTime publishedAt;
+
+    /**
+     * 下架時間 (NULL 表示不限制)
+     */
+    private LocalDateTime unpublishedAt;
 }

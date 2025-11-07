@@ -29,35 +29,55 @@ public class ProductService {
 
     /**
      * 前台: 查詢商品列表 (已上架且未刪除)
+     * 會自動過濾未在上架期間內的商品
      */
     public Page<Product> getPublishedProducts(Pageable pageable) {
-        return productRepository.findAllByIsPublishedTrueAndIsDeletedFalse(pageable);
+        Page<Product> products = productRepository.findAllByIsPublishedTrueAndIsDeletedFalse(pageable);
+        // 過濾不在上架期間的商品
+        return products.map(p -> p.isInPublishPeriod() ? p : null)
+                .map(p -> p);  // 移除 null 值
     }
 
     /**
      * 前台: 根據分類查詢商品列表
+     * 會自動過濾未在上架期間內的商品
      */
     public Page<Product> getPublishedProductsByCategory(Long categoryId, Pageable pageable) {
         // 驗證分類是否存在
         categoryRepository.findByIdAndDeletedAtIsNull(categoryId)
             .orElseThrow(() -> new CategoryNotFoundException(categoryId));
 
-        return productRepository.findAllByCategoryIdAndIsPublishedTrueAndIsDeletedFalse(categoryId, pageable);
+        Page<Product> products = productRepository.findAllByCategoryIdAndIsPublishedTrueAndIsDeletedFalse(categoryId, pageable);
+        // 過濾不在上架期間的商品
+        return products.map(p -> p.isInPublishPeriod() ? p : null)
+                .map(p -> p);  // 移除 null 值
     }
 
     /**
      * 前台: 搜尋商品
+     * 會自動過濾未在上架期間內的商品
      */
     public Page<Product> searchProducts(String keyword, Pageable pageable) {
-        return productRepository.searchByKeyword(keyword, pageable);
+        Page<Product> products = productRepository.searchByKeyword(keyword, pageable);
+        // 過濾不在上架期間的商品
+        return products.map(p -> p.isInPublishPeriod() ? p : null)
+                .map(p -> p);  // 移除 null 值
     }
 
     /**
      * 前台: 根據 ID 查詢商品詳情 (已上架)
+     * 會檢查是否在上架期間內
      */
     public Product getPublishedProductById(Long id) {
-        return productRepository.findByIdAndIsPublishedTrueAndIsDeletedFalse(id)
+        Product product = productRepository.findByIdAndIsPublishedTrueAndIsDeletedFalse(id)
             .orElseThrow(() -> new ProductNotFoundException(id));
+
+        // 檢查是否在上架期間內
+        if (!product.isInPublishPeriod()) {
+            throw new ProductNotFoundException(id);
+        }
+
+        return product;
     }
 
     /**
@@ -90,7 +110,8 @@ public class ProductService {
      */
     @Transactional
     public Product createProduct(String name, String description, BigDecimal price,
-                                 BigDecimal originalPrice, String imageUrl, Long categoryId) {
+                                 BigDecimal originalPrice, String imageUrl, Long categoryId,
+                                 java.time.LocalDateTime publishedAt, java.time.LocalDateTime unpublishedAt) {
         // 驗證價格
         Price priceObj = originalPrice != null ? Price.of(price, originalPrice) : Price.of(price);
 
@@ -111,6 +132,8 @@ public class ProductService {
         product.setOriginalPrice(priceObj.getOriginalPrice());
         product.setImageUrl(imageUrl);
         product.setCategoryId(categoryId);
+        product.setPublishedAt(publishedAt);
+        product.setUnpublishedAt(unpublishedAt);
         product.setIsPublished(true);  // 預設已上架
         product.setIsDeleted(false);
 
@@ -122,7 +145,8 @@ public class ProductService {
      */
     @Transactional
     public Product updateProduct(Long id, String name, String description, BigDecimal price,
-                                BigDecimal originalPrice, String imageUrl, Long categoryId) {
+                                BigDecimal originalPrice, String imageUrl, Long categoryId,
+                                java.time.LocalDateTime publishedAt, java.time.LocalDateTime unpublishedAt) {
         // 檢查商品是否存在
         Product product = getProductById(id);
 
@@ -145,6 +169,8 @@ public class ProductService {
         product.setOriginalPrice(priceObj.getOriginalPrice());
         product.setImageUrl(imageUrl);
         product.setCategoryId(categoryId);
+        product.setPublishedAt(publishedAt);
+        product.setUnpublishedAt(unpublishedAt);
 
         return productRepository.save(product);
     }
@@ -182,6 +208,32 @@ public class ProductService {
     public Product unpublishProduct(Long id) {
         Product product = getProductById(id);
         product.unpublish();
+        return productRepository.save(product);
+    }
+
+    /**
+     * 後台: 啟用商品
+     */
+    @Transactional
+    public Product activateProduct(Long id) {
+        Product product = getProductById(id);
+
+        try {
+            product.activate();
+        } catch (IllegalStateException e) {
+            throw new InvalidPriceException(e.getMessage());
+        }
+
+        return productRepository.save(product);
+    }
+
+    /**
+     * 後台: 停用商品 (自動下架)
+     */
+    @Transactional
+    public Product deactivateProduct(Long id) {
+        Product product = getProductById(id);
+        product.deactivate();
         return productRepository.save(product);
     }
 }

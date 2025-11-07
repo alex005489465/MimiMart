@@ -356,6 +356,76 @@ public class S3StorageService {
     }
 
     /**
+     * 上傳商品圖片到 S3 公開 Bucket
+     *
+     * @param file 上傳的檔案
+     * @return S3 物件的 URL (完整路徑)
+     * @throws RuntimeException 當上傳失敗時
+     */
+    public String uploadProductImage(MultipartFile file) {
+        try {
+            // 生成 S3 key: products/product-{timestamp}.{extension}
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : "";
+            String s3Key = String.format("products/product-%s%s", timestamp, extension);
+
+            // 上傳到公開 Bucket
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(publicBucketName)
+                    .key(s3Key)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+            // 生成公開 URL (使用自訂域名)
+            String publicUrl = String.format("%s/%s", publicBaseUrl, s3Key);
+            log.info("商品圖片上傳成功 - S3 Key: {}, URL: {}", s3Key, publicUrl);
+            return publicUrl;
+
+        } catch (S3Exception e) {
+            log.error("S3 上傳商品圖片失敗 - Error: {}", e.getMessage(), e);
+            throw new RuntimeException("商品圖片上傳失敗: " + e.awsErrorDetails().errorMessage(), e);
+        } catch (IOException e) {
+            log.error("讀取商品圖片檔案失敗 - Error: {}", e.getMessage(), e);
+            throw new RuntimeException("讀取檔案失敗", e);
+        }
+    }
+
+    /**
+     * 從 S3 刪除商品圖片
+     *
+     * @param imageUrl 圖片的完整 URL
+     */
+    public void deleteProductImage(String imageUrl) {
+        try {
+            // 從完整 URL 中提取 S3 key
+            String s3Key = imageUrl.replace(publicBaseUrl + "/", "");
+
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(publicBucketName)
+                    .key(s3Key)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+            log.info("商品圖片刪除成功 - S3 Key: {}", s3Key);
+
+        } catch (S3Exception e) {
+            // 如果物件不存在,也視為刪除成功(冪等性)
+            if (e.statusCode() == 404) {
+                log.warn("S3 物件不存在,視為刪除成功 - URL: {}", imageUrl);
+            } else {
+                log.error("S3 刪除商品圖片失敗 - URL: {}, Error: {}", imageUrl, e.getMessage(), e);
+                throw new RuntimeException("商品圖片刪除失敗: " + e.awsErrorDetails().errorMessage(), e);
+            }
+        }
+    }
+
+    /**
      * 從 S3 刪除輪播圖
      *
      * @param imageUrl 圖片的完整 URL

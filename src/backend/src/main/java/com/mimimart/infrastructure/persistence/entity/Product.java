@@ -62,10 +62,28 @@ public class Product {
     private Long categoryId;
 
     /**
+     * 啟用狀態 (true=啟用, false=停用)
+     */
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
+    /**
      * 上架狀態 (true=已上架, false=未上架)
      */
     @Column(name = "is_published", nullable = false)
     private Boolean isPublished = true;
+
+    /**
+     * 上架時間 (NULL 表示不限制)
+     */
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
+    /**
+     * 下架時間 (NULL 表示不限制)
+     */
+    @Column(name = "unpublished_at")
+    private LocalDateTime unpublishedAt;
 
     /**
      * 軟刪除標記 (true=已刪除, false=未刪除)
@@ -103,10 +121,27 @@ public class Product {
     }
 
     /**
-     * 檢查商品是否可購買 (已上架且未刪除)
+     * 檢查商品是否在上架期間內
+     *
+     * @return true 如果當前時間在上架期間內
+     */
+    public boolean isInPublishPeriod() {
+        LocalDateTime now = LocalDateTime.now();
+
+        // 檢查是否已到上架時間 (NULL 或時間已到)
+        boolean afterPublish = (publishedAt == null || !now.isBefore(publishedAt));
+
+        // 檢查是否未到下架時間 (NULL 或時間未到)
+        boolean beforeUnpublish = (unpublishedAt == null || now.isBefore(unpublishedAt));
+
+        return afterPublish && beforeUnpublish;
+    }
+
+    /**
+     * 檢查商品是否可購買 (已啟用、已上架、未刪除且在上架期間內)
      */
     public boolean isAvailable() {
-        return isPublished && !isDeleted;
+        return isActive && isPublished && !isDeleted && isInPublishPeriod();
     }
 
     /**
@@ -139,5 +174,23 @@ public class Product {
     public void markAsDeleted() {
         this.isDeleted = true;
         this.isPublished = false;
+    }
+
+    /**
+     * 啟用商品
+     */
+    public void activate() {
+        if (isDeleted) {
+            throw new IllegalStateException("已刪除的商品無法啟用");
+        }
+        this.isActive = true;
+    }
+
+    /**
+     * 停用商品 (自動下架)
+     */
+    public void deactivate() {
+        this.isActive = false;
+        this.isPublished = false;  // 停用時自動下架
     }
 }

@@ -43,6 +43,7 @@ const authService = {
     localStorage.removeItem('adminToken')
     localStorage.removeItem('isAuthenticated')
     localStorage.removeItem('adminUser')
+    localStorage.removeItem('adminRefreshToken')
   },
 
   /**

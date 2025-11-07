@@ -9,6 +9,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 /**
  * 建立 axios 實例
+ *
+ * 注意：攔截器已移至 AuthContext 中註冊，以解決 Vite HMR 導致攔截器失效的問題
  */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -19,24 +21,9 @@ const apiClient = axios.create({
 })
 
 /**
- * 請求攔截器 - 自動添加認證 token
- */
-apiClient.interceptors.request.use(
-  (config) => {
-    // TODO: 從 localStorage 或其他地方取得 token
-    const token = localStorage.getItem('adminToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
-/**
  * 回應攔截器 - 統一處理錯誤
+ *
+ * 注意：請求攔截器（添加 Authorization）已移至 AuthContext 處理
  */
 apiClient.interceptors.response.use(
   (response) => {
@@ -48,13 +35,6 @@ apiClient.interceptors.response.use(
       const { status, data } = error.response
 
       switch (status) {
-        case 401:
-          // 未授權，清除登入狀態並導向登入頁
-          localStorage.removeItem('adminToken')
-          localStorage.removeItem('isAuthenticated')
-          localStorage.removeItem('adminUser')
-          window.location.href = '/'
-          break
         case 403:
           console.error('權限不足')
           break
