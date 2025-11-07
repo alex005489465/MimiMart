@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.mimimart.infrastructure.security.CustomUserDetails;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -118,9 +119,16 @@ public class AdminBannerController {
             @RequestParam(required = false) String linkUrl,
 
             @Parameter(description = "顯示順序", required = true)
-            @RequestParam Integer displayOrder) {
+            @RequestParam Integer displayOrder,
 
-        log.info("後台建立輪播圖 - Title: {}, DisplayOrder: {}", title, displayOrder);
+            @Parameter(description = "上架時間 (可選，格式：yyyy-MM-ddTHH:mm:ss，NULL 表示立即上架)")
+            @RequestParam(required = false) LocalDateTime publishedAt,
+
+            @Parameter(description = "下架時間 (可選，格式：yyyy-MM-ddTHH:mm:ss，NULL 表示永不下架)")
+            @RequestParam(required = false) LocalDateTime unpublishedAt) {
+
+        log.info("後台建立輪播圖 - Title: {}, DisplayOrder: {}, PublishedAt: {}, UnpublishedAt: {}",
+                 title, displayOrder, publishedAt, unpublishedAt);
 
         // 驗證圖片檔案
         if (imageFile.isEmpty()) {
@@ -128,7 +136,8 @@ public class AdminBannerController {
                     .body(ApiResponse.error("VALIDATION_ERROR", "圖片檔案不能為空"));
         }
 
-        BannerEntity banner = bannerService.createBanner(title, imageFile, linkUrl, displayOrder);
+        BannerEntity banner = bannerService.createBanner(title, imageFile, linkUrl, displayOrder,
+                                                         publishedAt, unpublishedAt);
         BannerResponse response = BannerResponse.from(banner);
 
         return ResponseEntity.ok(ApiResponse.success("建立成功", response));
@@ -153,13 +162,16 @@ public class AdminBannerController {
     public ResponseEntity<ApiResponse<BannerResponse>> updateBanner(
             @Valid @RequestBody UpdateBannerRequest request) {
 
-        log.info("後台更新輪播圖 - BannerId: {}", request.getBannerId());
+        log.info("後台更新輪播圖 - BannerId: {}, PublishedAt: {}, UnpublishedAt: {}",
+                 request.getBannerId(), request.getPublishedAt(), request.getUnpublishedAt());
 
         BannerEntity banner = bannerService.updateBanner(
                 request.getBannerId(),
                 request.getTitle(),
                 request.getLinkUrl(),
-                request.getDisplayOrder()
+                request.getDisplayOrder(),
+                request.getPublishedAt(),
+                request.getUnpublishedAt()
         );
         BannerResponse response = BannerResponse.from(banner);
 
@@ -196,9 +208,16 @@ public class AdminBannerController {
             @RequestParam(required = false) String linkUrl,
 
             @Parameter(description = "新顯示順序 (可選)")
-            @RequestParam(required = false) Integer displayOrder) {
+            @RequestParam(required = false) Integer displayOrder,
 
-        log.info("後台更新輪播圖並替換圖片 - BannerId: {}", bannerId);
+            @Parameter(description = "上架時間 (可選，格式：yyyy-MM-ddTHH:mm:ss)")
+            @RequestParam(required = false) LocalDateTime publishedAt,
+
+            @Parameter(description = "下架時間 (可選，格式：yyyy-MM-ddTHH:mm:ss)")
+            @RequestParam(required = false) LocalDateTime unpublishedAt) {
+
+        log.info("後台更新輪播圖並替換圖片 - BannerId: {}, PublishedAt: {}, UnpublishedAt: {}",
+                 bannerId, publishedAt, unpublishedAt);
 
         // 驗證圖片檔案
         if (imageFile.isEmpty()) {
@@ -207,7 +226,7 @@ public class AdminBannerController {
         }
 
         BannerEntity banner = bannerService.updateBannerWithImage(
-                bannerId, title, imageFile, linkUrl, displayOrder
+                bannerId, title, imageFile, linkUrl, displayOrder, publishedAt, unpublishedAt
         );
         BannerResponse response = BannerResponse.from(banner);
 

@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * 建立輪播圖請求 DTO
  */
@@ -35,4 +37,14 @@ public class CreateBannerRequest {
     @NotNull(message = "顯示順序不能為空")
     @Min(value = 0, message = "顯示順序必須大於或等於 0")
     private Integer displayOrder;
+
+    /**
+     * 上架時間 (選填，NULL 表示立即上架)
+     */
+    private LocalDateTime publishedAt;
+
+    /**
+     * 下架時間 (選填，NULL 表示永不下架)
+     */
+    private LocalDateTime unpublishedAt;
 }

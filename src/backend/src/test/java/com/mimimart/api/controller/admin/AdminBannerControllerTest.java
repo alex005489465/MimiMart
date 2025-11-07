@@ -68,6 +68,9 @@ class AdminBannerControllerTest {
 
     @BeforeEach
     void setUp() {
+        // 在每個測試開始前清理所有輪播圖資料
+        bannerRepository.deleteAll();
+
         // 建立 ADMIN UserDetails 用於認證
         adminUserDetails = new CustomUserDetails(
                 1L,
@@ -218,7 +221,9 @@ class AdminBannerControllerTest {
                 banner.getId(),
                 "新標題",
                 "https://new-example.com",
-                5
+                5,
+                null,
+                null
         );
 
         // When & Then
@@ -415,6 +420,9 @@ class AdminBannerControllerTest {
         banner.setLinkUrl(null);
         banner.setDisplayOrder(displayOrder);
         banner.setStatus(status);
+        // 設定為立即上架、永不下架
+        banner.setPublishedAt(null);
+        banner.setUnpublishedAt(null);
 
         return bannerRepository.save(banner);
     }

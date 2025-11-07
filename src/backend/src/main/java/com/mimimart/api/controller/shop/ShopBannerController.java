@@ -32,10 +32,15 @@ public class ShopBannerController {
     private final BannerService bannerService;
 
     /**
-     * 查詢啟用的輪播圖 (公開端點)
+     * 查詢啟用且已上架的輪播圖 (公開端點)
+     * 過濾條件：
+     * 1. status = ACTIVE（已啟用）
+     * 2. publishedAt IS NULL OR publishedAt <= now（已到上架時間）
+     * 3. unpublishedAt IS NULL OR unpublishedAt > now（未到下架時間）
      */
     @GetMapping("/list")
-    @Operation(summary = "查詢輪播圖", description = "查詢所有啟用的輪播圖,按顯示順序排序")
+    @Operation(summary = "查詢輪播圖",
+               description = "查詢所有啟用且已上架的輪播圖，自動過濾未上架和已下架的內容，按顯示順序排序")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
@@ -44,7 +49,7 @@ public class ShopBannerController {
             )
     })
     public ResponseEntity<ApiResponse<List<BannerResponse>>> getActiveBanners() {
-        log.info("前台查詢啟用的輪播圖");
+        log.info("前台查詢啟用且已上架的輪播圖");
 
         List<BannerEntity> banners = bannerService.getActiveBanners();
         List<BannerResponse> responses = banners.stream()

@@ -3,6 +3,7 @@ package com.mimimart.api.controller.shop;
 import com.mimimart.infrastructure.persistence.entity.BannerEntity;
 import com.mimimart.infrastructure.persistence.entity.BannerStatus;
 import com.mimimart.infrastructure.persistence.repository.BannerRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,12 @@ class ShopBannerControllerTest {
 
     @Autowired
     private BannerRepository bannerRepository;
+
+    @BeforeEach
+    void setUp() {
+        // 在每個測試開始前清理所有輪播圖資料
+        bannerRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("GET /api/shop/banner/list - 成功查詢啟用的輪播圖")
@@ -178,6 +185,9 @@ class ShopBannerControllerTest {
         banner.setLinkUrl(null);
         banner.setDisplayOrder(displayOrder);
         banner.setStatus(status);
+        // 設定為立即上架、永不下架
+        banner.setPublishedAt(null);
+        banner.setUnpublishedAt(null);
 
         return bannerRepository.save(banner);
     }

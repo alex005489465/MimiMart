@@ -65,6 +65,18 @@ public class BannerEntity {
     private LocalDateTime updatedAt;
 
     /**
+     * 上架時間 (NULL 表示立即上架)
+     */
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
+    /**
+     * 下架時間 (NULL 表示永不下架)
+     */
+    @Column(name = "unpublished_at")
+    private LocalDateTime unpublishedAt;
+
+    /**
      * 自動設定建立時間
      */
     @PrePersist
@@ -135,5 +147,29 @@ public class BannerEntity {
      */
     public boolean isActive() {
         return this.status == BannerStatus.ACTIVE;
+    }
+
+    /**
+     * 檢查輪播圖是否在上架期間內
+     * 判斷邏輯：
+     * 1. 若 publishedAt 為 NULL，表示立即上架，檢查通過
+     * 2. 若 publishedAt 不為 NULL，檢查當前時間是否 >= publishedAt
+     * 3. 若 unpublishedAt 為 NULL，表示永不下架，檢查通過
+     * 4. 若 unpublishedAt 不為 NULL，檢查當前時間是否 < unpublishedAt
+     */
+    public boolean isPublished() {
+        LocalDateTime now = LocalDateTime.now();
+
+        // 檢查是否已到上架時間
+        if (publishedAt != null && now.isBefore(publishedAt)) {
+            return false;
+        }
+
+        // 檢查是否已超過下架時間
+        if (unpublishedAt != null && now.isAfter(unpublishedAt)) {
+            return false;
+        }
+
+        return true;
     }
 }

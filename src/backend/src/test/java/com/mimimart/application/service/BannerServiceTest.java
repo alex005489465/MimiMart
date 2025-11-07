@@ -7,6 +7,7 @@ import com.mimimart.infrastructure.persistence.entity.BannerStatus;
 import com.mimimart.infrastructure.persistence.repository.BannerRepository;
 import com.mimimart.infrastructure.storage.S3StorageService;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,12 @@ class BannerServiceTest {
 
     // 記錄測試中上傳的輪播圖 URL,用於清理
     private final List<String> uploadedBannerUrls = new ArrayList<>();
+
+    @BeforeEach
+    void setup() {
+        // 在每個測試開始前清理所有輪播圖資料
+        bannerRepository.deleteAll();
+    }
 
     @AfterEach
     void cleanup() {
@@ -139,7 +146,7 @@ class BannerServiceTest {
         );
 
         // When: 建立輪播圖
-        BannerEntity createdBanner = bannerService.createBanner(title, imageFile, linkUrl, displayOrder);
+        BannerEntity createdBanner = bannerService.createBanner(title, imageFile, linkUrl, displayOrder, null, null);
 
         // Then: 驗證輪播圖建立成功
         assertNotNull(createdBanner);
@@ -170,7 +177,7 @@ class BannerServiceTest {
 
         // When & Then: 驗證拋出 InvalidBannerOrderException
         assertThrows(InvalidBannerOrderException.class, () -> {
-            bannerService.createBanner(title, imageFile, null, invalidDisplayOrder);
+            bannerService.createBanner(title, imageFile, null, invalidDisplayOrder, null, null);
         });
 
         // 註: 因為在驗證階段就拋出異常,S3 不會被呼叫
@@ -186,7 +193,7 @@ class BannerServiceTest {
         String newTitle = "新標題";
         String newLinkUrl = "https://new-example.com";
         Integer newDisplayOrder = 5;
-        BannerEntity updatedBanner = bannerService.updateBanner(banner.getId(), newTitle, newLinkUrl, newDisplayOrder);
+        BannerEntity updatedBanner = bannerService.updateBanner(banner.getId(), newTitle, newLinkUrl, newDisplayOrder, null, null);
 
         // Then: 驗證更新成功
         assertNotNull(updatedBanner);
@@ -207,7 +214,7 @@ class BannerServiceTest {
 
         // When: 只更新標題
         String newTitle = "只改標題";
-        BannerEntity updatedBanner = bannerService.updateBanner(banner.getId(), newTitle, null, null);
+        BannerEntity updatedBanner = bannerService.updateBanner(banner.getId(), newTitle, null, null, null, null);
 
         // Then: 驗證只有標題改變
         assertNotNull(updatedBanner);
@@ -226,7 +233,7 @@ class BannerServiceTest {
                 "image/jpeg",
                 "initial image content for update test".getBytes()
         );
-        BannerEntity banner = bannerService.createBanner("原標題", initialFile, null, 1);
+        BannerEntity banner = bannerService.createBanner("原標題", initialFile, null, 1, null, null);
         String oldImageUrl = banner.getImageUrl();
         uploadedBannerUrls.add(oldImageUrl); // 記錄舊圖片
 
@@ -241,7 +248,7 @@ class BannerServiceTest {
         // When: 更新輪播圖並替換圖片
         String newTitle = "新標題";
         BannerEntity updatedBanner = bannerService.updateBannerWithImage(
-                banner.getId(), newTitle, newImageFile, null, 2
+                banner.getId(), newTitle, newImageFile, null, 2, null, null
         );
 
         // Then: 驗證更新成功
@@ -266,7 +273,7 @@ class BannerServiceTest {
                 "image/jpeg",
                 "image content for delete test".getBytes()
         );
-        BannerEntity banner = bannerService.createBanner("待刪除輪播圖", imageFile, null, 1);
+        BannerEntity banner = bannerService.createBanner("待刪除輪播圖", imageFile, null, 1, null, null);
         Long bannerId = banner.getId();
         String imageUrl = banner.getImageUrl();
 
@@ -382,6 +389,9 @@ class BannerServiceTest {
         banner.setLinkUrl(null);
         banner.setDisplayOrder(displayOrder);
         banner.setStatus(status);
+        // 設定為立即上架、永不下架（NULL 表示立即生效和永不過期）
+        banner.setPublishedAt(null);
+        banner.setUnpublishedAt(null);
 
         return bannerRepository.save(banner);
     }

@@ -57,6 +57,16 @@ public class BannerResponse {
     private LocalDateTime updatedAt;
 
     /**
+     * 上架時間 (NULL 表示立即上架)
+     */
+    private LocalDateTime publishedAt;
+
+    /**
+     * 下架時間 (NULL 表示永不下架)
+     */
+    private LocalDateTime unpublishedAt;
+
+    /**
      * 從 Entity 轉換為 Response DTO
      */
     public static BannerResponse from(BannerEntity entity) {
@@ -68,7 +78,9 @@ public class BannerResponse {
                 entity.getDisplayOrder(),
                 entity.getStatus(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                entity.getPublishedAt(),
+                entity.getUnpublishedAt()
         );
     }
 }

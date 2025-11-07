@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -27,13 +28,17 @@ public class BannerService {
 
     /**
      * 查詢所有啟用的輪播圖 (前台使用)
+     * 過濾條件：
+     * 1. status = ACTIVE
+     * 2. 已到上架時間 (publishedAt IS NULL OR publishedAt <= now)
+     * 3. 未到下架時間 (unpublishedAt IS NULL OR unpublishedAt > now)
      *
-     * @return 啟用的輪播圖列表,按顯示順序排序
+     * @return 啟用且在上架期間的輪播圖列表,按顯示順序排序
      */
     @Transactional(readOnly = true)
     public List<BannerEntity> getActiveBanners() {
-        log.info("查詢所有啟用的輪播圖");
-        return bannerRepository.findByStatusOrderByDisplayOrderAsc(BannerStatus.ACTIVE);
+        log.info("查詢所有啟用且已上架的輪播圖");
+        return bannerRepository.findPublishedBanners(BannerStatus.ACTIVE, LocalDateTime.now());
     }
 
     /**
@@ -64,18 +69,26 @@ public class BannerService {
     /**
      * 建立輪播圖 (含圖片上傳)
      *
-     * @param title        輪播圖標題
-     * @param imageFile    圖片檔案
-     * @param linkUrl      點擊連結 (可為 null)
-     * @param displayOrder 顯示順序
+     * @param title         輪播圖標題
+     * @param imageFile     圖片檔案
+     * @param linkUrl       點擊連結 (可為 null)
+     * @param displayOrder  顯示順序
+     * @param publishedAt   上架時間 (可為 null，表示立即上架)
+     * @param unpublishedAt 下架時間 (可為 null，表示永不下架)
      * @return 建立的輪播圖實體
      */
     @Transactional
-    public BannerEntity createBanner(String title, MultipartFile imageFile, String linkUrl, Integer displayOrder) {
-        log.info("建立輪播圖 - Title: {}, DisplayOrder: {}", title, displayOrder);
+    public BannerEntity createBanner(String title, MultipartFile imageFile, String linkUrl,
+                                     Integer displayOrder, LocalDateTime publishedAt,
+                                     LocalDateTime unpublishedAt) {
+        log.info("建立輪播圖 - Title: {}, DisplayOrder: {}, PublishedAt: {}, UnpublishedAt: {}",
+                 title, displayOrder, publishedAt, unpublishedAt);
 
         // 驗證顯示順序
         validateDisplayOrder(displayOrder);
+
+        // 驗證上架/下架時間
+        validatePublishSchedule(publishedAt, unpublishedAt);
 
         // 上傳圖片到 S3
         String imageUrl = s3StorageService.uploadBanner(imageFile);
@@ -86,6 +99,8 @@ public class BannerService {
         banner.setImageUrl(imageUrl);
         banner.setLinkUrl(linkUrl);
         banner.setDisplayOrder(displayOrder);
+        banner.setPublishedAt(publishedAt);
+        banner.setUnpublishedAt(unpublishedAt);
         banner.setStatus(BannerStatus.ACTIVE); // 預設啟用
 
         BannerEntity savedBanner = bannerRepository.save(banner);
@@ -97,27 +112,37 @@ public class BannerService {
     /**
      * 更新輪播圖資訊 (不更新圖片)
      *
-     * @param bannerId     輪播圖 ID
-     * @param title        新標題 (可為 null 表示不更新)
-     * @param linkUrl      新連結 (可為 null)
-     * @param displayOrder 新順序 (可為 null 表示不更新)
+     * @param bannerId      輪播圖 ID
+     * @param title         新標題 (可為 null 表示不更新)
+     * @param linkUrl       新連結 (可為 null)
+     * @param displayOrder  新順序 (可為 null 表示不更新)
+     * @param publishedAt   上架時間 (可為 null)
+     * @param unpublishedAt 下架時間 (可為 null)
      * @return 更新後的輪播圖實體
      * @throws BannerNotFoundException 當輪播圖不存在時
      */
     @Transactional
-    public BannerEntity updateBanner(Long bannerId, String title, String linkUrl, Integer displayOrder) {
-        log.info("更新輪播圖 - BannerId: {}, Title: {}, DisplayOrder: {}", bannerId, title, displayOrder);
+    public BannerEntity updateBanner(Long bannerId, String title, String linkUrl,
+                                     Integer displayOrder, LocalDateTime publishedAt,
+                                     LocalDateTime unpublishedAt) {
+        log.info("更新輪播圖 - BannerId: {}, Title: {}, DisplayOrder: {}, PublishedAt: {}, UnpublishedAt: {}",
+                 bannerId, title, displayOrder, publishedAt, unpublishedAt);
 
         // 驗證顯示順序
         if (displayOrder != null) {
             validateDisplayOrder(displayOrder);
         }
 
+        // 驗證上架/下架時間
+        validatePublishSchedule(publishedAt, unpublishedAt);
+
         // 查詢現有輪播圖
         BannerEntity banner = getBannerById(bannerId);
 
         // 更新資訊
         banner.updateInfo(title, linkUrl, displayOrder);
+        banner.setPublishedAt(publishedAt);
+        banner.setUnpublishedAt(unpublishedAt);
 
         BannerEntity updatedBanner = bannerRepository.save(banner);
         log.info("輪播圖更新成功 - BannerId: {}", bannerId);
@@ -128,23 +153,30 @@ public class BannerService {
     /**
      * 更新輪播圖並替換圖片
      *
-     * @param bannerId     輪播圖 ID
-     * @param title        新標題 (可為 null 表示不更新)
-     * @param imageFile    新圖片檔案
-     * @param linkUrl      新連結 (可為 null)
-     * @param displayOrder 新順序 (可為 null 表示不更新)
+     * @param bannerId      輪播圖 ID
+     * @param title         新標題 (可為 null 表示不更新)
+     * @param imageFile     新圖片檔案
+     * @param linkUrl       新連結 (可為 null)
+     * @param displayOrder  新順序 (可為 null 表示不更新)
+     * @param publishedAt   上架時間 (可為 null)
+     * @param unpublishedAt 下架時間 (可為 null)
      * @return 更新後的輪播圖實體
      * @throws BannerNotFoundException 當輪播圖不存在時
      */
     @Transactional
     public BannerEntity updateBannerWithImage(Long bannerId, String title, MultipartFile imageFile,
-                                              String linkUrl, Integer displayOrder) {
-        log.info("更新輪播圖並替換圖片 - BannerId: {}", bannerId);
+                                              String linkUrl, Integer displayOrder,
+                                              LocalDateTime publishedAt, LocalDateTime unpublishedAt) {
+        log.info("更新輪播圖並替換圖片 - BannerId: {}, PublishedAt: {}, UnpublishedAt: {}",
+                 bannerId, publishedAt, unpublishedAt);
 
         // 驗證顯示順序
         if (displayOrder != null) {
             validateDisplayOrder(displayOrder);
         }
+
+        // 驗證上架/下架時間
+        validatePublishSchedule(publishedAt, unpublishedAt);
 
         // 查詢現有輪播圖
         BannerEntity banner = getBannerById(bannerId);
@@ -156,6 +188,8 @@ public class BannerService {
         // 更新輪播圖資訊和圖片
         banner.updateInfo(title, linkUrl, displayOrder);
         banner.updateImageUrl(newImageUrl);
+        banner.setPublishedAt(publishedAt);
+        banner.setUnpublishedAt(unpublishedAt);
 
         BannerEntity updatedBanner = bannerRepository.save(banner);
 
@@ -271,6 +305,24 @@ public class BannerService {
     private void validateDisplayOrder(Integer displayOrder) {
         if (displayOrder < 0) {
             throw new InvalidBannerOrderException(displayOrder);
+        }
+    }
+
+    /**
+     * 驗證上架/下架時間
+     *
+     * @param publishedAt   上架時間
+     * @param unpublishedAt 下架時間
+     * @throws IllegalArgumentException 當時間設定無效時
+     */
+    private void validatePublishSchedule(LocalDateTime publishedAt, LocalDateTime unpublishedAt) {
+        // 若兩個時間都有設定，檢查下架時間是否晚於上架時間
+        if (publishedAt != null && unpublishedAt != null) {
+            if (unpublishedAt.isBefore(publishedAt) || unpublishedAt.isEqual(publishedAt)) {
+                throw new IllegalArgumentException(
+                    String.format("下架時間 (%s) 必須晚於上架時間 (%s)", unpublishedAt, publishedAt)
+                );
+            }
         }
     }
 }
