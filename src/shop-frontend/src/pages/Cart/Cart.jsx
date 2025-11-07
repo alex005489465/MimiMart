@@ -1,59 +1,120 @@
 /**
  * 購物車頁面
- * 使用 Ant Design Table 和 cartStore
+ * 使用 MUI v6 和 cartStore
  */
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
-  Table,
+  CardContent,
   Button,
-  InputNumber,
+  TextField,
   Typography,
-  Space,
-  Empty,
-  Image,
-  Popconfirm,
+  Box,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Paper,
   Divider,
-  message,
-} from 'antd';
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Snackbar,
+  Alert,
+} from '@mui/material';
 import {
-  DeleteOutlined,
-  ShoppingCartOutlined,
-  ShoppingOutlined,
-} from '@ant-design/icons';
+  MdDelete,
+  MdShoppingCart,
+  MdShoppingBag,
+} from 'react-icons/md';
 import useCartStore from '../../stores/cartStore';
 import styles from './Cart.module.css';
-
-const { Title, Text } = Typography;
 
 const Cart = () => {
   const navigate = useNavigate();
   const { items, getTotalPrice, updateQuantity, removeItem, clearCart } =
     useCartStore();
 
+  // Snackbar 狀態管理
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  // 確認對話框狀態管理
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    productId: null,
+  });
+
+  const [clearDialog, setClearDialog] = useState(false);
+
+  // 顯示 Snackbar
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  // 關閉 Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   // 更新商品數量
   const handleQuantityChange = (productId, quantity) => {
-    const result = updateQuantity(productId, quantity);
+    const numQuantity = parseInt(quantity, 10);
+    if (isNaN(numQuantity) || numQuantity < 1) return;
+
+    const result = updateQuantity(productId, numQuantity);
     if (!result.success) {
-      message.error(result.error);
+      showSnackbar(result.error, 'error');
     }
   };
 
-  // 移除商品
-  const handleRemove = (productId) => {
-    removeItem(productId);
-    message.success('已移除商品');
+  // 開啟移除商品對話框
+  const openDeleteDialog = (productId) => {
+    setDeleteDialog({ open: true, productId });
   };
 
-  // 清空購物車
-  const handleClearCart = () => {
+  // 關閉移除商品對話框
+  const closeDeleteDialog = () => {
+    setDeleteDialog({ open: false, productId: null });
+  };
+
+  // 確認移除商品
+  const confirmRemove = () => {
+    if (deleteDialog.productId) {
+      removeItem(deleteDialog.productId);
+      showSnackbar('已移除商品', 'success');
+      closeDeleteDialog();
+    }
+  };
+
+  // 開啟清空購物車對話框
+  const openClearDialog = () => {
+    setClearDialog(true);
+  };
+
+  // 關閉清空購物車對話框
+  const closeClearDialog = () => {
+    setClearDialog(false);
+  };
+
+  // 確認清空購物車
+  const confirmClearCart = () => {
     clearCart();
-    message.success('已清空購物車');
+    showSnackbar('已清空購物車', 'success');
+    closeClearDialog();
   };
 
   // 前往結帳
   const handleCheckout = () => {
-    message.info('結帳功能開發中');
+    showSnackbar('結帳功能開發中', 'info');
     // navigate('/checkout');
   };
 

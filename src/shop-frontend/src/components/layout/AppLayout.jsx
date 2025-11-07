@@ -1,23 +1,34 @@
 /**
  * 應用主要佈局元件
- * 使用 Ant Design Layout 組件
+ * 使用 MUI Box 組件
  */
-import { Layout } from 'antd';
+import { Box } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 
-const { Content } = Layout;
-
 const AppLayout = () => {
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+      }}
+    >
       <Header />
-      <Content style={{ display: 'flex', flexDirection: 'column' }}>
+      <Box
+        component="main"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+        }}
+      >
         <Outlet />
-      </Content>
+      </Box>
       <Footer />
-    </Layout>
+    </Box>
   );
 };
 

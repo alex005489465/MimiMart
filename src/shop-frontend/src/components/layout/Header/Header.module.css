@@ -54,7 +54,7 @@
 /* 搜尋欄 */
 .searchContainer {
   display: flex;
-  flex: 0 1 400px;
+  flex: 1;
   min-width: 200px;
 }
 
@@ -87,10 +87,12 @@
   align-items: center;
   height: 40px;
   padding: 0 12px;
+  white-space: nowrap;
 }
 
 .username {
   margin-left: 4px;
+  white-space: nowrap;
 }
 
 /* 行動版選單按鈕 */

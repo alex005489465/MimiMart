@@ -1,127 +1,155 @@
 /**
  * 會員中心主頁面
- * 使用 Ant Design Layout 和 Menu，整合 Zustand authStore
+ * 使用 MUI v6 元件，整合 Zustand authStore
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Layout,
-  Menu,
+  Box,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
   Card,
+  CardContent,
   Avatar,
   Typography,
-  Space,
-  Descriptions,
+  Stack,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
   Button,
-  Form,
-  Input,
-  message,
-  Modal,
-} from 'antd';
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
+  Divider,
+  InputAdornment,
+  IconButton,
+} from '@mui/material';
 import {
-  UserOutlined,
-  EditOutlined,
-  LockOutlined,
-  ShoppingOutlined,
-  HeartOutlined,
-  LogoutOutlined,
-  ExclamationCircleOutlined,
-} from '@ant-design/icons';
+  MdPerson,
+  MdEdit,
+  MdLock,
+  MdShoppingBag,
+  MdFavorite,
+  MdLogout,
+  MdWarning,
+  MdVisibility,
+  MdVisibilityOff,
+} from 'react-icons/md';
 import useAuthStore from '../../stores/authStore';
 import styles from './Member.module.css';
-
-const { Sider, Content } = Layout;
-const { Title, Text } = Typography;
 
 const Member = () => {
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState('profile');
-  const [editForm] = Form.useForm();
-  const [passwordForm] = Form.useForm();
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Logout confirmation dialog
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  // Edit form state
+  const [editData, setEditData] = useState({
+    username: user?.username || '',
+    email: user?.email || '',
+  });
+  const [editErrors, setEditErrors] = useState({});
+
+  // Password form state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordErrors, setPasswordErrors] = useState({});
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   // 處理登出
   const handleLogout = () => {
-    Modal.confirm({
-      title: '確認登出',
-      icon: <ExclamationCircleOutlined />,
-      content: '您確定要登出嗎？',
-      okText: '確定',
-      cancelText: '取消',
-      onOk: () => {
-        logout();
-        message.success('已成功登出');
-        navigate('/');
-      },
-    });
+    setLogoutDialogOpen(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    setSnackbar({ open: true, message: '已成功登出', severity: 'success' });
+    navigate('/');
   };
 
   // 處理資料更新
-  const handleUpdateProfile = async (values) => {
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    const errors = {};
+
+    if (!editData.username || editData.username.length < 2) {
+      errors.username = '使用者名稱至少需要 2 個字元';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      return;
+    }
+
     setIsEditing(true);
-    // 這裡應該呼叫 API 更新使用者資料
-    // 暫時只更新本地狀態
-    updateUser(values);
-    message.success('資料更新成功！');
+    updateUser(editData);
+    setSnackbar({ open: true, message: '資料更新成功！', severity: 'success' });
     setIsEditing(false);
+    setEditErrors({});
     setActiveTab('profile');
   };
 
   // 處理密碼更新
-  const handleChangePassword = async (values) => {
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    const errors = {};
+
+    if (!passwordData.currentPassword) {
+      errors.currentPassword = '請輸入目前密碼';
+    }
+    if (!passwordData.newPassword || passwordData.newPassword.length < 6) {
+      errors.newPassword = '密碼至少需要 6 個字元';
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.confirmPassword = '兩次輸入的密碼不一致';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setPasswordErrors(errors);
+      return;
+    }
+
     setIsChangingPassword(true);
-    // 這裡應該呼叫 API 更新密碼
-    // 暫時只顯示成功訊息
-    message.success('密碼更新成功！');
+    // API call would go here
+    setSnackbar({ open: true, message: '密碼更新成功！', severity: 'success' });
     setIsChangingPassword(false);
-    passwordForm.resetFields();
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setPasswordErrors({});
     setActiveTab('profile');
   };
 
   // 選單項目
   const menuItems = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: '個人資料',
-    },
-    {
-      key: 'edit',
-      icon: <EditOutlined />,
-      label: '編輯資料',
-    },
-    {
-      key: 'password',
-      icon: <LockOutlined />,
-      label: '修改密碼',
-    },
-    {
-      key: 'orders',
-      icon: <ShoppingOutlined />,
-      label: '訂單紀錄',
-      disabled: true, // 待實作
-    },
-    {
-      key: 'favorites',
-      icon: <HeartOutlined />,
-      label: '我的收藏',
-      disabled: true, // 待實作
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '登出',
-      danger: true,
-    },
+    { key: 'profile', icon: <MdPerson />, label: '個人資料', disabled: false },
+    { key: 'edit', icon: <MdEdit />, label: '編輯資料', disabled: false },
+    { key: 'password', icon: <MdLock />, label: '修改密碼', disabled: false },
+    { key: 'orders', icon: <MdShoppingBag />, label: '訂單紀錄', disabled: true },
+    { key: 'favorites', icon: <MdFavorite />, label: '我的收藏', disabled: true },
   ];
 
   // 處理選單點擊
-  const handleMenuClick = ({ key }) => {
+  const handleMenuClick = (key) => {
     if (key === 'logout') {
       handleLogout();
     } else {
@@ -134,167 +162,215 @@ const Member = () => {
     switch (activeTab) {
       case 'profile':
         return (
-          <Card title="個人資料" bordered={false}>
-            <Descriptions column={1} labelStyle={{ fontWeight: 600 }}>
-              <Descriptions.Item label="使用者名稱">
-                {user?.username || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Email">
-                {user?.email || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="註冊時間">
-                {user?.createdAt
-                  ? new Date(user.createdAt).toLocaleDateString('zh-TW')
-                  : '-'}
-              </Descriptions.Item>
-            </Descriptions>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>個人資料</Typography>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell component="th" scope="row" sx={{ fontWeight: 600, width: '30%' }}>
+                      使用者名稱
+                    </TableCell>
+                    <TableCell>{user?.username || '-'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell component="th" scope="row" sx={{ fontWeight: 600 }}>
+                      Email
+                    </TableCell>
+                    <TableCell>{user?.email || '-'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell component="th" scope="row" sx={{ fontWeight: 600 }}>
+                      註冊時間
+                    </TableCell>
+                    <TableCell>
+                      {user?.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString('zh-TW')
+                        : '-'}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
           </Card>
         );
 
       case 'edit':
         return (
-          <Card title="編輯資料" bordered={false}>
-            <Form
-              form={editForm}
-              layout="vertical"
-              initialValues={{
-                username: user?.username,
-                email: user?.email,
-              }}
-              onFinish={handleUpdateProfile}
-            >
-              <Form.Item
-                name="username"
-                label="使用者名稱"
-                rules={[
-                  { required: true, message: '請輸入使用者名稱' },
-                  { min: 2, message: '至少需要 2 個字元' },
-                ]}
-              >
-                <Input
-                  prefix={<UserOutlined />}
-                  placeholder="請輸入使用者名稱"
-                />
-              </Form.Item>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>編輯資料</Typography>
+              <Box component="form" onSubmit={handleUpdateProfile} sx={{ mt: 2 }}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="使用者名稱"
+                    value={editData.username}
+                    onChange={(e) => setEditData({ ...editData, username: e.target.value })}
+                    error={Boolean(editErrors.username)}
+                    helperText={editErrors.username}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MdPerson />
+                        </InputAdornment>
+                      ),
+                    }}
+                    fullWidth
+                  />
 
-              <Form.Item
-                name="email"
-                label="Email"
-                rules={[
-                  { required: true, message: '請輸入 Email' },
-                  { type: 'email', message: '請輸入有效的 Email' },
-                ]}
-              >
-                <Input prefix={<UserOutlined />} placeholder="請輸入 Email" disabled />
-              </Form.Item>
+                  <TextField
+                    label="Email"
+                    value={editData.email}
+                    disabled
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MdPerson />
+                        </InputAdornment>
+                      ),
+                    }}
+                    fullWidth
+                  />
 
-              <Form.Item>
-                <Space>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={isEditing}
-                  >
-                    儲存
-                  </Button>
-                  <Button onClick={() => setActiveTab('profile')}>取消</Button>
-                </Space>
-              </Form.Item>
-            </Form>
+                  <Stack direction="row" spacing={2}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={isEditing}
+                    >
+                      儲存
+                    </Button>
+                    <Button variant="outlined" onClick={() => setActiveTab('profile')}>
+                      取消
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Box>
+            </CardContent>
           </Card>
         );
 
       case 'password':
         return (
-          <Card title="修改密碼" bordered={false}>
-            <Form
-              form={passwordForm}
-              layout="vertical"
-              onFinish={handleChangePassword}
-            >
-              <Form.Item
-                name="currentPassword"
-                label="目前密碼"
-                rules={[{ required: true, message: '請輸入目前密碼' }]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="請輸入目前密碼"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="newPassword"
-                label="新密碼"
-                rules={[
-                  { required: true, message: '請輸入新密碼' },
-                  { min: 6, message: '密碼至少需要 6 個字元' },
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="請輸入新密碼"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="confirmPassword"
-                label="確認新密碼"
-                dependencies={['newPassword']}
-                rules={[
-                  { required: true, message: '請再次輸入新密碼' },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value || getFieldValue('newPassword') === value) {
-                        return Promise.resolve();
-                      }
-                      return Promise.reject(
-                        new Error('兩次輸入的密碼不一致')
-                      );
-                    },
-                  }),
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="請再次輸入新密碼"
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Space>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={isChangingPassword}
-                  >
-                    更新密碼
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      passwordForm.resetFields();
-                      setActiveTab('profile');
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>修改密碼</Typography>
+              <Box component="form" onSubmit={handleChangePassword} sx={{ mt: 2 }}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="目前密碼"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    error={Boolean(passwordErrors.currentPassword)}
+                    helperText={passwordErrors.currentPassword}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MdLock />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+                            {showCurrentPassword ? <MdVisibilityOff /> : <MdVisibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
                     }}
-                  >
-                    取消
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Form>
+                    fullWidth
+                  />
+
+                  <TextField
+                    label="新密碼"
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    error={Boolean(passwordErrors.newPassword)}
+                    helperText={passwordErrors.newPassword}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MdLock />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowNewPassword(!showNewPassword)}>
+                            {showNewPassword ? <MdVisibilityOff /> : <MdVisibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    fullWidth
+                  />
+
+                  <TextField
+                    label="確認新密碼"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    error={Boolean(passwordErrors.confirmPassword)}
+                    helperText={passwordErrors.confirmPassword}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MdLock />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                            {showConfirmPassword ? <MdVisibilityOff /> : <MdVisibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    fullWidth
+                  />
+
+                  <Stack direction="row" spacing={2}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={isChangingPassword}
+                    >
+                      更新密碼
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                        setPasswordErrors({});
+                        setActiveTab('profile');
+                      }}
+                    >
+                      取消
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Box>
+            </CardContent>
           </Card>
         );
 
       case 'orders':
         return (
-          <Card title="訂單紀錄" bordered={false}>
-            <Text type="secondary">訂單功能開發中...</Text>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>訂單紀錄</Typography>
+              <Typography color="text.secondary">訂單功能開發中...</Typography>
+            </CardContent>
           </Card>
         );
 
       case 'favorites':
         return (
-          <Card title="我的收藏" bordered={false}>
-            <Text type="secondary">收藏功能開發中...</Text>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>我的收藏</Typography>
+              <Typography color="text.secondary">收藏功能開發中...</Typography>
+            </CardContent>
           </Card>
         );
 
@@ -304,38 +380,96 @@ const Member = () => {
   };
 
   return (
-    <div className={styles.memberPage}>
-      <div className={styles.container}>
-        <Layout className={styles.layout}>
+    <Box className={styles.memberPage}>
+      <Box className={styles.container}>
+        <Box sx={{ display: 'flex', gap: 3, py: 3 }}>
           {/* 左側選單 */}
-          <Sider
-            width={250}
+          <Box
             className={styles.sider}
-            breakpoint="md"
-            collapsedWidth="0"
+            sx={{
+              width: 250,
+              flexShrink: 0,
+              display: { xs: 'none', md: 'block' },
+            }}
           >
-            <div className={styles.userInfo}>
-              <Avatar size={80} icon={<UserOutlined />} />
-              <Title level={4} style={{ marginTop: 16, marginBottom: 4 }}>
-                {user?.username || '會員'}
-              </Title>
-              <Text type="secondary">{user?.email}</Text>
-            </div>
+            <Card>
+              <CardContent>
+                <Stack spacing={2} alignItems="center" sx={{ mb: 3 }}>
+                  <Avatar sx={{ width: 80, height: 80 }}>
+                    <MdPerson size={48} />
+                  </Avatar>
+                  <Typography variant="h6">
+                    {user?.username || '會員'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user?.email}
+                  </Typography>
+                </Stack>
 
-            <Menu
-              mode="inline"
-              selectedKeys={[activeTab]}
-              items={menuItems}
-              onClick={handleMenuClick}
-              className={styles.menu}
-            />
-          </Sider>
+                <List className={styles.menu}>
+                  {menuItems.map((item) => (
+                    <ListItemButton
+                      key={item.key}
+                      selected={activeTab === item.key}
+                      onClick={() => handleMenuClick(item.key)}
+                      disabled={item.disabled}
+                    >
+                      <ListItemIcon sx={{ minWidth: 40 }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText primary={item.label} />
+                    </ListItemButton>
+                  ))}
+                  <Divider sx={{ my: 1 }} />
+                  <ListItemButton onClick={handleLogout} sx={{ color: 'error.main' }}>
+                    <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
+                      <MdLogout />
+                    </ListItemIcon>
+                    <ListItemText primary="登出" />
+                  </ListItemButton>
+                </List>
+              </CardContent>
+            </Card>
+          </Box>
 
           {/* 右側內容 */}
-          <Content className={styles.content}>{renderContent()}</Content>
-        </Layout>
-      </div>
-    </div>
+          <Box className={styles.content} sx={{ flex: 1, minWidth: 0 }}>
+            {renderContent()}
+          </Box>
+        </Box>
+      </Box>
+
+      {/* 登出確認對話框 */}
+      <Dialog open={logoutDialogOpen} onClose={() => setLogoutDialogOpen(false)}>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MdWarning color="#ed6c02" />
+            確認登出
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography>您確定要登出嗎？</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLogoutDialogOpen(false)}>取消</Button>
+          <Button onClick={confirmLogout} variant="contained" color="error">
+            確定
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

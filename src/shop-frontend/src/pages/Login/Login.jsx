@@ -1,32 +1,84 @@
 /**
  * 會員登入/註冊頁面
- * 使用 Ant Design Form 和 Tabs，整合 Zustand authStore
+ * 使用 MUI v6 元件，整合 Zustand authStore
  */
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Tabs, Card, Typography, Alert, message } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
+import {
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Tabs,
+  Tab,
+  Card,
+  CardContent,
+  Typography,
+  Alert,
+  Snackbar,
+  Box,
+  Link,
+  InputAdornment,
+  IconButton,
+} from '@mui/material';
+import { MdPerson, MdLock, MdEmail, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import useAuthStore from '../../stores/authStore';
 import styles from './Login.module.css';
 
-const { Title, Text, Link } = Typography;
+// TabPanel 元件
+function TabPanel({ children, value, index, ...other }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, register, isAuthenticated } = useAuthStore();
 
-  const [loginForm] = Form.useForm();
-  const [registerForm] = Form.useForm();
-  const [activeTab, setActiveTab] = useState('login');
+  // Tab 狀態
+  const [activeTab, setActiveTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Snackbar 狀態
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // 登入表單狀態
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: '',
+    remember: false,
+  });
+  const [loginErrors, setLoginErrors] = useState({});
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+
+  // 註冊表單狀態
+  const [registerData, setRegisterData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    agreement: false,
+  });
+  const [registerErrors, setRegisterErrors] = useState({});
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // 從 URL 參數讀取 tab（例如：/login?tab=register）
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'register') {
-      setActiveTab('register');
+      setActiveTab(1);
     }
   }, [searchParams]);
 
@@ -37,20 +89,83 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // 登入表單驗證
+  const validateLoginForm = () => {
+    const errors = {};
+
+    if (!loginData.email) {
+      errors.email = '請輸入 Email';
+    } else if (!/\S+@\S+\.\S+/.test(loginData.email)) {
+      errors.email = '請輸入有效的 Email';
+    }
+
+    if (!loginData.password) {
+      errors.password = '請輸入密碼';
+    } else if (loginData.password.length < 6) {
+      errors.password = '密碼至少需要 6 個字元';
+    }
+
+    setLoginErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // 註冊表單驗證
+  const validateRegisterForm = () => {
+    const errors = {};
+
+    if (!registerData.username) {
+      errors.username = '請輸入使用者名稱';
+    } else if (registerData.username.length < 2) {
+      errors.username = '使用者名稱至少需要 2 個字元';
+    } else if (registerData.username.length > 20) {
+      errors.username = '使用者名稱不能超過 20 個字元';
+    }
+
+    if (!registerData.email) {
+      errors.email = '請輸入 Email';
+    } else if (!/\S+@\S+\.\S+/.test(registerData.email)) {
+      errors.email = '請輸入有效的 Email';
+    }
+
+    if (!registerData.password) {
+      errors.password = '請輸入密碼';
+    } else if (registerData.password.length < 6) {
+      errors.password = '密碼至少需要 6 個字元';
+    } else if (!/^(?=.*[a-zA-Z])(?=.*\d)/.test(registerData.password)) {
+      errors.password = '密碼必須包含英文字母和數字';
+    }
+
+    if (!registerData.confirmPassword) {
+      errors.confirmPassword = '請再次輸入密碼';
+    } else if (registerData.password !== registerData.confirmPassword) {
+      errors.confirmPassword = '兩次輸入的密碼不一致';
+    }
+
+    if (!registerData.agreement) {
+      errors.agreement = '請閱讀並同意服務條款';
+    }
+
+    setRegisterErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   // 處理登入提交
-  const handleLogin = async (values) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!validateLoginForm()) return;
+
     setIsSubmitting(true);
     setErrorMessage('');
 
     const result = await login({
-      email: values.email,
-      password: values.password,
+      email: loginData.email,
+      password: loginData.password,
     });
 
     setIsSubmitting(false);
 
     if (result.success) {
-      message.success('登入成功！');
+      setSnackbar({ open: true, message: '登入成功！', severity: 'success' });
       navigate('/');
     } else {
       setErrorMessage(result.error || '登入失敗，請檢查帳號密碼');
@@ -58,20 +173,23 @@ const Login = () => {
   };
 
   // 處理註冊提交
-  const handleRegister = async (values) => {
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!validateRegisterForm()) return;
+
     setIsSubmitting(true);
     setErrorMessage('');
 
     const result = await register({
-      username: values.username,
-      email: values.email,
-      password: values.password,
+      username: registerData.username,
+      email: registerData.email,
+      password: registerData.password,
     });
 
     setIsSubmitting(false);
 
     if (result.success) {
-      message.success('註冊成功！');
+      setSnackbar({ open: true, message: '註冊成功！', severity: 'success' });
       navigate('/');
     } else {
       setErrorMessage(result.error || '註冊失敗，請稍後再試');
@@ -80,210 +198,266 @@ const Login = () => {
 
   // 登入表單
   const LoginForm = (
-    <Form
-      form={loginForm}
-      name="login"
-      onFinish={handleLogin}
-      autoComplete="off"
-      size="large"
-      layout="vertical"
-    >
-      {errorMessage && (
+    <form onSubmit={handleLogin}>
+      {errorMessage && activeTab === 0 && (
         <Alert
-          message={errorMessage}
-          type="error"
-          showIcon
-          closable
+          severity="error"
           onClose={() => setErrorMessage('')}
-          style={{ marginBottom: 24 }}
-        />
+          sx={{ mb: 3 }}
+        >
+          {errorMessage}
+        </Alert>
       )}
 
-      <Form.Item
-        name="email"
+      <TextField
+        fullWidth
         label="Email"
-        rules={[
-          { required: true, message: '請輸入 Email' },
-          { type: 'email', message: '請輸入有效的 Email' },
-        ]}
-      >
-        <Input
-          prefix={<MailOutlined />}
-          placeholder="請輸入您的 Email"
-          disabled={isSubmitting}
-        />
-      </Form.Item>
+        name="email"
+        type="email"
+        value={loginData.email}
+        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+        error={!!loginErrors.email}
+        helperText={loginErrors.email}
+        disabled={isSubmitting}
+        margin="normal"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MdEmail />
+            </InputAdornment>
+          ),
+        }}
+        placeholder="請輸入您的 Email"
+      />
 
-      <Form.Item
-        name="password"
+      <TextField
+        fullWidth
         label="密碼"
-        rules={[
-          { required: true, message: '請輸入密碼' },
-          { min: 6, message: '密碼至少需要 6 個字元' },
-        ]}
-      >
-        <Input.Password
-          prefix={<LockOutlined />}
-          placeholder="請輸入您的密碼"
-          disabled={isSubmitting}
+        name="password"
+        type={showLoginPassword ? 'text' : 'password'}
+        value={loginData.password}
+        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+        error={!!loginErrors.password}
+        helperText={loginErrors.password}
+        disabled={isSubmitting}
+        margin="normal"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MdLock />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowLoginPassword(!showLoginPassword)}
+                edge="end"
+              >
+                {showLoginPassword ? <MdVisibilityOff /> : <MdVisibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+        placeholder="請輸入您的密碼"
+      />
+
+      <Box className={styles.formOptions} sx={{ mt: 1, mb: 2 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={loginData.remember}
+              onChange={(e) => setLoginData({ ...loginData, remember: e.target.checked })}
+              disabled={isSubmitting}
+            />
+          }
+          label="記住我"
         />
-      </Form.Item>
-
-      <Form.Item>
-        <div className={styles.formOptions}>
-          <Form.Item name="remember" valuePropName="checked" noStyle>
-            <Checkbox disabled={isSubmitting}>記住我</Checkbox>
-          </Form.Item>
-          <Link onClick={() => message.info('忘記密碼功能開發中')}>
-            忘記密碼？
-          </Link>
-        </div>
-      </Form.Item>
-
-      <Form.Item>
-        <Button
-          type="primary"
-          htmlType="submit"
-          loading={isSubmitting}
-          block
-          size="large"
+        <Link
+          component="button"
+          type="button"
+          onClick={() => setSnackbar({ open: true, message: '忘記密碼功能開發中', severity: 'info' })}
+          sx={{ cursor: 'pointer' }}
         >
-          登入
-        </Button>
-      </Form.Item>
-    </Form>
+          忘記密碼？
+        </Link>
+      </Box>
+
+      <Button
+        type="submit"
+        variant="contained"
+        fullWidth
+        size="large"
+        disabled={isSubmitting}
+        sx={{ mt: 2 }}
+      >
+        {isSubmitting ? '登入中...' : '登入'}
+      </Button>
+    </form>
   );
 
   // 註冊表單
   const RegisterForm = (
-    <Form
-      form={registerForm}
-      name="register"
-      onFinish={handleRegister}
-      autoComplete="off"
-      size="large"
-      layout="vertical"
-    >
-      {errorMessage && (
+    <form onSubmit={handleRegister}>
+      {errorMessage && activeTab === 1 && (
         <Alert
-          message={errorMessage}
-          type="error"
-          showIcon
-          closable
+          severity="error"
           onClose={() => setErrorMessage('')}
-          style={{ marginBottom: 24 }}
-        />
+          sx={{ mb: 3 }}
+        >
+          {errorMessage}
+        </Alert>
       )}
 
-      <Form.Item
-        name="username"
+      <TextField
+        fullWidth
         label="使用者名稱"
-        rules={[
-          { required: true, message: '請輸入使用者名稱' },
-          { min: 2, message: '使用者名稱至少需要 2 個字元' },
-          { max: 20, message: '使用者名稱不能超過 20 個字元' },
-        ]}
-      >
-        <Input
-          prefix={<UserOutlined />}
-          placeholder="請輸入使用者名稱"
-          disabled={isSubmitting}
-        />
-      </Form.Item>
+        name="username"
+        value={registerData.username}
+        onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+        error={!!registerErrors.username}
+        helperText={registerErrors.username}
+        disabled={isSubmitting}
+        margin="normal"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MdPerson />
+            </InputAdornment>
+          ),
+        }}
+        placeholder="請輸入使用者名稱"
+      />
 
-      <Form.Item
-        name="email"
+      <TextField
+        fullWidth
         label="Email"
-        rules={[
-          { required: true, message: '請輸入 Email' },
-          { type: 'email', message: '請輸入有效的 Email' },
-        ]}
-      >
-        <Input
-          prefix={<MailOutlined />}
-          placeholder="請輸入您的 Email"
-          disabled={isSubmitting}
-        />
-      </Form.Item>
+        name="email"
+        type="email"
+        value={registerData.email}
+        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+        error={!!registerErrors.email}
+        helperText={registerErrors.email}
+        disabled={isSubmitting}
+        margin="normal"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MdEmail />
+            </InputAdornment>
+          ),
+        }}
+        placeholder="請輸入您的 Email"
+      />
 
-      <Form.Item
-        name="password"
+      <TextField
+        fullWidth
         label="密碼"
-        rules={[
-          { required: true, message: '請輸入密碼' },
-          { min: 6, message: '密碼至少需要 6 個字元' },
-          {
-            pattern: /^(?=.*[a-zA-Z])(?=.*\d)/,
-            message: '密碼必須包含英文字母和數字',
-          },
-        ]}
-      >
-        <Input.Password
-          prefix={<LockOutlined />}
-          placeholder="請輸入密碼（至少 6 位，需包含英文和數字）"
-          disabled={isSubmitting}
-        />
-      </Form.Item>
+        name="password"
+        type={showRegisterPassword ? 'text' : 'password'}
+        value={registerData.password}
+        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+        error={!!registerErrors.password}
+        helperText={registerErrors.password}
+        disabled={isSubmitting}
+        margin="normal"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MdLock />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                edge="end"
+              >
+                {showRegisterPassword ? <MdVisibilityOff /> : <MdVisibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+        placeholder="請輸入密碼（至少 6 位，需包含英文和數字）"
+      />
 
-      <Form.Item
-        name="confirmPassword"
+      <TextField
+        fullWidth
         label="確認密碼"
-        dependencies={['password']}
-        rules={[
-          { required: true, message: '請再次輸入密碼' },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue('password') === value) {
-                return Promise.resolve();
-              }
-              return Promise.reject(new Error('兩次輸入的密碼不一致'));
-            },
-          }),
-        ]}
-      >
-        <Input.Password
-          prefix={<LockOutlined />}
-          placeholder="請再次輸入密碼"
-          disabled={isSubmitting}
-        />
-      </Form.Item>
+        name="confirmPassword"
+        type={showConfirmPassword ? 'text' : 'password'}
+        value={registerData.confirmPassword}
+        onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+        error={!!registerErrors.confirmPassword}
+        helperText={registerErrors.confirmPassword}
+        disabled={isSubmitting}
+        margin="normal"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MdLock />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                edge="end"
+              >
+                {showConfirmPassword ? <MdVisibilityOff /> : <MdVisibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+        placeholder="請再次輸入密碼"
+      />
 
-      <Form.Item
-        name="agreement"
-        valuePropName="checked"
-        rules={[
-          {
-            validator: (_, value) =>
-              value
-                ? Promise.resolve()
-                : Promise.reject(new Error('請閱讀並同意服務條款')),
-          },
-        ]}
-      >
-        <Checkbox disabled={isSubmitting}>
-          我已閱讀並同意{' '}
-          <Link onClick={() => message.info('服務條款頁面開發中')}>
-            服務條款
-          </Link>{' '}
-          和{' '}
-          <Link onClick={() => message.info('隱私權政策頁面開發中')}>
-            隱私權政策
-          </Link>
-        </Checkbox>
-      </Form.Item>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={registerData.agreement}
+            onChange={(e) => setRegisterData({ ...registerData, agreement: e.target.checked })}
+            disabled={isSubmitting}
+          />
+        }
+        label={
+          <Typography variant="body2">
+            我已閱讀並同意{' '}
+            <Link
+              component="button"
+              type="button"
+              onClick={() => setSnackbar({ open: true, message: '服務條款頁面開發中', severity: 'info' })}
+            >
+              服務條款
+            </Link>{' '}
+            和{' '}
+            <Link
+              component="button"
+              type="button"
+              onClick={() => setSnackbar({ open: true, message: '隱私權政策頁面開發中', severity: 'info' })}
+            >
+              隱私權政策
+            </Link>
+          </Typography>
+        }
+        sx={{ mt: 2, mb: 1, alignItems: 'flex-start' }}
+      />
+      {registerErrors.agreement && (
+        <Typography color="error" variant="caption" sx={{ ml: 4, display: 'block', mt: -1 }}>
+          {registerErrors.agreement}
+        </Typography>
+      )}
 
-      <Form.Item>
-        <Button
-          type="primary"
-          htmlType="submit"
-          loading={isSubmitting}
-          block
-          size="large"
-        >
-          註冊
-        </Button>
-      </Form.Item>
-    </Form>
+      <Button
+        type="submit"
+        variant="contained"
+        fullWidth
+        size="large"
+        disabled={isSubmitting}
+        sx={{ mt: 2 }}
+      >
+        {isSubmitting ? '註冊中...' : '註冊'}
+      </Button>
+    </form>
   );
 
   const tabItems = [

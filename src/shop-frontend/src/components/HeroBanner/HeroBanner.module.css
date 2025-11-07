@@ -3,8 +3,12 @@
 .heroBanner {
   position: relative;
   width: 100%;
+  max-width: 1200px;
   height: 500px;
   overflow: hidden;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
 }
 
 .slide {
@@ -111,6 +115,10 @@
 
 /* 響應式設計 */
 @media (max-width: 768px) {
+  .heroBanner {
+    padding: 0 16px;
+  }
+
   .heroBanner,
   .slide,
   .imagePlaceholder {

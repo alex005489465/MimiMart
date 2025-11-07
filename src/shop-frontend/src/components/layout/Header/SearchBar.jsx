@@ -2,34 +2,55 @@
  * 搜尋欄元件
  */
 import { useState } from 'react';
-import { Input } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { TextField, InputAdornment, IconButton } from '@mui/material';
+import { MdSearch, MdClear } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import styles from './Header.module.css';
-
-const { Search } = Input;
 
 const SearchBar = () => {
   const [searchValue, setSearchValue] = useState('');
   const navigate = useNavigate();
 
-  const handleSearch = (value) => {
-    if (value.trim()) {
-      navigate(`/products?search=${encodeURIComponent(value.trim())}`);
+  const handleSearch = () => {
+    if (searchValue.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchValue.trim())}`);
       setSearchValue('');
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const handleClear = () => {
+    setSearchValue('');
+  };
+
   return (
     <div className={styles.searchBar}>
-      <Search
+      <TextField
         placeholder="搜尋商品..."
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
-        onSearch={handleSearch}
-        enterButton={<SearchOutlined />}
-        size="large"
-        allowClear
+        onKeyPress={handleKeyPress}
+        size="small"
+        fullWidth
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              {searchValue && (
+                <IconButton size="small" onClick={handleClear} edge="end">
+                  <MdClear />
+                </IconButton>
+              )}
+              <IconButton size="small" onClick={handleSearch} edge="end">
+                <MdSearch />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
       />
     </div>
   );

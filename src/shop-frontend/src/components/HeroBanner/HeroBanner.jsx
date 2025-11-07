@@ -1,12 +1,37 @@
 /**
  * Hero Banner 輪播元件
- * 使用 Ant Design Carousel 並整合 API
+ * 使用 react-slick 並整合 API
  */
 import { useState, useEffect, useRef } from 'react';
-import { Carousel, Spin, Image } from 'antd';
-import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import Slider from 'react-slick';
+import { CircularProgress, Box } from '@mui/material';
+import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import bannerService from '../../services/bannerService';
 import styles from './HeroBanner.module.css';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+
+// 自定義前一張按鈕元件（過濾 react-slick 內部 props）
+const PrevButton = ({ onClick }) => (
+  <button
+    className={styles.prevButton}
+    onClick={onClick}
+    aria-label="上一張"
+  >
+    <MdChevronLeft size={32} />
+  </button>
+);
+
+// 自定義下一張按鈕元件（過濾 react-slick 內部 props）
+const NextButton = ({ onClick }) => (
+  <button
+    className={styles.nextButton}
+    onClick={onClick}
+    aria-label="下一張"
+  >
+    <MdChevronRight size={32} />
+  </button>
+);
 
 export default function HeroBanner() {
   const [banners, setBanners] = useState([]);
@@ -71,71 +96,57 @@ export default function HeroBanner() {
   // 載入中狀態
   if (isLoading) {
     return (
-      <div className={styles.heroBanner}>
-        <div className={styles.loadingContainer}>
-          <Spin size="large" tip="載入輪播圖..." />
-        </div>
-      </div>
+      <Box className={styles.heroBanner}>
+        <Box className={styles.loadingContainer}>
+          <CircularProgress size={60} />
+        </Box>
+      </Box>
     );
   }
 
-  return (
-    <div className={styles.heroBanner}>
-      {slides.length > 1 && (
-        <>
-          <button
-            className={styles.prevButton}
-            onClick={() => carouselRef.current?.prev()}
-            aria-label="上一張"
-          >
-            <LeftOutlined />
-          </button>
-          <button
-            className={styles.nextButton}
-            onClick={() => carouselRef.current?.next()}
-            aria-label="下一張"
-          >
-            <RightOutlined />
-          </button>
-        </>
-      )}
+  // react-slick 設定
+  const settings = {
+    dots: true,
+    infinite: slides.length > 1,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: slides.length > 1,
+    autoplaySpeed: 5000,
+    fade: true,
+    arrows: slides.length > 1,
+    prevArrow: <PrevButton />,
+    nextArrow: <NextButton />,
+    dotsClass: `slick-dots ${styles.carouselDots}`,
+  };
 
-      <Carousel
-        ref={carouselRef}
-        autoplay={slides.length > 1}
-        autoplaySpeed={5000}
-        effect="fade"
-        dots={{ className: styles.carouselDots }}
-      >
+  return (
+    <Box className={styles.heroBanner}>
+      <Slider {...settings} ref={carouselRef}>
         {slides.map((banner) => (
           <div key={banner.id}>
-            <div
+            <Box
               className={styles.slide}
               onClick={() => handleBannerClick(banner.linkUrl)}
-              style={{
+              sx={{
                 cursor: banner.linkUrl ? 'pointer' : 'default',
               }}
             >
-              <Image
+              <img
                 src={banner.imageUrl}
                 alt={banner.title || 'Banner'}
-                preview={false}
                 className={styles.bannerImage}
-                placeholder={
-                  <div className={styles.imagePlaceholder}>
-                    <Spin />
-                  </div>
-                }
+                loading="lazy"
               />
               {banner.title && (
-                <div className={styles.overlay}>
+                <Box className={styles.overlay}>
                   <h2 className={styles.title}>{banner.title}</h2>
-                </div>
+                </Box>
               )}
-            </div>
+            </Box>
           </div>
         ))}
-      </Carousel>
-    </div>
+      </Slider>
+    </Box>
   );
 }
