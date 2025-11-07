@@ -1,7 +1,7 @@
 .heroBanner {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 500px;
   overflow: hidden;
 }
 
@@ -15,9 +15,6 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
 }
@@ -26,46 +23,66 @@
   opacity: 1;
 }
 
-.content {
-  text-align: center;
-  max-width: 600px;
-  padding: 2rem;
+/* Hover 覆蓋層 - 預設隱藏 */
+.hoverOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  padding: 2rem 1.5rem;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-in-out;
 }
 
-.title {
-  font-size: 3rem;
-  font-weight: bold;
-  color: var(--color-text-primary);
-  margin-bottom: 1rem;
-  transition: color 0.3s ease;
+/* 桌面裝置: 滑鼠懸停顯示 */
+@media (hover: hover) {
+  .slide:hover .hoverOverlay {
+    transform: translateY(0);
+  }
 }
 
-.subtitle {
-  font-size: 1.5rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 2rem;
-  transition: color 0.3s ease;
+/* 行動裝置: 觸控時顯示 (透過 :active) */
+@media (hover: none) {
+  .slide:active .hoverOverlay {
+    transform: translateY(0);
+  }
 }
 
-.ctaButton {
-  background-color: var(--color-primary);
+.hoverTitle {
+  display: block;
   color: white;
-  border: none;
-  padding: 1rem 2.5rem;
-  font-size: 1.125rem;
-  font-weight: bold;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.ctaButton:hover {
-  background-color: var(--color-primary-hover);
-  transform: translateY(-2px);
+/* 載入中狀態 */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background-color: var(--color-bg-secondary);
 }
 
-.ctaButton:active {
-  transform: translateY(0);
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 左右箭頭 */
@@ -130,20 +147,15 @@
 /* 響應式設計 */
 @media (max-width: 768px) {
   .heroBanner {
-    height: 300px;
+    height: 350px;
   }
 
-  .title {
-    font-size: 2rem;
+  .hoverOverlay {
+    padding: 1.5rem 1rem;
   }
 
-  .subtitle {
-    font-size: 1.125rem;
-  }
-
-  .ctaButton {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+  .hoverTitle {
+    font-size: 0.75rem;
   }
 
   .prevButton,
@@ -152,6 +164,12 @@
     height: 40px;
     font-size: 1.5rem;
   }
+
+  .loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -159,13 +177,12 @@
     height: 250px;
   }
 
-  .title {
-    font-size: 1.5rem;
+  .hoverOverlay {
+    padding: 1rem 0.75rem;
   }
 
-  .subtitle {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+  .hoverTitle {
+    font-size: 0.7rem;
   }
 
   .prevButton {
@@ -174,5 +191,12 @@
 
   .nextButton {
     right: 0.5rem;
+  }
+
+  .prevButton,
+  .nextButton {
+    width: 35px;
+    height: 35px;
+    font-size: 1.25rem;
   }
 }

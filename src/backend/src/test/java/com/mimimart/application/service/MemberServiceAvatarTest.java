@@ -116,7 +116,7 @@ class MemberServiceAvatarTest {
     void uploadAvatar_FileTooLarge() {
         // Arrange
         Long memberId = 1L;
-        byte[] largeContent = new byte[6 * 1024 * 1024]; // 6MB
+        byte[] largeContent = new byte[11 * 1024 * 1024]; // 11MB (超過 10MB 限制)
         MockMultipartFile largeFile = new MockMultipartFile(
                 "avatar",
                 "large.jpg",

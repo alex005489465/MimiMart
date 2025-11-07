@@ -5,7 +5,8 @@ import axios from 'axios';
 import { storage } from '../utils/storage';
 
 // 從環境變數取得 API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+// 開發環境使用空字串(透過 Vite Proxy),生產環境使用完整 URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 // 建立 axios 實例
 const apiClient = axios.create({
