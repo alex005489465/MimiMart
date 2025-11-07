@@ -142,7 +142,6 @@ public class OrderMapper {
             Map<String, Object> data = Map.of(
                     "productName", snapshot.getProductName(),
                     "productPrice", snapshot.getPrice().getAmount(),
-                    "productOriginalPrice", snapshot.getOriginalPrice().getAmount(),
                     "productImage", snapshot.getProductImage() != null ? snapshot.getProductImage() : ""
             );
             return objectMapper.writeValueAsString(data);
@@ -160,7 +159,6 @@ public class OrderMapper {
             return OrderItem.ProductSnapshot.builder()
                     .productName((String) data.get("productName"))
                     .price(Money.of(new BigDecimal(data.get("productPrice").toString())))
-                    .originalPrice(Money.of(new BigDecimal(data.get("productOriginalPrice").toString())))
                     .productImage((String) data.get("productImage"))
                     .build();
         } catch (JsonProcessingException e) {

@@ -79,13 +79,11 @@ public class OrderItem {
     public static class ProductSnapshot {
         private final String productName;
         private final Money price;
-        private final Money originalPrice;
         private final String productImage;
 
         private ProductSnapshot(Builder builder) {
             this.productName = builder.productName;
             this.price = builder.price;
-            this.originalPrice = builder.originalPrice;
             this.productImage = builder.productImage;
         }
 
@@ -102,26 +100,8 @@ public class OrderItem {
             return price;
         }
 
-        public Money getOriginalPrice() {
-            return originalPrice;
-        }
-
         public String getProductImage() {
             return productImage;
-        }
-
-        /**
-         * 是否有折扣
-         */
-        public boolean hasDiscount() {
-            return price.isLessThan(originalPrice);
-        }
-
-        /**
-         * 計算節省金額
-         */
-        public Money getSavings() {
-            return hasDiscount() ? originalPrice.subtract(price) : Money.zero();
         }
 
         @Override
@@ -131,19 +111,17 @@ public class OrderItem {
             ProductSnapshot that = (ProductSnapshot) o;
             return Objects.equals(productName, that.productName) &&
                    Objects.equals(price, that.price) &&
-                   Objects.equals(originalPrice, that.originalPrice) &&
                    Objects.equals(productImage, that.productImage);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(productName, price, originalPrice, productImage);
+            return Objects.hash(productName, price, productImage);
         }
 
         public static class Builder {
             private String productName;
             private Money price;
-            private Money originalPrice;
             private String productImage;
 
             public Builder productName(String productName) {
@@ -153,11 +131,6 @@ public class OrderItem {
 
             public Builder price(Money price) {
                 this.price = price;
-                return this;
-            }
-
-            public Builder originalPrice(Money originalPrice) {
-                this.originalPrice = originalPrice;
                 return this;
             }
 
@@ -177,12 +150,6 @@ public class OrderItem {
                 }
                 if (price == null) {
                     throw new IllegalArgumentException("商品價格不可為 null");
-                }
-                if (originalPrice == null) {
-                    throw new IllegalArgumentException("商品原價不可為 null");
-                }
-                if (price.isGreaterThan(originalPrice)) {
-                    throw new IllegalArgumentException("商品價格不可高於原價");
                 }
             }
         }

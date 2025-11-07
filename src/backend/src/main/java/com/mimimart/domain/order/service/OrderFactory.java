@@ -83,11 +83,10 @@ public class OrderFactory {
             throw new IllegalStateException("商品不存在: " + cartItem.getProductId());
         }
 
-        // 建立商品快照（商品已無促銷價概念，originalPrice 設為 null）
+        // 建立商品快照
         OrderItem.ProductSnapshot snapshot = OrderItem.ProductSnapshot.builder()
                 .productName(product.getName())
                 .price(Money.of(product.getPrice()))
-                .originalPrice(null)  // 商品已無原價欄位
                 .productImage(product.getImageUrl())
                 .build();
 

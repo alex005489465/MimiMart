@@ -38,9 +38,13 @@ public class OrderSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
             }
 
-            // 訂單編號模糊搜尋
+            // 訂單編號模糊搜尋（跳脫 LIKE 特殊字元）
             if (orderNumber != null && !orderNumber.isBlank()) {
-                predicates.add(criteriaBuilder.like(root.get("orderNumber"), "%" + orderNumber + "%"));
+                String escapedOrderNumber = orderNumber
+                        .replace("\\", "\\\\")
+                        .replace("%", "\\%")
+                        .replace("_", "\\_");
+                predicates.add(criteriaBuilder.like(root.get("orderNumber"), "%" + escapedOrderNumber + "%"));
             }
 
             // 日期範圍篩選

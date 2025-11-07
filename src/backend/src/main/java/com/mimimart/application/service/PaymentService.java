@@ -209,6 +209,21 @@ public class PaymentService {
     }
 
     /**
+     * 根據訂單編號取消付款（訂單取消時調用）
+     *
+     * @param orderNumber 訂單編號
+     */
+    @Transactional
+    public void cancelPaymentByOrderNumber(String orderNumber) {
+        // 查詢訂單
+        OrderEntity orderEntity = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new RuntimeException("訂單不存在: " + orderNumber));
+
+        // 取消付款
+        cancelPayment(orderEntity.getId());
+    }
+
+    /**
      * 取消付款
      *
      * @param orderId 訂單 ID

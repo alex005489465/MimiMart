@@ -43,6 +43,13 @@ public class AdminOrderController {
             @Parameter(description = "頁碼 (從 1 開始)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每頁筆數") @RequestParam(defaultValue = "20") int size
     ) {
+        // 驗證日期範圍
+        if (queryRequest.getStartDate() != null && queryRequest.getEndDate() != null) {
+            if (queryRequest.getStartDate().isAfter(queryRequest.getEndDate())) {
+                return ApiResponse.error("INVALID_DATE_RANGE", "開始日期不可晚於結束日期");
+            }
+        }
+
         // 將前端的 1-based 頁碼轉換為 Spring Data JPA 的 0-based
         int zeroBasedPage = page - 1;
         Pageable pageable = PageRequest.of(zeroBasedPage, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -99,5 +106,25 @@ public class AdminOrderController {
     public ApiResponse<Void> cancelOrder(@Valid @RequestBody CancelOrderRequest request) {
         orderService.cancelOrderAdmin(request.getOrderNumber(), request.getCancellationReason());
         return ApiResponse.success("訂單已取消");
+    }
+
+    /**
+     * 完成訂單
+     */
+    @Operation(summary = "完成訂單", description = "將訂單狀態從已出貨改為已完成")
+    @PostMapping("/complete")
+    public ApiResponse<Void> completeOrder(@Valid @RequestBody OrderNumberRequest request) {
+        orderService.completeOrder(request.getOrderNumber());
+        return ApiResponse.success("訂單已完成");
+    }
+
+    /**
+     * 訂單統計
+     */
+    @Operation(summary = "訂單統計", description = "查詢訂單統計資料（總訂單數、總金額、各狀態訂單數）")
+    @GetMapping("/statistics")
+    public ApiResponse<Map<String, Object>> getStatistics() {
+        Map<String, Object> statistics = orderService.getOrderStatistics();
+        return ApiResponse.success("查詢成功", statistics);
     }
 }

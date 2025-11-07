@@ -44,6 +44,7 @@ public class OrderEntity {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @org.hibernate.annotations.BatchSize(size = 20)
     private List<OrderItemEntity> items = new ArrayList<>();
 
     @PrePersist

@@ -1,19 +1,27 @@
 package com.mimimart.domain.order.model;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import com.mimimart.infrastructure.utils.SnowflakeIdGenerator;
+
 import java.util.Objects;
-import java.util.Random;
 
 /**
  * 訂單編號值對象
- * 格式:ORD + yyyyMMddHHmmss + 3位隨機數
- * 範例:ORD20250131143025123
+ * 格式：ORD + 19 位雪花算法 ID
+ * 範例：ORD1234567890123456789
+ *
+ * 特點：
+ * - 全域唯一：即使分散式部署也不會重複
+ * - 趨勢遞增：基於時間戳，大致有序
+ * - 高效能：純記憶體計算，無需查詢資料庫
  */
 public class OrderNumber {
     private static final String PREFIX = "ORD";
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-    private static final Random RANDOM = new Random();
+
+    /**
+     * 雪花算法生成器（工作機器 ID = 0）
+     * 注意：若部署多台機器，需為每台機器配置不同的 workerId
+     */
+    private static final SnowflakeIdGenerator ID_GENERATOR = new SnowflakeIdGenerator(0);
 
     private final String value;
 
@@ -25,9 +33,8 @@ public class OrderNumber {
      * 生成新的訂單編號
      */
     public static OrderNumber generate() {
-        String timestamp = LocalDateTime.now().format(FORMATTER);
-        String randomPart = String.format("%03d", RANDOM.nextInt(1000));
-        return new OrderNumber(PREFIX + timestamp + randomPart);
+        long snowflakeId = ID_GENERATOR.nextId();
+        return new OrderNumber(PREFIX + snowflakeId);
     }
 
     /**

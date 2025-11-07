@@ -1,7 +1,6 @@
 package com.mimimart.application.service;
 
 import com.mimimart.domain.cart.model.Cart;
-import com.mimimart.domain.order.event.OrderCreatedEvent;
 import com.mimimart.domain.order.exception.OrderNotFoundException;
 import com.mimimart.domain.order.exception.UnauthorizedOrderAccessException;
 import com.mimimart.domain.order.model.*;
@@ -12,7 +11,6 @@ import com.mimimart.infrastructure.persistence.mapper.OrderMapper;
 import com.mimimart.infrastructure.persistence.repository.CartItemRepository;
 import com.mimimart.infrastructure.persistence.repository.OrderRepository;
 import com.mimimart.infrastructure.persistence.repository.OrderSpecification;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,7 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * 訂單應用服務
- * 協調領域模型、基礎設施層,並發布領域事件
+ * 協調領域模型與基礎設施層
  */
 @Service
 public class OrderService {
@@ -36,7 +34,7 @@ public class OrderService {
     private final CartService cartService;
     private final CartItemRepository cartItemRepository;
     private final CartMapper cartMapper;
-    private final ApplicationEventPublisher eventPublisher;
+    private final PaymentService paymentService;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -45,7 +43,7 @@ public class OrderService {
             CartService cartService,
             CartItemRepository cartItemRepository,
             CartMapper cartMapper,
-            ApplicationEventPublisher eventPublisher
+            PaymentService paymentService
     ) {
         this.orderRepository = orderRepository;
         this.orderMapper = orderMapper;
@@ -53,7 +51,7 @@ public class OrderService {
         this.cartService = cartService;
         this.cartItemRepository = cartItemRepository;
         this.cartMapper = cartMapper;
-        this.eventPublisher = eventPublisher;
+        this.paymentService = paymentService;
     }
 
     /**
@@ -77,15 +75,14 @@ public class OrderService {
         OrderEntity entity = orderMapper.toEntity(order);
         OrderEntity savedEntity = orderRepository.save(entity);
 
-        // 4. 清空購物車
-        cartService.clearCart(memberId);
+        // 4. 同步建立付款記錄（在同一事務中，確保原子性）
+        paymentService.createPayment(
+                savedEntity.getOrderNumber(),
+                savedEntity.getTotalAmount()
+        );
 
-        // 5. 發布訂單建立事件(觸發付款流程)
-        eventPublisher.publishEvent(new OrderCreatedEvent(
-                order.getOrderNumber().getValue(),
-                order.getMemberId(),
-                order.getTotalAmount().getAmount()
-        ));
+        // 5. 清空購物車
+        cartService.clearCart(memberId);
 
         // 6. 返回領域模型
         return orderMapper.toDomain(savedEntity);
@@ -99,7 +96,8 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public List<Order> getMemberOrders(Long memberId) {
-        List<OrderEntity> entities = orderRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+        // 使用 Fetch Join 優化查詢，避免 N+1 問題
+        List<OrderEntity> entities = orderRepository.findByMemberIdWithItems(memberId);
         return entities.stream()
                 .map(orderMapper::toDomain)
                 .collect(Collectors.toList());
@@ -158,6 +156,9 @@ public class OrderService {
         entity.setUpdatedAt(order.getUpdatedAt());
 
         orderRepository.save(entity);
+
+        // 同步取消付款記錄
+        paymentService.cancelPaymentByOrderNumber(orderNumber);
     }
 
     /**
@@ -247,5 +248,114 @@ public class OrderService {
         entity.setUpdatedAt(order.getUpdatedAt());
 
         orderRepository.save(entity);
+
+        // 同步取消付款記錄
+        paymentService.cancelPaymentByOrderNumber(orderNumber);
+    }
+
+    /**
+     * 後台:完成訂單
+     *
+     * @param orderNumber 訂單編號
+     * @throws OrderNotFoundException 訂單不存在
+     */
+    @Transactional
+    public void completeOrder(String orderNumber) {
+        OrderEntity entity = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new OrderNotFoundException(orderNumber));
+
+        Order order = orderMapper.toDomain(entity);
+
+        // 領域模型處理完成邏輯(會驗證狀態)
+        order.complete();
+
+        // 更新實體
+        entity.setStatus(order.getStatus());
+        entity.setUpdatedAt(order.getUpdatedAt());
+
+        orderRepository.save(entity);
+    }
+
+    /**
+     * 前台:確認收貨（會員端完成訂單）
+     *
+     * @param memberId    會員 ID
+     * @param orderNumber 訂單編號
+     * @throws OrderNotFoundException              訂單不存在
+     * @throws UnauthorizedOrderAccessException 無權存取
+     */
+    @Transactional
+    public void confirmReceipt(Long memberId, String orderNumber) {
+        OrderEntity entity = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new OrderNotFoundException(orderNumber));
+
+        Order order = orderMapper.toDomain(entity);
+
+        // 驗證權限
+        if (!order.belongsToMember(memberId)) {
+            throw new UnauthorizedOrderAccessException(orderNumber);
+        }
+
+        // 領域模型處理完成邏輯(會驗證狀態)
+        order.complete();
+
+        // 更新實體
+        entity.setStatus(order.getStatus());
+        entity.setUpdatedAt(order.getUpdatedAt());
+
+        orderRepository.save(entity);
+    }
+
+    /**
+     * 後台:訂單統計
+     *
+     * @return 訂單統計資料（總訂單數、總金額、各狀態訂單數）
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> getOrderStatistics() {
+        List<OrderEntity> allOrders = orderRepository.findAll();
+
+        // 計算總訂單數
+        long totalOrders = allOrders.size();
+
+        // 計算總金額
+        java.math.BigDecimal totalAmount = allOrders.stream()
+                .map(OrderEntity::getTotalAmount)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        // 計算各狀態訂單數
+        java.util.Map<String, Long> statusDistribution = allOrders.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        entity -> entity.getStatus().name(),
+                        java.util.stream.Collectors.counting()
+                ));
+
+        // 封裝結果
+        java.util.Map<String, Object> statistics = new java.util.HashMap<>();
+        statistics.put("totalOrders", totalOrders);
+        statistics.put("totalAmount", totalAmount);
+        statistics.put("statusDistribution", statusDistribution);
+
+        return statistics;
+    }
+
+    /**
+     * 前台:會員訂單狀態統計
+     *
+     * @param memberId 會員 ID
+     * @return 各狀態訂單數量
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Long> getMemberOrderStats(Long memberId) {
+        List<OrderEntity> memberOrders = orderRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+
+        // 計算各狀態訂單數
+        java.util.Map<String, Long> stats = memberOrders.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        entity -> entity.getStatus().name(),
+                        java.util.stream.Collectors.counting()
+                ));
+
+        return stats;
     }
 }

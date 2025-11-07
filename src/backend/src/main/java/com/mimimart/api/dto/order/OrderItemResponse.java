@@ -12,7 +12,6 @@ public class OrderItemResponse {
     private Long productId;
     private String productName;
     private BigDecimal productPrice;
-    private BigDecimal productOriginalPrice;
     private String productImage;
     private Integer quantity;
     private BigDecimal subtotal;
@@ -25,7 +24,6 @@ public class OrderItemResponse {
         response.productId = item.getProductId();
         response.productName = item.getSnapshot().getProductName();
         response.productPrice = item.getSnapshot().getPrice().getAmount();
-        response.productOriginalPrice = item.getSnapshot().getOriginalPrice().getAmount();
         response.productImage = item.getSnapshot().getProductImage();
         response.quantity = item.getQuantity();
         response.subtotal = item.getSubtotal().getAmount();
@@ -43,10 +41,6 @@ public class OrderItemResponse {
 
     public BigDecimal getProductPrice() {
         return productPrice;
-    }
-
-    public BigDecimal getProductOriginalPrice() {
-        return productOriginalPrice;
     }
 
     public String getProductImage() {

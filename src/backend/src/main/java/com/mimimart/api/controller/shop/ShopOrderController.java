@@ -79,4 +79,29 @@ public class ShopOrderController {
         orderService.cancelOrder(userDetails.getUserId(), request.getOrderNumber());
         return ApiResponse.success("訂單已取消");
     }
+
+    /**
+     * 確認收貨
+     */
+    @Operation(summary = "確認收貨", description = "確認收貨並完成訂單(僅已出貨的訂單可確認)")
+    @PostMapping("/confirm-receipt")
+    public ApiResponse<Void> confirmReceipt(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody OrderNumberRequest request
+    ) {
+        orderService.confirmReceipt(userDetails.getUserId(), request.getOrderNumber());
+        return ApiResponse.success("已確認收貨");
+    }
+
+    /**
+     * 會員訂單狀態統計
+     */
+    @Operation(summary = "訂單狀態統計", description = "查詢會員各狀態訂單數量")
+    @GetMapping("/stats")
+    public ApiResponse<java.util.Map<String, Long>> getMyOrderStats(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        java.util.Map<String, Long> stats = orderService.getMemberOrderStats(userDetails.getUserId());
+        return ApiResponse.success("查詢成功", stats);
+    }
 }
