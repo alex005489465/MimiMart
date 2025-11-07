@@ -5,13 +5,19 @@ import com.mimimart.api.dto.order.*;
 import com.mimimart.application.service.OrderService;
 import com.mimimart.domain.order.model.Order;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 後台訂單 Controller
@@ -32,10 +38,15 @@ public class AdminOrderController {
      */
     @Operation(summary = "查詢訂單列表", description = "查詢所有訂單,支援分頁與多條件篩選")
     @GetMapping("/list")
-    public ApiResponse<Page<OrderListItemResponse>> getOrderList(
+    public ApiResponse<List<OrderListItemResponse>> getOrderList(
             @ModelAttribute AdminOrderQueryRequest queryRequest,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @Parameter(description = "頁碼 (從 1 開始)") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每頁筆數") @RequestParam(defaultValue = "20") int size
     ) {
+        // 將前端的 1-based 頁碼轉換為 Spring Data JPA 的 0-based
+        int zeroBasedPage = page - 1;
+        Pageable pageable = PageRequest.of(zeroBasedPage, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
         Page<Order> orderPage = orderService.getAllOrdersAdmin(
                 queryRequest.getStatus(),
                 queryRequest.getOrderNumber(),
@@ -44,8 +55,20 @@ public class AdminOrderController {
                 pageable
         );
 
-        Page<OrderListItemResponse> response = orderPage.map(OrderListItemResponse::from);
-        return ApiResponse.success("查詢成功", response);
+        // 轉換為 List 回應
+        List<OrderListItemResponse> responseList = orderPage.getContent().stream()
+                .map(OrderListItemResponse::from)
+                .collect(Collectors.toList());
+
+        // 建立分頁資訊
+        Map<String, Object> meta = new HashMap<>();
+        // 將 0-based 頁碼轉換為 1-based 返回給前端
+        meta.put("currentPage", orderPage.getNumber() + 1);
+        meta.put("totalPages", orderPage.getTotalPages());
+        meta.put("totalItems", orderPage.getTotalElements());
+        meta.put("pageSize", orderPage.getSize());
+
+        return ApiResponse.success("查詢成功", responseList, meta);
     }
 
     /**

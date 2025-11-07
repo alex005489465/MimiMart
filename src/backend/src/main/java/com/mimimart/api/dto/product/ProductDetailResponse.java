@@ -23,6 +23,8 @@ public class ProductDetailResponse {
     private String imageUrl;
     private Long categoryId;
     private Boolean isPublished;
+    private LocalDateTime publishedAt;
+    private LocalDateTime unpublishedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -38,6 +40,8 @@ public class ProductDetailResponse {
             product.getImageUrl(),
             product.getCategoryId(),
             product.getIsPublished(),
+            product.getPublishedAt(),
+            product.getUnpublishedAt(),
             product.getCreatedAt(),
             product.getUpdatedAt()
         );

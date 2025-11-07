@@ -22,6 +22,8 @@ public class ProductResponse {
     private String imageUrl;
     private Long categoryId;
     private Boolean isPublished;
+    private LocalDateTime publishedAt;
+    private LocalDateTime unpublishedAt;
     private LocalDateTime createdAt;
 
     /**
@@ -35,6 +37,8 @@ public class ProductResponse {
             product.getImageUrl(),
             product.getCategoryId(),
             product.getIsPublished(),
+            product.getPublishedAt(),
+            product.getUnpublishedAt(),
             product.getCreatedAt()
         );
     }

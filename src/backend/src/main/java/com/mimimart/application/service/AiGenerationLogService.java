@@ -105,9 +105,14 @@ public class AiGenerationLogService {
 
     /**
      * 查詢指定類型的 AI 生成記錄（分頁）
+     * @param generationType 生成類型
+     * @param page 頁碼 (從 1 開始)
+     * @param size 每頁筆數
      */
     public Page<AiGenerationLog> getLogsByType(GenerationType generationType, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        // 將前端的 1-based 頁碼轉換為 Spring Data JPA 的 0-based
+        int zeroBasedPage = page - 1;
+        Pageable pageable = PageRequest.of(zeroBasedPage, size);
         return aiGenerationLogRepository.findByGenerationTypeOrderByCreatedAtDesc(generationType, pageable);
     }
 

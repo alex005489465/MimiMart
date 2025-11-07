@@ -15,6 +15,7 @@ import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import com.mimimart.infrastructure.persistence.repository.RefreshTokenRepository;
 import com.mimimart.shared.valueobject.MemberStatus;
 import com.mimimart.shared.valueobject.UserType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,18 @@ class AuthServiceTest {
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    private EmailQuotaService emailQuotaService;
+
+    /**
+     * 每個測試執行後清理 Redis 郵件配額計數器
+     * 避免測試之間的配額累積導致測試失敗
+     */
+    @AfterEach
+    void tearDown() {
+        emailQuotaService.resetCurrentMonthQuota();
+    }
 
     @Test
     @DisplayName("會員註冊 - 成功註冊新會員")

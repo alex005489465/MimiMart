@@ -43,10 +43,12 @@ public class AdminProductController {
     @Operation(summary = "查詢商品列表", description = "查詢所有商品,支援狀態篩選和分頁")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getProductList(
             @Parameter(description = "上架狀態 (published, unpublished, all)") @RequestParam(defaultValue = "all") String status,
-            @Parameter(description = "頁碼 (從 0 開始)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "頁碼 (從 1 開始)") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每頁筆數") @RequestParam(defaultValue = "20") int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        // 將前端的 1-based 頁碼轉換為 Spring Data JPA 的 0-based
+        int zeroBasedPage = page - 1;
+        Pageable pageable = PageRequest.of(zeroBasedPage, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // 根據狀態查詢
         Page<Product> productPage;
@@ -67,7 +69,8 @@ public class AdminProductController {
             .collect(Collectors.toList());
 
         Map<String, Object> meta = new HashMap<>();
-        meta.put("currentPage", productPage.getNumber());
+        // 將 0-based 頁碼轉換為 1-based 返回給前端
+        meta.put("currentPage", productPage.getNumber() + 1);
         meta.put("totalPages", productPage.getTotalPages());
         meta.put("totalItems", productPage.getTotalElements());
         meta.put("pageSize", productPage.getSize());

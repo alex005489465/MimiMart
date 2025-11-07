@@ -4,6 +4,7 @@ import com.mimimart.domain.member.exception.InvalidCredentialsException;
 import com.mimimart.domain.member.exception.MemberNotFoundException;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,12 +39,24 @@ class MemberServiceTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailQuotaService emailQuotaService;
+
     private Member testMember;
 
     @BeforeEach
     void setUp() {
         // 建立測試用會員
         testMember = authService.register("member@example.com", "password123", "測試會員");
+    }
+
+    /**
+     * 每個測試執行後清理 Redis 郵件配額計數器
+     * 避免測試之間的配額累積導致測試失敗
+     */
+    @AfterEach
+    void tearDown() {
+        emailQuotaService.resetCurrentMonthQuota();
     }
 
     @Test
