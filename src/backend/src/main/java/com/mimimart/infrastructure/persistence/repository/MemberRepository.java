@@ -2,6 +2,7 @@ package com.mimimart.infrastructure.persistence.repository;
 
 import com.mimimart.infrastructure.persistence.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -13,7 +14,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Repository
-public interface MemberRepository extends JpaRepository<Member, Long> {
+public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecificationExecutor<Member> {
 
     /**
      * 根據 Email 查詢會員
