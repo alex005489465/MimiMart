@@ -20,6 +20,7 @@ function ProductForm() {
     name: '',
     description: '',
     price: '',
+    stock: 0,
     categoryId: '',
     publishedAt: '',
     unpublishedAt: ''
@@ -71,6 +72,7 @@ function ProductForm() {
         name: data.name,
         description: data.description || '',
         price: data.price,
+        stock: data.stock || 0,
         categoryId: data.categoryId,
         publishedAt: data.publishedAt ? formatDateTimeLocal(data.publishedAt) : '',
         unpublishedAt: data.unpublishedAt ? formatDateTimeLocal(data.unpublishedAt) : ''
@@ -164,6 +166,9 @@ function ProductForm() {
           await productService.update({
             productId: Number(id),
             ...formData,
+            price: Number(formData.price),
+            stock: Number(formData.stock),
+            categoryId: Number(formData.categoryId),
             imageUrl: uploadResult.imageUrl,
             publishedAt: formData.publishedAt || null,
             unpublishedAt: formData.unpublishedAt || null
@@ -235,6 +240,15 @@ function ProductForm() {
       }
     }
 
+    // 庫存驗證
+    if (formData.stock === '' || formData.stock === null || formData.stock === undefined) {
+      newErrors.stock = '庫存數量為必填項'
+    } else if (!Number.isInteger(Number(formData.stock))) {
+      newErrors.stock = '庫存數量必須為整數'
+    } else if (Number(formData.stock) < 0) {
+      newErrors.stock = '庫存數量不能小於 0'
+    }
+
     // 分類驗證
     if (!formData.categoryId) {
       newErrors.categoryId = '請選擇商品分類'
@@ -265,6 +279,7 @@ function ProductForm() {
         name: formData.name,
         description: formData.description || null,
         price: Number(formData.price),
+        stock: Number(formData.stock),
         imageUrl: existingImageUrl || imagePreview || null,
         categoryId: Number(formData.categoryId),
         publishedAt: formData.publishedAt || null,
@@ -380,6 +395,27 @@ function ProductForm() {
             />
             {errors.price && <span className={styles.errorText}>{errors.price}</span>}
             <p className={styles.fieldHint}>價格範圍：0.01 ~ 99,999,999.99</p>
+          </div>
+
+          {/* 商品庫存 */}
+          <div className={styles.formGroup}>
+            <label htmlFor="stock" className={styles.label}>
+              商品庫存 <span className={styles.required}>*</span>
+            </label>
+            <input
+              type="number"
+              id="stock"
+              name="stock"
+              value={formData.stock}
+              onChange={handleChange}
+              className={`${styles.input} ${errors.stock ? styles.inputError : ''}`}
+              placeholder="請輸入庫存數量"
+              min="0"
+              step="1"
+              disabled={isLoading}
+            />
+            {errors.stock && <span className={styles.errorText}>{errors.stock}</span>}
+            <p className={styles.fieldHint}>庫存數量必須為非負整數</p>
           </div>
 
           {/* 商品分類 */}

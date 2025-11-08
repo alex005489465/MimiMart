@@ -25,6 +25,11 @@ const useCartStore = create(
 
       // 加入商品到購物車
       addItem: (product) => {
+        // 檢查庫存是否足夠
+        if (product.stock <= 0) {
+          throw new Error('商品目前缺貨');
+        }
+
         const items = get().items;
         const existingItemIndex = items.findIndex(
           (item) => item.productId === product.productId
@@ -38,16 +43,18 @@ const useCartStore = create(
 
           // 檢查庫存
           if (newQuantity > product.stock) {
-            return {
-              success: false,
-              error: '商品數量超過庫存限制',
-            };
+            throw new Error('商品數量超過庫存限制');
           }
 
           newItems[existingItemIndex].quantity = newQuantity;
           set({ items: newItems });
         } else {
-          // 新增商品
+          // 新增商品 - 檢查要加入的數量是否超過庫存
+          const quantityToAdd = product.quantity || 1;
+          if (quantityToAdd > product.stock) {
+            throw new Error('商品數量超過庫存限制');
+          }
+
           set({
             items: [
               ...items,
@@ -55,7 +62,7 @@ const useCartStore = create(
                 productId: product.productId,
                 name: product.name,
                 price: product.price,
-                quantity: product.quantity || 1,
+                quantity: quantityToAdd,
                 image: product.image,
                 stock: product.stock,
               },

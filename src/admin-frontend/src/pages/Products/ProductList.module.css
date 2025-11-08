@@ -195,6 +195,12 @@
   color: var(--text-primary);
 }
 
+.stockCell {
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
 .dateCell {
   white-space: nowrap;
   font-size: 0.8125rem;

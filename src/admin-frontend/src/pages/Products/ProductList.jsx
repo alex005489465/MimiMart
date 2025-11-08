@@ -240,6 +240,7 @@ function ProductList() {
                   <th className={styles.nameHeader}>商品名稱</th>
                   <th>分類</th>
                   <th>價格</th>
+                  <th>庫存</th>
                   <th>狀態</th>
                   <th>上架時間</th>
                   <th>下架時間</th>
@@ -323,6 +324,9 @@ function ProductList() {
                     </td>
                     <td data-label="價格" className={styles.priceCell}>
                       {formatCurrency(product.price)}
+                    </td>
+                    <td data-label="庫存" className={styles.stockCell}>
+                      {product.stock}
                     </td>
                     <td data-label="狀態">
                       <button

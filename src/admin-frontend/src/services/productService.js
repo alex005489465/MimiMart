@@ -47,6 +47,7 @@ const productService = {
    * @param {string} data.name - 商品名稱 (必填，最大 200 字元)
    * @param {string} [data.description] - 商品描述 (可選)
    * @param {number} data.price - 商品售價 (必填，0.01 ~ 99,999,999.99)
+   * @param {number} data.stock - 商品庫存 (必填，>= 0)
    * @param {string} [data.imageUrl] - 商品圖片 URL (可選)
    * @param {number} data.categoryId - 分類 ID (必填)
    * @param {string} [data.publishedAt] - 上架時間 (可選，NULL 表示不限制)
@@ -70,6 +71,7 @@ const productService = {
    * @param {string} data.name - 商品名稱 (必填，最大 200 字元)
    * @param {string} [data.description] - 商品描述
    * @param {number} data.price - 商品售價 (必填，0.01 ~ 99,999,999.99)
+   * @param {number} data.stock - 商品庫存 (必填，>= 0)
    * @param {string} [data.imageUrl] - 商品圖片 URL
    * @param {number} data.categoryId - 分類 ID (必填)
    * @param {string} [data.publishedAt] - 上架時間 (可選，NULL 表示不限制)
