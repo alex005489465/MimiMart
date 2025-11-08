@@ -36,24 +36,27 @@ public class ShopAuthController {
 
     /**
      * 會員註冊
+     * 註冊成功後自動登入，返回 token 和會員資料
      */
     @PostMapping("/register")
-    @Operation(summary = "會員註冊", description = "註冊新會員帳號")
-    public ResponseEntity<ApiResponse<MemberProfile>> register(@Valid @RequestBody RegisterRequest request) {
-        Member member = authService.register(request.getEmail(), request.getPassword(), request.getName());
+    @Operation(summary = "會員註冊", description = "註冊新會員帳號，註冊成功後自動登入")
+    public ResponseEntity<ApiResponse<LoginResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        AuthService.LoginResult result = authService.register(request.getEmail(), request.getPassword(), request.getName());
 
         MemberProfile profile = new MemberProfile(
-                member.getId(),
-                member.getEmail(),
-                member.getName(),
-                member.getPhone(),
-                member.getHomeAddress(),
-                member.getEmailVerified(),
-                member.getAvatarUrl(),
-                member.getAvatarUpdatedAt()
+                result.member.getId(),
+                result.member.getEmail(),
+                result.member.getName(),
+                result.member.getPhone(),
+                result.member.getHomeAddress(),
+                result.member.getEmailVerified(),
+                result.member.getAvatarUrl(),
+                result.member.getAvatarUpdatedAt()
         );
 
-        return ResponseEntity.ok(ApiResponse.success("註冊成功", profile));
+        LoginResponse response = new LoginResponse(result.accessToken, result.refreshToken, profile);
+
+        return ResponseEntity.ok(ApiResponse.success("註冊成功", response));
     }
 
     /**

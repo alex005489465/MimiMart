@@ -58,9 +58,10 @@ public class AuthService {
 
     /**
      * 會員註冊
+     * 註冊成功後自動生成 token，實現註冊後自動登入
      */
     @Transactional
-    public Member register(String email, String password, String name) {
+    public LoginResult register(String email, String password, String name) {
         // 檢查 Email 是否已存在
         if (memberRepository.existsByEmail(email)) {
             throw new MemberAlreadyExistsException("此 Email 已被註冊");
@@ -79,13 +80,24 @@ public class AuthService {
         member.setVerificationToken(verificationToken);
         member.setVerificationTokenExpiresAt(LocalDateTime.now().plusHours(24));
 
+        // 設定註冊時間（同時作為首次登入時間）
+        member.setLastLoginAt(LocalDateTime.now());
+
         Member savedMember = memberRepository.save(member);
 
         // 發送歡迎郵件和驗證郵件
         emailService.sendWelcomeEmail(email, name);
         emailService.sendVerificationEmail(email, name, verificationToken);
 
-        return savedMember;
+        // 生成 Access Token 和 Refresh Token（與登入流程相同）
+        String accessToken = jwtUtil.generateAccessToken(savedMember.getId(), savedMember.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(savedMember.getId());
+
+        // 儲存 Refresh Token
+        LocalDateTime refreshTokenExpiresAt = LocalDateTime.now().plusDays(7);
+        refreshTokenService.saveRefreshToken(savedMember.getId(), refreshToken, UserType.MEMBER, refreshTokenExpiresAt);
+
+        return new LoginResult(accessToken, refreshToken, savedMember);
     }
 
     /**
