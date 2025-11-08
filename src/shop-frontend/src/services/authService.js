@@ -45,4 +45,46 @@ export const authService = {
   async logout() {
     return await apiClient.post('/api/shop/auth/logout', {});
   },
+
+  /**
+   * 驗證 Email
+   * @param {string} token - 驗證 Token
+   * @returns {Promise} 驗證結果
+   */
+  async verifyEmail(token) {
+    return await apiClient.post('/api/shop/auth/verify-email', { token });
+  },
+
+  /**
+   * 重新發送驗證郵件
+   * @param {string} email - Email 地址
+   * @returns {Promise} 發送結果
+   */
+  async resendVerificationEmail(email) {
+    return await apiClient.post('/api/shop/auth/resend-verification', { email });
+  },
+
+  /**
+   * 申請密碼重設
+   * @param {string} email - Email 地址
+   * @returns {Promise} 申請結果
+   */
+  async forgotPassword(email) {
+    return await apiClient.post('/api/shop/auth/forgot-password', { email });
+  },
+
+  /**
+   * 重設密碼
+   * @param {string} token - 重設 Token
+   * @param {string} newPassword - 新密碼
+   * @param {string} confirmPassword - 確認密碼
+   * @returns {Promise} 重設結果
+   */
+  async resetPassword(token, newPassword, confirmPassword) {
+    return await apiClient.post('/api/shop/auth/reset-password', {
+      token,
+      newPassword,
+      confirmPassword,
+    });
+  },
 };

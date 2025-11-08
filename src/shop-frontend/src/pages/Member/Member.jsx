@@ -2,7 +2,7 @@
  * 會員中心主頁面
  * 使用 MUI v6 元件，整合 Zustand authStore
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -48,6 +48,9 @@ import {
 } from 'react-icons/md';
 import useAuthStore from '../../stores/authStore';
 import { memberService } from '../../services/memberService';
+import { authService } from '../../services/authService';
+import { addressService } from '../../services/addressService';
+import AddressDialog from '../../components/AddressDialog/AddressDialog';
 import styles from './Member.module.css';
 
 const Member = () => {
@@ -65,6 +68,17 @@ const Member = () => {
 
   // Avatar upload state
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // Email verification state
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+
+  // Address management state
+  const [addresses, setAddresses] = useState([]);
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingAddressId, setDeletingAddressId] = useState(null);
 
   // Edit form state
   const [editData, setEditData] = useState({
@@ -95,6 +109,75 @@ const Member = () => {
     logout();
     setSnackbar({ open: true, message: '已成功登出', severity: 'success' });
     navigate('/');
+  };
+
+  // 倒數計時
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => {
+        setResendCountdown(resendCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCountdown]);
+
+  // 載入地址列表
+  useEffect(() => {
+    if (activeTab === 'address') {
+      loadAddresses();
+    }
+  }, [activeTab]);
+
+  const loadAddresses = async () => {
+    try {
+      const response = await addressService.getAddressList();
+      if (response.success) {
+        setAddresses(response.data || []);
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || '載入地址失敗',
+        severity: 'error',
+      });
+    }
+  };
+
+  // 處理重新發送驗證郵件
+  const handleResendVerificationEmail = async () => {
+    if (!user?.email) {
+      setSnackbar({ open: true, message: '無法取得 Email 地址', severity: 'error' });
+      return;
+    }
+
+    setIsResendingEmail(true);
+    try {
+      const response = await authService.resendVerificationEmail(user.email);
+
+      if (response.success) {
+        setSnackbar({
+          open: true,
+          message: '驗證郵件已重新發送，請檢查信箱',
+          severity: 'success',
+        });
+        // 開始倒數計時 (60 秒)
+        setResendCountdown(60);
+      } else {
+        setSnackbar({
+          open: true,
+          message: response.message || '發送失敗',
+          severity: 'error',
+        });
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || '發送失敗，請稍後再試',
+        severity: 'error',
+      });
+    } finally {
+      setIsResendingEmail(false);
+    }
   };
 
   // 處理頭像上傳
@@ -254,11 +337,114 @@ const Member = () => {
     }
   };
 
+  // 處理新增/編輯地址
+  const handleSaveAddress = async (formData) => {
+    try {
+      let response;
+      if (editingAddress) {
+        // 編輯模式
+        response = await addressService.updateAddress({
+          addressId: editingAddress.id,
+          ...formData,
+        });
+      } else {
+        // 新增模式
+        response = await addressService.createAddress(formData);
+      }
+
+      if (response.success) {
+        setSnackbar({
+          open: true,
+          message: editingAddress ? '地址更新成功！' : '地址新增成功！',
+          severity: 'success',
+        });
+        await loadAddresses(); // 重新載入列表
+        setAddressDialogOpen(false);
+        setEditingAddress(null);
+      } else {
+        setSnackbar({
+          open: true,
+          message: response.message || '操作失敗',
+          severity: 'error',
+        });
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || '操作失敗，請稍後再試',
+        severity: 'error',
+      });
+      throw error; // 讓對話框知道操作失敗
+    }
+  };
+
+  // 處理刪除地址
+  const handleDeleteAddress = async () => {
+    if (!deletingAddressId) return;
+
+    try {
+      const response = await addressService.deleteAddress(deletingAddressId);
+
+      if (response.success) {
+        setSnackbar({
+          open: true,
+          message: '地址刪除成功！',
+          severity: 'success',
+        });
+        await loadAddresses(); // 重新載入列表
+      } else {
+        setSnackbar({
+          open: true,
+          message: response.message || '刪除失敗',
+          severity: 'error',
+        });
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || '刪除失敗，請稍後再試',
+        severity: 'error',
+      });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeletingAddressId(null);
+    }
+  };
+
+  // 處理設為預設地址
+  const handleSetDefaultAddress = async (addressId) => {
+    try {
+      const response = await addressService.setDefaultAddress(addressId);
+
+      if (response.success) {
+        setSnackbar({
+          open: true,
+          message: '已設為預設地址！',
+          severity: 'success',
+        });
+        await loadAddresses(); // 重新載入列表
+      } else {
+        setSnackbar({
+          open: true,
+          message: response.message || '設定失敗',
+          severity: 'error',
+        });
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || '設定失敗，請稍後再試',
+        severity: 'error',
+      });
+    }
+  };
+
   // 選單項目
   const menuItems = [
     { key: 'profile', icon: <MdPerson />, label: '個人資料', disabled: false },
     { key: 'edit', icon: <MdEdit />, label: '編輯資料', disabled: false },
     { key: 'password', icon: <MdLock />, label: '修改密碼', disabled: false },
+    { key: 'address', icon: <MdHome />, label: '收貨地址', disabled: false },
     { key: 'orders', icon: <MdShoppingBag />, label: '訂單紀錄', disabled: true },
     { key: 'favorites', icon: <MdFavorite />, label: '我的收藏', disabled: true },
   ];
@@ -280,6 +466,31 @@ const Member = () => {
           <Card>
             <CardContent>
               <Typography variant="h5" gutterBottom>個人資料</Typography>
+
+              {/* Email 未驗證警告 */}
+              {user && !user.emailVerified && (
+                <Alert
+                  severity="warning"
+                  sx={{ mb: 3 }}
+                  action={
+                    <Button
+                      color="inherit"
+                      size="small"
+                      onClick={handleResendVerificationEmail}
+                      disabled={isResendingEmail || resendCountdown > 0}
+                    >
+                      {isResendingEmail
+                        ? '發送中...'
+                        : resendCountdown > 0
+                        ? `${resendCountdown}s`
+                        : '重新發送'}
+                    </Button>
+                  }
+                >
+                  您的 Email 尚未驗證，請至信箱查收驗證郵件
+                </Alert>
+              )}
+
               <Table>
                 <TableBody>
                   <TableRow>
@@ -521,6 +732,108 @@ const Member = () => {
           </Card>
         );
 
+      case 'address':
+        return (
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h5">收貨地址</Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<MdHome />}
+                  onClick={() => {
+                    setEditingAddress(null);
+                    setAddressDialogOpen(true);
+                  }}
+                >
+                  新增地址
+                </Button>
+              </Box>
+
+              {addresses.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <MdHome size={60} color="#ccc" />
+                  <Typography color="text.secondary" sx={{ mt: 2 }}>
+                    尚無收貨地址
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setEditingAddress(null);
+                      setAddressDialogOpen(true);
+                    }}
+                    sx={{ mt: 2 }}
+                  >
+                    新增第一個地址
+                  </Button>
+                </Box>
+              ) : (
+                <Stack spacing={2}>
+                  {addresses.map((address) => (
+                    <Card key={address.id} variant="outlined">
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                              <Typography variant="h6">{address.recipientName}</Typography>
+                              <Typography color="text.secondary">{address.phone}</Typography>
+                              {address.isDefault && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    backgroundColor: 'primary.main',
+                                    color: 'white',
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                  }}
+                                >
+                                  預設
+                                </Typography>
+                              )}
+                            </Box>
+                            <Typography color="text.secondary">{address.address}</Typography>
+                          </Box>
+                          <Stack direction="row" spacing={1}>
+                            {!address.isDefault && (
+                              <Button
+                                size="small"
+                                onClick={() => handleSetDefaultAddress(address.id)}
+                              >
+                                設為預設
+                              </Button>
+                            )}
+                            <Button
+                              size="small"
+                              startIcon={<MdEdit />}
+                              onClick={() => {
+                                setEditingAddress(address);
+                                setAddressDialogOpen(true);
+                              }}
+                            >
+                              編輯
+                            </Button>
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => {
+                                setDeletingAddressId(address.id);
+                                setDeleteConfirmOpen(true);
+                              }}
+                            >
+                              刪除
+                            </Button>
+                          </Stack>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Stack>
+              )}
+            </CardContent>
+          </Card>
+        );
+
       case 'orders':
         return (
           <Card>
@@ -637,6 +950,36 @@ const Member = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* 地址對話框 */}
+      <AddressDialog
+        open={addressDialogOpen}
+        onClose={() => {
+          setAddressDialogOpen(false);
+          setEditingAddress(null);
+        }}
+        onSave={handleSaveAddress}
+        editData={editingAddress}
+      />
+
+      {/* 刪除確認對話框 */}
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MdWarning color="#ed6c02" />
+            確認刪除
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography>您確定要刪除這個收貨地址嗎？</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmOpen(false)}>取消</Button>
+          <Button onClick={handleDeleteAddress} variant="contained" color="error">
+            確定刪除
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* 登出確認對話框 */}
       <Dialog open={logoutDialogOpen} onClose={() => setLogoutDialogOpen(false)}>

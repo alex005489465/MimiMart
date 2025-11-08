@@ -275,7 +275,7 @@ const Login = () => {
         <Link
           component="button"
           type="button"
-          onClick={() => setSnackbar({ open: true, message: '忘記密碼功能開發中', severity: 'info' })}
+          onClick={() => navigate('/forgot-password')}
           sx={{ cursor: 'pointer' }}
         >
           忘記密碼？
