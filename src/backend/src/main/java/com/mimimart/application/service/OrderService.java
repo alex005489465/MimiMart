@@ -1,16 +1,15 @@
 package com.mimimart.application.service;
 
-import com.mimimart.domain.cart.model.Cart;
+import com.mimimart.api.dto.order.CreateOrderRequest;
 import com.mimimart.domain.order.exception.OrderNotFoundException;
 import com.mimimart.domain.order.exception.UnauthorizedOrderAccessException;
 import com.mimimart.domain.order.model.*;
 import com.mimimart.domain.order.service.OrderFactory;
 import com.mimimart.infrastructure.persistence.entity.OrderEntity;
-import com.mimimart.infrastructure.persistence.mapper.CartMapper;
 import com.mimimart.infrastructure.persistence.mapper.OrderMapper;
-import com.mimimart.infrastructure.persistence.repository.CartItemRepository;
 import com.mimimart.infrastructure.persistence.repository.OrderRepository;
 import com.mimimart.infrastructure.persistence.repository.OrderSpecification;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,67 +23,43 @@ import java.util.stream.Collectors;
 /**
  * 訂單應用服務
  * 協調領域模型與基礎設施層
+ *
+ * @author MimiMart Development Team
+ * @since 1.0.0
  */
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final OrderFactory orderFactory;
-    private final CartService cartService;
-    private final CartItemRepository cartItemRepository;
-    private final CartMapper cartMapper;
     private final PaymentService paymentService;
 
-    public OrderService(
-            OrderRepository orderRepository,
-            OrderMapper orderMapper,
-            OrderFactory orderFactory,
-            CartService cartService,
-            CartItemRepository cartItemRepository,
-            CartMapper cartMapper,
-            PaymentService paymentService
-    ) {
-        this.orderRepository = orderRepository;
-        this.orderMapper = orderMapper;
-        this.orderFactory = orderFactory;
-        this.cartService = cartService;
-        this.cartItemRepository = cartItemRepository;
-        this.cartMapper = cartMapper;
-        this.paymentService = paymentService;
-    }
-
     /**
-     * 前台:從購物車建立訂單
+     * 前台:建立訂單(從前端傳入的項目列表)
      *
      * @param memberId     會員 ID
+     * @param items        訂單項目列表
      * @param deliveryInfo 送貨資訊
      * @return 訂單(領域模型)
      */
     @Transactional
-    public Order createOrder(Long memberId, DeliveryInfo deliveryInfo) {
-        // 1. 取得會員購物車(轉換為領域模型)
-        List<com.mimimart.infrastructure.persistence.entity.CartItem> cartItemEntities =
-                cartItemRepository.findByMemberId(memberId);
-        Cart cart = cartMapper.toDomain(cartItemEntities, memberId);
+    public Order createOrder(Long memberId, List<CreateOrderRequest.OrderItemRequest> items, DeliveryInfo deliveryInfo) {
+        // 1. 使用領域服務建立訂單(從項目列表)
+        Order order = orderFactory.createFromItems(memberId, items, deliveryInfo);
 
-        // 2. 使用領域服務建立訂單
-        Order order = orderFactory.createFromCart(cart, deliveryInfo);
-
-        // 3. 持久化訂單
+        // 2. 持久化訂單
         OrderEntity entity = orderMapper.toEntity(order);
         OrderEntity savedEntity = orderRepository.save(entity);
 
-        // 4. 同步建立付款記錄（在同一事務中，確保原子性）
+        // 3. 同步建立付款記錄（在同一事務中，確保原子性）
         paymentService.createPayment(
                 savedEntity.getOrderNumber(),
                 savedEntity.getTotalAmount()
         );
 
-        // 5. 清空購物車
-        cartService.clearCart(memberId);
-
-        // 6. 返回領域模型
+        // 4. 返回領域模型
         return orderMapper.toDomain(savedEntity);
     }
 

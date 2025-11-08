@@ -5,19 +5,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 購物車項目實體
+ * 會員購物車主表實體
+ * 記錄購物車元數據,實際項目儲存在 Redis
  * 零約束設計：資料完整性由應用程式層驗證
+ *
+ * @author MimiMart Development Team
+ * @since 1.0.0
  */
 @Entity
-@Table(name = "cart_items")
+@Table(name = "member_carts")
 @Getter
 @Setter
 @NoArgsConstructor
-public class CartItem {
+public class MemberCart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,15 +29,11 @@ public class CartItem {
     @Column(name = "member_id", nullable = false)
     private Long memberId;
 
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
+    @Column(name = "status", nullable = false, length = 20)
+    private String status = "ACTIVE";
 
-    @Column(nullable = false)
-    private Integer quantity;
-
-    // TODO: 預留價格快照功能（未來實作商品價格變動時使用）
-    // @Column(name = "snapshot_price", precision = 10, scale = 2)
-    // private BigDecimal snapshotPrice;
+    @Column(name = "max_items_count", nullable = false)
+    private Integer maxItemsCount = 100;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -43,10 +42,10 @@ public class CartItem {
     private LocalDateTime updatedAt;
 
     // Custom Constructor
-    public CartItem(Long memberId, Long productId, Integer quantity) {
+    public MemberCart(Long memberId) {
         this.memberId = memberId;
-        this.productId = productId;
-        this.quantity = quantity;
+        this.status = "ACTIVE";
+        this.maxItemsCount = 100;
     }
 
     @PrePersist

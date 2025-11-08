@@ -84,7 +84,7 @@ public class ShopCartController {
         try {
             validateMemberAccess(userDetails);
             Long memberId = userDetails.getUserId();
-            CartItemDTO item = cartService.updateQuantity(memberId, request.getProductId(), request.getQuantity());
+            CartItemDTO item = cartService.updateQuantity(memberId, request);
 
             return ResponseEntity.ok(new ApiResponse<>(
                     true, "QUANTITY_UPDATED", "數量已更新", item
@@ -108,7 +108,7 @@ public class ShopCartController {
         try {
             validateMemberAccess(userDetails);
             Long memberId = userDetails.getUserId();
-            cartService.removeItem(memberId, request.getProductId());
+            cartService.removeItem(memberId, request);
 
             return ResponseEntity.ok(new ApiResponse<>(
                     true, "ITEM_REMOVED", "商品已移除", null

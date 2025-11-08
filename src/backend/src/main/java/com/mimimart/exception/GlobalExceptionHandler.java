@@ -3,10 +3,14 @@ package com.mimimart.exception;
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.domain.banner.exception.BannerNotFoundException;
 import com.mimimart.domain.banner.exception.InvalidBannerOrderException;
+import com.mimimart.domain.cart.exception.CartFullException;
+import com.mimimart.domain.cart.exception.CartItemNotFoundException;
+import com.mimimart.domain.cart.exception.InsufficientStockException;
 import com.mimimart.domain.email.exception.EmailQuotaExceededException;
 import com.mimimart.domain.email.exception.EmailRateLimitExceededException;
 import com.mimimart.domain.member.exception.*;
 import com.mimimart.domain.order.exception.*;
+import com.mimimart.domain.product.exception.ProductNotFoundException;
 import com.mimimart.shared.exception.DomainException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -195,6 +199,51 @@ public class GlobalExceptionHandler {
         logger.warn("無效訂單狀態轉換: {}", ex.getMessage());
         return ResponseEntity.ok(
             ApiResponse.error("INVALID_ORDER_STATUS", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理商品不存在異常
+     */
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProductNotFound(ProductNotFoundException ex) {
+        logger.warn("商品不存在: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("PRODUCT_NOT_FOUND", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理購物車項目不存在異常
+     */
+    @ExceptionHandler(CartItemNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCartItemNotFound(CartItemNotFoundException ex) {
+        logger.warn("購物車項目不存在: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("CART_ITEM_NOT_FOUND", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理購物車已滿異常
+     */
+    @ExceptionHandler(CartFullException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCartFull(CartFullException ex) {
+        logger.warn("購物車已滿: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("CART_FULL", ex.getMessage())
+        );
+    }
+
+    /**
+     * 處理庫存不足異常
+     * 注意: 根據需求,庫存不足時僅警告但允許加入購物車
+     */
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientStock(InsufficientStockException ex) {
+        logger.warn("庫存不足: {}", ex.getMessage());
+        return ResponseEntity.ok(
+            ApiResponse.error("INSUFFICIENT_STOCK", ex.getMessage())
         );
     }
 

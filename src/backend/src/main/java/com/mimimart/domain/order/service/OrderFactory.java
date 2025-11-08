@@ -1,11 +1,12 @@
 package com.mimimart.domain.order.service;
 
-import com.mimimart.domain.cart.model.Cart;
-import com.mimimart.domain.cart.model.CartItem;
+import com.mimimart.api.dto.order.CreateOrderRequest;
 import com.mimimart.domain.order.exception.EmptyCartException;
 import com.mimimart.domain.order.model.*;
+import com.mimimart.domain.product.exception.ProductNotFoundException;
 import com.mimimart.infrastructure.persistence.entity.Product;
 import com.mimimart.infrastructure.persistence.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,42 +16,40 @@ import java.util.stream.Collectors;
 
 /**
  * 訂單工廠(領域服務)
- * 負責從購物車建立訂單的複雜邏輯
+ * 負責從前端傳入的項目列表建立訂單
  */
 @Service
+@RequiredArgsConstructor
 public class OrderFactory {
 
     private final ProductRepository productRepository;
 
-    public OrderFactory(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
-
     /**
-     * 從購物車建立訂單
+     * 從項目列表建立訂單
      *
-     * @param cart         購物車(領域模型)
+     * @param memberId     會員 ID
+     * @param items        訂單項目列表
      * @param deliveryInfo 送貨資訊
      * @return Order 訂單(領域模型)
-     * @throws EmptyCartException 購物車為空時拋出
+     * @throws EmptyCartException 項目列表為空時拋出
      */
-    public Order createFromCart(Cart cart, DeliveryInfo deliveryInfo) {
-        // 驗證購物車不為空
-        if (cart.isEmpty()) {
+    public Order createFromItems(Long memberId, List<CreateOrderRequest.OrderItemRequest> items, DeliveryInfo deliveryInfo) {
+        // 驗證項目列表不為空
+        if (items == null || items.isEmpty()) {
             throw new EmptyCartException();
         }
 
-        // 批次查詢購物車中所有商品的最新資訊
-        List<Long> productIds = cart.getItems().stream()
-                .map(CartItem::getProductId)
+        // 批次查詢所有商品的最新資訊
+        List<Long> productIds = items.stream()
+                .map(CreateOrderRequest.OrderItemRequest::getProductId)
                 .collect(Collectors.toList());
 
         Map<Long, Product> productMap = productRepository.findAllById(productIds).stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
 
         // 建立訂單項目(使用商品快照)
-        List<OrderItem> orderItems = cart.getItems().stream()
-                .map(cartItem -> createOrderItem(cartItem, productMap))
+        List<OrderItem> orderItems = items.stream()
+                .map(item -> createOrderItem(item, productMap))
                 .collect(Collectors.toList());
 
         // 計算訂單總金額
@@ -63,7 +62,7 @@ public class OrderFactory {
 
         // 建立訂單
         return Order.builder()
-                .memberId(cart.getMemberId())
+                .memberId(memberId)
                 .orderNumber(orderNumber)
                 .status(OrderStatus.PAYMENT_PENDING)
                 .items(orderItems)
@@ -73,14 +72,14 @@ public class OrderFactory {
     }
 
     /**
-     * 從購物車項目建立訂單項目
+     * 從請求項目建立訂單項目
      * 快照當下的商品資訊,不受後續商品價格變動影響
      */
-    private OrderItem createOrderItem(CartItem cartItem, Map<Long, Product> productMap) {
-        Product product = productMap.get(cartItem.getProductId());
+    private OrderItem createOrderItem(CreateOrderRequest.OrderItemRequest item, Map<Long, Product> productMap) {
+        Product product = productMap.get(item.getProductId());
 
         if (product == null) {
-            throw new IllegalStateException("商品不存在: " + cartItem.getProductId());
+            throw new ProductNotFoundException(item.getProductId());
         }
 
         // 建立商品快照
@@ -92,9 +91,9 @@ public class OrderFactory {
 
         // 建立訂單項目
         return OrderItem.of(
-                cartItem.getProductId(),
+                item.getProductId(),
                 snapshot,
-                cartItem.getQuantity()
+                item.getQuantity()
         );
     }
 }

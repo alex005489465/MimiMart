@@ -109,7 +109,7 @@ public class ProductService {
      * 後台: 新增商品
      */
     @Transactional
-    public Product createProduct(String name, String description, BigDecimal price,
+    public Product createProduct(String name, String description, BigDecimal price, Integer stock,
                                  String imageUrl, Long categoryId,
                                  java.time.LocalDateTime publishedAt, java.time.LocalDateTime unpublishedAt) {
         // 驗證價格
@@ -129,6 +129,7 @@ public class ProductService {
         product.setName(name);
         product.setDescription(description);
         product.setPrice(priceObj.getPrice());
+        product.setStock(stock != null ? stock : 0);
         product.setImageUrl(imageUrl);
         product.setCategoryId(categoryId);
         product.setPublishedAt(publishedAt);
@@ -143,7 +144,7 @@ public class ProductService {
      * 後台: 更新商品
      */
     @Transactional
-    public Product updateProduct(Long id, String name, String description, BigDecimal price,
+    public Product updateProduct(Long id, String name, String description, BigDecimal price, Integer stock,
                                 String imageUrl, Long categoryId,
                                 java.time.LocalDateTime publishedAt, java.time.LocalDateTime unpublishedAt) {
         // 檢查商品是否存在
@@ -165,6 +166,7 @@ public class ProductService {
         product.setName(name);
         product.setDescription(description);
         product.setPrice(priceObj.getPrice());
+        product.setStock(stock);
         product.setImageUrl(imageUrl);
         product.setCategoryId(categoryId);
         product.setPublishedAt(publishedAt);

@@ -1,8 +1,15 @@
 package com.mimimart.api.dto.order;
 
 import com.mimimart.domain.order.model.DeliveryInfo;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+import java.util.List;
 
 /**
  * 建立訂單請求
@@ -22,6 +29,11 @@ public class CreateOrderRequest {
     private DeliveryInfo.DeliveryMethod deliveryMethod;
 
     private String deliveryNote;
+
+    @NotNull(message = "購買項目不可為空")
+    @Size(min = 1, message = "至少需要一個購買項目")
+    @Valid
+    private List<OrderItemRequest> items;
 
     // Constructors
     public CreateOrderRequest() {
@@ -68,6 +80,14 @@ public class CreateOrderRequest {
         this.deliveryNote = deliveryNote;
     }
 
+    public List<OrderItemRequest> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemRequest> items) {
+        this.items = items;
+    }
+
     /**
      * 轉換為領域值對象
      */
@@ -79,5 +99,19 @@ public class CreateOrderRequest {
                 .deliveryMethod(deliveryMethod)
                 .deliveryNote(deliveryNote)
                 .build();
+    }
+
+    /**
+     * 訂單項目請求
+     */
+    @Data
+    public static class OrderItemRequest {
+        @NotNull(message = "商品 ID 不可為空")
+        private Long productId;
+
+        @NotNull(message = "數量不可為空")
+        @Min(value = 1, message = "數量至少為 1")
+        @Max(value = 999, message = "數量不可超過 999")
+        private Integer quantity;
     }
 }

@@ -1,9 +1,6 @@
 package com.mimimart.application.service;
 
-import com.mimimart.api.dto.cart.AddToCartRequest;
-import com.mimimart.api.dto.cart.CartItemDTO;
-import com.mimimart.api.dto.cart.CartSummaryDTO;
-import com.mimimart.api.dto.cart.MergeCartRequest;
+import com.mimimart.api.dto.cart.*;
 import com.mimimart.fixtures.TestFixtures;
 import com.mimimart.infrastructure.persistence.entity.Category;
 import com.mimimart.infrastructure.persistence.entity.Member;
@@ -71,7 +68,7 @@ class CartServiceTest {
                 .orElse(null);
         assertNotNull(item1);
         assertEquals(product1.getName(), item1.getProductName());
-        assertEquals(product1.getPrice(), item1.getProductPrice());
+        assertEquals(product1.getPrice(), item1.getPrice());
         assertEquals(2, item1.getQuantity());
 
         // 驗證商品2
@@ -81,7 +78,7 @@ class CartServiceTest {
                 .orElse(null);
         assertNotNull(item2);
         assertEquals(product2.getName(), item2.getProductName());
-        assertEquals(product2.getPrice(), item2.getProductPrice());
+        assertEquals(product2.getPrice(), item2.getPrice());
         assertEquals(3, item2.getQuantity());
     }
 
@@ -102,10 +99,9 @@ class CartServiceTest {
 
         // Then: 驗證購物車項目建立成功
         assertNotNull(item);
-        assertNotNull(item.getId());
         assertEquals(product.getId(), item.getProductId());
         assertEquals(product.getName(), item.getProductName());
-        assertEquals(product.getPrice(), item.getProductPrice());
+        assertEquals(product.getPrice(), item.getPrice());
         assertEquals(3, item.getQuantity());
     }
 
@@ -148,7 +144,10 @@ class CartServiceTest {
         cartService.addToCart(member.getId(), request);
 
         // When: 更新數量
-        CartItemDTO updatedItem = cartService.updateQuantity(member.getId(), product.getId(), 5);
+        UpdateCartItemRequest updateRequest = new UpdateCartItemRequest();
+        updateRequest.setProductId(product.getId());
+        updateRequest.setQuantity(5);
+        CartItemDTO updatedItem = cartService.updateQuantity(member.getId(), updateRequest);
 
         // Then: 驗證數量更新成功
         assertNotNull(updatedItem);
@@ -170,7 +169,9 @@ class CartServiceTest {
         cartService.addToCart(member.getId(), request);
 
         // When: 移除商品
-        cartService.removeItem(member.getId(), product.getId());
+        RemoveCartItemRequest removeRequest = new RemoveCartItemRequest();
+        removeRequest.setProductId(product.getId());
+        cartService.removeItem(member.getId(), removeRequest);
 
         // Then: 驗證購物車為空
         CartSummaryDTO cart = cartService.getCart(member.getId());

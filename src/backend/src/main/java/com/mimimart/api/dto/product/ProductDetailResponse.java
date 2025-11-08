@@ -20,6 +20,7 @@ public class ProductDetailResponse {
     private String name;
     private String description;
     private BigDecimal price;
+    private Integer stock;
     private String imageUrl;
     private Long categoryId;
     private Boolean isPublished;
@@ -37,6 +38,7 @@ public class ProductDetailResponse {
             product.getName(),
             product.getDescription(),
             product.getPrice(),
+            product.getStock(),
             product.getImageUrl(),
             product.getCategoryId(),
             product.getIsPublished(),

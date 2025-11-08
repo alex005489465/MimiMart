@@ -44,6 +44,12 @@ public class Product {
     private BigDecimal price;
 
     /**
+     * 商品庫存數量
+     */
+    @Column(nullable = false)
+    private Integer stock = 0;
+
+    /**
      * 商品圖片 URL
      */
     @Column(name = "image_url", length = 500)

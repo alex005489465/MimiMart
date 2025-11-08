@@ -34,6 +34,10 @@ public class CreateProductRequest {
     @NotNull(message = "分類 ID 不能為空")
     private Long categoryId;
 
+    @NotNull(message = "庫存數量不能為空")
+    @Min(value = 0, message = "庫存數量不能小於 0")
+    private Integer stock = 0;
+
     /**
      * 上架時間 (NULL 表示不限制)
      */

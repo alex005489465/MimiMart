@@ -29,15 +29,19 @@ public class ShopOrderController {
     }
 
     /**
-     * 建立訂單(從購物車)
+     * 建立訂單(從前端傳入的項目列表)
      */
-    @Operation(summary = "建立訂單", description = "從購物車建立訂單,建立成功後會清空購物車並觸發付款流程")
+    @Operation(summary = "建立訂單", description = "從前端傳入的購買項目建立訂單,並觸發付款流程")
     @PostMapping("/create")
     public ApiResponse<OrderDetailResponse> createOrder(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CreateOrderRequest request
     ) {
-        Order order = orderService.createOrder(userDetails.getUserId(), request.toDeliveryInfo());
+        Order order = orderService.createOrder(
+                userDetails.getUserId(),
+                request.getItems(),
+                request.toDeliveryInfo()
+        );
         return ApiResponse.success("訂單建立成功", OrderDetailResponse.from(order));
     }
 
