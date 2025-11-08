@@ -14,7 +14,8 @@ import {
   Link,
   TextField,
   Divider,
-  Chip
+  Chip,
+  Snackbar
 } from '@mui/material';
 import {
   MdShoppingCart,
@@ -39,6 +40,11 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   // 載入商品詳情
   useEffect(() => {
@@ -89,10 +95,20 @@ const ProductDetail = () => {
     }
   };
 
+  // 顯示 Snackbar
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  // 關閉 Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   // 加入購物車
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     try {
-      addItem({
+      const result = await addItem({
         productId: product.id,
         name: product.name,
         price: product.price,
@@ -101,16 +117,19 @@ const ProductDetail = () => {
         stock: product.stock
       });
 
-      // TODO: 可以加入 snackbar 或 toast 提示
-      alert(`已將 ${quantity} 件「${product.name}」加入購物車`);
+      if (result.success) {
+        showSnackbar(result.message || `已將 ${quantity} 件「${product.name}」加入購物車`);
+      } else {
+        showSnackbar(result.error || '加入購物車失敗', 'error');
+      }
     } catch (err) {
-      alert(err.message || '加入購物車失敗');
+      showSnackbar(err.message || '加入購物車失敗', 'error');
     }
   };
 
   // 立即購買
-  const handleBuyNow = () => {
-    handleAddToCart();
+  const handleBuyNow = async () => {
+    await handleAddToCart();
     navigate('/cart');
   };
 
@@ -333,6 +352,22 @@ const ProductDetail = () => {
           </Typography>
         </Box>
       )}
+
+      {/* Snackbar 提示訊息 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

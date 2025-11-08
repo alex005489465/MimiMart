@@ -58,6 +58,10 @@ const useAuthStore = create(
             isAuthenticated: true,
           });
 
+          // 登入成功後合併購物車
+          const { default: useCartStore } = await import('./cartStore');
+          await useCartStore.getState().mergeCart();
+
           return { success: true };
         } catch (error) {
           return {
@@ -90,13 +94,17 @@ const useAuthStore = create(
       },
 
       // 登出
-      logout: () => {
+      logout: async () => {
         localStorage.removeItem('token');
         set({
           user: null,
           token: null,
           isAuthenticated: false,
         });
+
+        // 登出時清空購物車
+        const { default: useCartStore } = await import('./cartStore');
+        useCartStore.getState().clearGuestCart();
       },
 
       // 更新使用者資料

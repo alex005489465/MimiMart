@@ -36,7 +36,6 @@ public class OrderMapper {
         entity.setOrderNumber(order.getOrderNumber().getValue());
         entity.setStatus(order.getStatus());
         entity.setTotalAmount(order.getTotalAmount().getAmount());
-        entity.setDeliveryInfo(serializeDeliveryInfo(order.getDeliveryInfo()));
         entity.setCancellationReason(order.getCancellationReason());
         entity.setCreatedAt(order.getCreatedAt());
         entity.setUpdatedAt(order.getUpdatedAt());
@@ -66,7 +65,6 @@ public class OrderMapper {
                 .status(entity.getStatus())
                 .items(items)
                 .totalAmount(Money.of(entity.getTotalAmount()))
-                .deliveryInfo(deserializeDeliveryInfo(entity.getDeliveryInfo()))
                 .cancellationReason(entity.getCancellationReason())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
@@ -96,42 +94,6 @@ public class OrderMapper {
                 snapshot,
                 entity.getQuantity()
         );
-    }
-
-    /**
-     * 序列化送貨資訊為 JSON
-     */
-    private String serializeDeliveryInfo(DeliveryInfo deliveryInfo) {
-        try {
-            Map<String, String> data = Map.of(
-                    "receiverName", deliveryInfo.getReceiverName(),
-                    "receiverPhone", deliveryInfo.getReceiverPhone(),
-                    "shippingAddress", deliveryInfo.getShippingAddress(),
-                    "deliveryMethod", deliveryInfo.getDeliveryMethod().name(),
-                    "deliveryNote", deliveryInfo.getDeliveryNote() != null ? deliveryInfo.getDeliveryNote() : ""
-            );
-            return objectMapper.writeValueAsString(data);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("送貨資訊序列化失敗", e);
-        }
-    }
-
-    /**
-     * 反序列化送貨資訊
-     */
-    private DeliveryInfo deserializeDeliveryInfo(String json) {
-        try {
-            Map<String, String> data = objectMapper.readValue(json, new TypeReference<>() {});
-            return DeliveryInfo.builder()
-                    .receiverName(data.get("receiverName"))
-                    .receiverPhone(data.get("receiverPhone"))
-                    .shippingAddress(data.get("shippingAddress"))
-                    .deliveryMethod(DeliveryInfo.DeliveryMethod.valueOf(data.get("deliveryMethod")))
-                    .deliveryNote(data.get("deliveryNote"))
-                    .build();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("送貨資訊反序列化失敗", e);
-        }
     }
 
     /**

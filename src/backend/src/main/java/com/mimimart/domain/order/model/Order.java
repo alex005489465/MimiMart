@@ -18,7 +18,6 @@ public class Order {
     private OrderStatus status;
     private final List<OrderItem> items;
     private final Money totalAmount;
-    private final DeliveryInfo deliveryInfo;
     private String cancellationReason;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -30,7 +29,6 @@ public class Order {
         this.status = builder.status;
         this.items = new ArrayList<>(builder.items);
         this.totalAmount = builder.totalAmount;
-        this.deliveryInfo = builder.deliveryInfo;
         this.cancellationReason = builder.cancellationReason;
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
@@ -137,10 +135,6 @@ public class Order {
         return totalAmount;
     }
 
-    public DeliveryInfo getDeliveryInfo() {
-        return deliveryInfo;
-    }
-
     public String getCancellationReason() {
         return cancellationReason;
     }
@@ -163,7 +157,6 @@ public class Order {
         private OrderStatus status = OrderStatus.PAYMENT_PENDING; // 預設狀態
         private List<OrderItem> items = new ArrayList<>();
         private Money totalAmount;
-        private DeliveryInfo deliveryInfo;
         private String cancellationReason;
         private LocalDateTime createdAt = LocalDateTime.now();
         private LocalDateTime updatedAt = LocalDateTime.now();
@@ -195,11 +188,6 @@ public class Order {
 
         public Builder totalAmount(Money totalAmount) {
             this.totalAmount = totalAmount;
-            return this;
-        }
-
-        public Builder deliveryInfo(DeliveryInfo deliveryInfo) {
-            this.deliveryInfo = deliveryInfo;
             return this;
         }
 
@@ -235,9 +223,6 @@ public class Order {
             }
             if (totalAmount == null) {
                 throw new IllegalArgumentException("訂單總金額不可為 null");
-            }
-            if (deliveryInfo == null) {
-                throw new IllegalArgumentException("送貨資訊不可為 null");
             }
         }
     }

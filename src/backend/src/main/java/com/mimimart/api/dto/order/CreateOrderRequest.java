@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -29,6 +30,9 @@ public class CreateOrderRequest {
     private DeliveryInfo.DeliveryMethod deliveryMethod;
 
     private String deliveryNote;
+
+    @NotNull(message = "運費不可為空")
+    private BigDecimal shippingFee;
 
     @NotNull(message = "購買項目不可為空")
     @Size(min = 1, message = "至少需要一個購買項目")
@@ -78,6 +82,14 @@ public class CreateOrderRequest {
 
     public void setDeliveryNote(String deliveryNote) {
         this.deliveryNote = deliveryNote;
+    }
+
+    public BigDecimal getShippingFee() {
+        return shippingFee;
+    }
+
+    public void setShippingFee(BigDecimal shippingFee) {
+        this.shippingFee = shippingFee;
     }
 
     public List<OrderItemRequest> getItems() {

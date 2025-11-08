@@ -2,8 +2,13 @@ package com.mimimart.api.controller.admin;
 
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.order.*;
+import com.mimimart.api.dto.shipment.RecordShippingRequest;
+import com.mimimart.api.dto.shipment.UpdateDeliveryStatusRequest;
 import com.mimimart.application.service.OrderService;
+import com.mimimart.application.service.ShipmentService;
 import com.mimimart.domain.order.model.Order;
+import com.mimimart.domain.shipment.model.Shipment;
+import com.mimimart.domain.shipment.model.ShippingInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,9 +33,11 @@ import java.util.stream.Collectors;
 public class AdminOrderController {
 
     private final OrderService orderService;
+    private final ShipmentService shipmentService;
 
-    public AdminOrderController(OrderService orderService) {
+    public AdminOrderController(OrderService orderService, ShipmentService shipmentService) {
         this.orderService = orderService;
+        this.shipmentService = shipmentService;
     }
 
     /**
@@ -85,17 +92,45 @@ public class AdminOrderController {
     @PostMapping("/detail")
     public ApiResponse<OrderDetailResponse> getOrderDetail(@Valid @RequestBody OrderNumberRequest request) {
         Order order = orderService.getOrderDetailAdmin(request.getOrderNumber());
-        return ApiResponse.success("查詢成功", OrderDetailResponse.from(order));
+        Shipment shipment = shipmentService.getShipmentByOrderId(order.getId());
+        return ApiResponse.success("查詢成功", OrderDetailResponse.from(order, shipment));
     }
 
     /**
-     * 標記訂單為已出貨
+     * 記錄出貨資訊（填寫物流商、追蹤號碼等）
      */
-    @Operation(summary = "標記訂單為已出貨", description = "將訂單狀態從已付款改為已出貨")
+    @Operation(summary = "記錄出貨資訊", description = "填寫物流商、追蹤號碼等出貨資訊，並將配送狀態改為已出貨")
     @PostMapping("/ship")
-    public ApiResponse<Void> shipOrder(@Valid @RequestBody OrderNumberRequest request) {
+    public ApiResponse<Void> shipOrder(@Valid @RequestBody RecordShippingRequest request) {
+        // 1. 查詢訂單取得 Order ID
+        Order order = orderService.getOrderDetailAdmin(request.getOrderNumber());
+
+        // 2. 建立 ShippingInfo
+        ShippingInfo shippingInfo = ShippingInfo.builder()
+                .carrier(request.getCarrier())
+                .trackingNumber(request.getTrackingNumber())
+                .shippedAt(java.time.LocalDateTime.now())
+                .estimatedDeliveryDate(request.getEstimatedDeliveryDate())
+                .build();
+
+        // 3. 記錄出貨資訊（會同步更新訂單狀態為 SHIPPED）
+        shipmentService.recordShipping(order.getId(), shippingInfo);
+
+        // 4. 更新訂單狀態為已出貨
         orderService.shipOrder(request.getOrderNumber());
-        return ApiResponse.success("訂單已標記為已出貨");
+
+        return ApiResponse.success("出貨資訊已記錄");
+    }
+
+    /**
+     * 更新配送狀態
+     */
+    @Operation(summary = "更新配送狀態", description = "更新訂單的配送狀態（運送中、配送中、已送達等）")
+    @PostMapping("/update-delivery-status")
+    public ApiResponse<Void> updateDeliveryStatus(@Valid @RequestBody UpdateDeliveryStatusRequest request) {
+        Order order = orderService.getOrderDetailAdmin(request.getOrderNumber());
+        shipmentService.updateDeliveryStatus(order.getId(), request.getStatus(), request.getNotes());
+        return ApiResponse.success("配送狀態已更新");
     }
 
     /**

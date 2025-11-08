@@ -3,7 +3,9 @@ package com.mimimart.api.controller.shop;
 import com.mimimart.api.dto.ApiResponse;
 import com.mimimart.api.dto.order.*;
 import com.mimimart.application.service.OrderService;
+import com.mimimart.application.service.ShipmentService;
 import com.mimimart.domain.order.model.Order;
+import com.mimimart.domain.shipment.model.Shipment;
 import com.mimimart.infrastructure.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,9 +25,11 @@ import java.util.stream.Collectors;
 public class ShopOrderController {
 
     private final OrderService orderService;
+    private final ShipmentService shipmentService;
 
-    public ShopOrderController(OrderService orderService) {
+    public ShopOrderController(OrderService orderService, ShipmentService shipmentService) {
         this.orderService = orderService;
+        this.shipmentService = shipmentService;
     }
 
     /**
@@ -40,9 +44,14 @@ public class ShopOrderController {
         Order order = orderService.createOrder(
                 userDetails.getUserId(),
                 request.getItems(),
-                request.toDeliveryInfo()
+                request.toDeliveryInfo(),
+                request.getShippingFee()
         );
-        return ApiResponse.success("訂單建立成功", OrderDetailResponse.from(order));
+
+        // 查詢物流資訊
+        Shipment shipment = shipmentService.getShipmentByOrderId(order.getId());
+
+        return ApiResponse.success("訂單建立成功", OrderDetailResponse.from(order, shipment));
     }
 
     /**
@@ -68,7 +77,8 @@ public class ShopOrderController {
             @Valid @RequestBody OrderNumberRequest request
     ) {
         Order order = orderService.getOrderDetail(userDetails.getUserId(), request.getOrderNumber());
-        return ApiResponse.success("查詢成功", OrderDetailResponse.from(order));
+        Shipment shipment = shipmentService.getShipmentByOrderId(order.getId());
+        return ApiResponse.success("查詢成功", OrderDetailResponse.from(order, shipment));
     }
 
     /**

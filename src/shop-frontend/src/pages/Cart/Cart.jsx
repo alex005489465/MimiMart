@@ -1,23 +1,17 @@
 /**
  * 購物車頁面
- * 使用 MUI v6 和 cartStore
+ * 使用 MUI v6 和 cartStore (整合後端 API)
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardContent,
+  CardMedia,
   Button,
   TextField,
   Typography,
   Box,
-  TableContainer,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Paper,
   Divider,
   Dialog,
   DialogTitle,
@@ -26,19 +20,36 @@ import {
   DialogActions,
   Snackbar,
   Alert,
+  IconButton,
+  Grid2,
+  CircularProgress,
+  Chip,
 } from '@mui/material';
 import {
   MdDelete,
   MdShoppingCart,
   MdShoppingBag,
+  MdAdd,
+  MdRemove,
 } from 'react-icons/md';
 import useCartStore from '../../stores/cartStore';
+import useAuthStore from '../../stores/authStore';
 import styles from './Cart.module.css';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { items, getTotalPrice, updateQuantity, removeItem, clearCart } =
-    useCartStore();
+  const { isAuthenticated } = useAuthStore();
+  const {
+    items,
+    getTotalPrice,
+    getTotalItems,
+    updateQuantity,
+    removeItem,
+    clearCart,
+    syncCart,
+    loading,
+    error,
+  } = useCartStore();
 
   // Snackbar 狀態管理
   const [snackbar, setSnackbar] = useState({
@@ -55,6 +66,20 @@ const Cart = () => {
 
   const [clearDialog, setClearDialog] = useState(false);
 
+  // 會員登入時同步購物車
+  useEffect(() => {
+    if (isAuthenticated) {
+      syncCart();
+    }
+  }, [isAuthenticated]);
+
+  // 顯示錯誤訊息
+  useEffect(() => {
+    if (error) {
+      showSnackbar(error, 'error');
+    }
+  }, [error]);
+
   // 顯示 Snackbar
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -65,12 +90,48 @@ const Cart = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // 更新商品數量
-  const handleQuantityChange = (productId, quantity) => {
-    const numQuantity = parseInt(quantity, 10);
+  // 增加數量
+  const handleIncreaseQuantity = async (item) => {
+    const newQuantity = item.quantity + 1;
+    if (newQuantity > item.stock) {
+      showSnackbar('已達庫存上限', 'warning');
+      return;
+    }
+
+    const result = await updateQuantity(item.productId, newQuantity);
+    if (result.success) {
+      showSnackbar('數量已更新', 'success');
+    } else {
+      showSnackbar(result.error, 'error');
+    }
+  };
+
+  // 減少數量
+  const handleDecreaseQuantity = async (item) => {
+    if (item.quantity <= 1) {
+      openDeleteDialog(item.productId);
+      return;
+    }
+
+    const result = await updateQuantity(item.productId, item.quantity - 1);
+    if (result.success) {
+      showSnackbar('數量已更新', 'success');
+    } else {
+      showSnackbar(result.error, 'error');
+    }
+  };
+
+  // 手動輸入數量
+  const handleQuantityInput = async (productId, value, stock) => {
+    const numQuantity = parseInt(value, 10);
     if (isNaN(numQuantity) || numQuantity < 1) return;
 
-    const result = updateQuantity(productId, numQuantity);
+    if (numQuantity > stock) {
+      showSnackbar('超過庫存限制', 'warning');
+      return;
+    }
+
+    const result = await updateQuantity(productId, numQuantity);
     if (!result.success) {
       showSnackbar(result.error, 'error');
     }
@@ -87,10 +148,14 @@ const Cart = () => {
   };
 
   // 確認移除商品
-  const confirmRemove = () => {
+  const confirmRemove = async () => {
     if (deleteDialog.productId) {
-      removeItem(deleteDialog.productId);
-      showSnackbar('已移除商品', 'success');
+      const result = await removeItem(deleteDialog.productId);
+      if (result.success) {
+        showSnackbar('已移除商品', 'success');
+      } else {
+        showSnackbar(result.error, 'error');
+      }
       closeDeleteDialog();
     }
   };
@@ -106,168 +171,331 @@ const Cart = () => {
   };
 
   // 確認清空購物車
-  const confirmClearCart = () => {
-    clearCart();
-    showSnackbar('已清空購物車', 'success');
+  const confirmClearCart = async () => {
+    const result = await clearCart();
+    if (result.success) {
+      showSnackbar('已清空購物車', 'success');
+    } else {
+      showSnackbar(result.error, 'error');
+    }
     closeClearDialog();
   };
 
   // 前往結帳
   const handleCheckout = () => {
-    showSnackbar('結帳功能開發中', 'info');
-    // navigate('/checkout');
+    navigate('/checkout');
   };
 
-  // 表格欄位定義
-  const columns = [
-    {
-      title: '商品',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
-        <Space>
-          <Image
-            src={record.image || 'https://via.placeholder.com/80'}
-            alt={text}
-            width={80}
-            height={80}
-            style={{ objectFit: 'cover', borderRadius: 8 }}
-            preview={false}
-          />
-          <div>
-            <Text strong>{text}</Text>
-            <br />
-            <Text type="secondary">商品編號: {record.productId}</Text>
-          </div>
-        </Space>
-      ),
-    },
-    {
-      title: '單價',
-      dataIndex: 'price',
-      key: 'price',
-      width: 120,
-      render: (price) => <Text>NT$ {price.toLocaleString()}</Text>,
-    },
-    {
-      title: '數量',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      width: 150,
-      render: (quantity, record) => (
-        <InputNumber
-          min={1}
-          max={record.stock}
-          value={quantity}
-          onChange={(value) => handleQuantityChange(record.productId, value)}
-        />
-      ),
-    },
-    {
-      title: '小計',
-      key: 'subtotal',
-      width: 120,
-      render: (_, record) => (
-        <Text strong>
-          NT$ {(record.price * record.quantity).toLocaleString()}
-        </Text>
-      ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 100,
-      render: (_, record) => (
-        <Popconfirm
-          title="確定要移除此商品嗎？"
-          onConfirm={() => handleRemove(record.productId)}
-          okText="確定"
-          cancelText="取消"
-        >
-          <Button type="text" danger icon={<DeleteOutlined />}>
-            移除
-          </Button>
-        </Popconfirm>
-      ),
-    },
-  ];
-
   // 購物車為空的狀態
-  if (items.length === 0) {
+  if (items.length === 0 && !loading) {
     return (
       <div className={styles.cartPage}>
-        <div className={styles.container}>
+        <Box className={styles.container}>
           <Card>
-            <Empty
-              image={<ShoppingCartOutlined style={{ fontSize: 80 }} />}
-              description="購物車是空的"
-            >
-              <Button
-                type="primary"
-                size="large"
-                icon={<ShoppingOutlined />}
-                onClick={() => navigate('/products')}
+            <CardContent>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  py: 8,
+                }}
               >
-                去逛逛
-              </Button>
-            </Empty>
+                <MdShoppingCart size={80} color="#ccc" />
+                <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+                  購物車是空的
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  startIcon={<MdShoppingBag />}
+                  onClick={() => navigate('/products')}
+                  sx={{ mt: 3 }}
+                >
+                  去逛逛
+                </Button>
+              </Box>
+            </CardContent>
           </Card>
-        </div>
+        </Box>
+      </div>
+    );
+  }
+
+  // 載入中狀態
+  if (loading && items.length === 0) {
+    return (
+      <div className={styles.cartPage}>
+        <Box className={styles.container}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        </Box>
       </div>
     );
   }
 
   return (
     <div className={styles.cartPage}>
-      <div className={styles.container}>
-        <Title level={2}>
-          <ShoppingCartOutlined /> 購物車
-        </Title>
+      <Box className={styles.container}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <MdShoppingCart size={32} />
+          <Typography variant="h4" sx={{ ml: 1 }}>
+            購物車
+          </Typography>
+        </Box>
 
         <Card>
-          <Table
-            dataSource={items}
-            columns={columns}
-            rowKey="productId"
-            pagination={false}
-            scroll={{ x: 800 }}
-          />
+          <CardContent>
+            {/* 購物車項目列表 */}
+            {items.map((item) => (
+              <Box key={item.productId}>
+                <Grid2 container spacing={2} sx={{ py: 2 }}>
+                  {/* 商品圖片與名稱 */}
+                  <Grid2 size={{ xs: 12, sm: 6, md: 5 }}>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <CardMedia
+                        component="img"
+                        image={item.image || 'https://via.placeholder.com/100'}
+                        alt={item.name}
+                        sx={{
+                          width: 100,
+                          height: 100,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {item.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          商品編號: {item.productId}
+                        </Typography>
+                        {item.categoryName && (
+                          <Chip
+                            label={item.categoryName}
+                            size="small"
+                            sx={{ mt: 1 }}
+                          />
+                        )}
+                        {item.isOutOfStock && (
+                          <Chip
+                            label="缺貨"
+                            color="error"
+                            size="small"
+                            sx={{ mt: 1, ml: 1 }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </Grid2>
 
-          <Divider />
+                  {/* 單價 */}
+                  <Grid2
+                    size={{ xs: 6, sm: 3, md: 2 }}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      單價
+                    </Typography>
+                    <Typography variant="body1">
+                      NT$ {item.price.toLocaleString()}
+                    </Typography>
+                  </Grid2>
 
-          <div className={styles.footer}>
-            <Space>
-              <Popconfirm
-                title="確定要清空購物車嗎？"
-                onConfirm={handleClearCart}
-                okText="確定"
-                cancelText="取消"
+                  {/* 數量控制 */}
+                  <Grid2
+                    size={{ xs: 6, sm: 3, md: 2 }}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      數量
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDecreaseQuantity(item)}
+                        disabled={loading || item.isOutOfStock}
+                      >
+                        <MdRemove />
+                      </IconButton>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleQuantityInput(
+                            item.productId,
+                            e.target.value,
+                            item.stock
+                          )
+                        }
+                        disabled={loading || item.isOutOfStock}
+                        inputProps={{
+                          min: 1,
+                          max: item.stock,
+                          style: { textAlign: 'center' },
+                        }}
+                        sx={{ width: 60, mx: 1 }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleIncreaseQuantity(item)}
+                        disabled={loading || item.isOutOfStock}
+                      >
+                        <MdAdd />
+                      </IconButton>
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 0.5 }}
+                    >
+                      庫存: {item.stock}
+                    </Typography>
+                  </Grid2>
+
+                  {/* 小計 */}
+                  <Grid2
+                    size={{ xs: 6, sm: 6, md: 2 }}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      小計
+                    </Typography>
+                    <Typography variant="h6" color="primary">
+                      NT$ {(item.price * item.quantity).toLocaleString()}
+                    </Typography>
+                  </Grid2>
+
+                  {/* 操作按鈕 */}
+                  <Grid2
+                    size={{ xs: 6, sm: 6, md: 1 }}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <IconButton
+                      color="error"
+                      onClick={() => openDeleteDialog(item.productId)}
+                      disabled={loading}
+                    >
+                      <MdDelete />
+                    </IconButton>
+                  </Grid2>
+                </Grid2>
+                <Divider />
+              </Box>
+            ))}
+
+            {/* 底部操作區 */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mt: 3,
+                flexWrap: 'wrap',
+                gap: 2,
+              }}
+            >
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={openClearDialog}
+                disabled={loading}
               >
-                <Button danger>清空購物車</Button>
-              </Popconfirm>
-            </Space>
+                清空購物車
+              </Button>
 
-            <div className={styles.summary}>
-              <Space direction="vertical" align="end" size="small">
-                <Text>
-                  共 <Text strong>{items.length}</Text> 件商品
-                </Text>
-                <Title level={3} style={{ margin: 0, color: '#ff4d4f' }}>
-                  總計：NT$ {getTotalPrice().toLocaleString()}
-                </Title>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  共 <strong>{getTotalItems()}</strong> 件商品 (
+                  {items.length} 種)
+                </Typography>
+                <Typography variant="h5" color="error" fontWeight="bold">
+                  總計:NT$ {getTotalPrice().toLocaleString()}
+                </Typography>
                 <Button
-                  type="primary"
+                  variant="contained"
+                  color="primary"
                   size="large"
                   onClick={handleCheckout}
-                  style={{ width: 200 }}
+                  disabled={loading || items.some((item) => item.isOutOfStock)}
+                  sx={{ mt: 2, minWidth: 200 }}
                 >
                   前往結帳
                 </Button>
-              </Space>
-            </div>
-          </div>
+                {items.some((item) => item.isOutOfStock) && (
+                  <Typography variant="caption" color="error" display="block">
+                    購物車中有缺貨商品,請先移除
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </CardContent>
         </Card>
-      </div>
+      </Box>
+
+      {/* 移除商品確認對話框 */}
+      <Dialog open={deleteDialog.open} onClose={closeDeleteDialog}>
+        <DialogTitle>移除商品</DialogTitle>
+        <DialogContent>
+          <DialogContentText>確定要移除此商品嗎?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog}>取消</Button>
+          <Button onClick={confirmRemove} color="error" variant="contained">
+            確定
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 清空購物車確認對話框 */}
+      <Dialog open={clearDialog} onClose={closeClearDialog}>
+        <DialogTitle>清空購物車</DialogTitle>
+        <DialogContent>
+          <DialogContentText>確定要清空整個購物車嗎?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeClearDialog}>取消</Button>
+          <Button onClick={confirmClearCart} color="error" variant="contained">
+            確定
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar 提示訊息 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

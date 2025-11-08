@@ -1,8 +1,9 @@
 package com.mimimart.api.dto.order;
 
-import com.mimimart.domain.order.model.DeliveryInfo;
+import com.mimimart.api.dto.shipment.ShipmentResponse;
 import com.mimimart.domain.order.model.Order;
 import com.mimimart.domain.order.model.OrderStatus;
+import com.mimimart.domain.shipment.model.Shipment;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,12 +22,8 @@ public class OrderDetailResponse {
     private List<OrderItemResponse> items;
     private BigDecimal totalAmount;
 
-    // 送貨資訊
-    private String receiverName;
-    private String receiverPhone;
-    private String shippingAddress;
-    private String deliveryMethod;
-    private String deliveryNote;
+    // 物流資訊
+    private ShipmentResponse shipment;
 
     private String cancellationReason;
     private LocalDateTime createdAt;
@@ -35,7 +32,7 @@ public class OrderDetailResponse {
     /**
      * 從領域模型建立回應 DTO
      */
-    public static OrderDetailResponse from(Order order) {
+    public static OrderDetailResponse from(Order order, Shipment shipment) {
         OrderDetailResponse response = new OrderDetailResponse();
         response.id = order.getId();
         response.orderNumber = order.getOrderNumber().getValue();
@@ -46,13 +43,27 @@ public class OrderDetailResponse {
                 .collect(Collectors.toList());
         response.totalAmount = order.getTotalAmount().getAmount();
 
-        // 送貨資訊
-        DeliveryInfo deliveryInfo = order.getDeliveryInfo();
-        response.receiverName = deliveryInfo.getReceiverName();
-        response.receiverPhone = deliveryInfo.getReceiverPhone();
-        response.shippingAddress = deliveryInfo.getShippingAddress();
-        response.deliveryMethod = deliveryInfo.getDeliveryMethod().getDisplayName();
-        response.deliveryNote = deliveryInfo.getDeliveryNote();
+        // 物流資訊
+        response.shipment = ShipmentResponse.builder()
+                .id(shipment.getId())
+                .orderId(shipment.getOrderId())
+                .receiverName(shipment.getReceiverName())
+                .receiverPhone(shipment.getReceiverPhone())
+                .shippingAddress(shipment.getShippingAddress())
+                .deliveryMethod(shipment.getDeliveryMethod())
+                .deliveryNote(shipment.getDeliveryNote())
+                .shippingFee(shipment.getShippingFee())
+                .carrier(shipment.getCarrier())
+                .trackingNumber(shipment.getTrackingNumber())
+                .shippedAt(shipment.getShippedAt())
+                .estimatedDeliveryDate(shipment.getEstimatedDeliveryDate())
+                .deliveryStatus(shipment.getDeliveryStatus())
+                .deliveryStatusDescription(shipment.getDeliveryStatus().getDescription())
+                .actualDeliveryDate(shipment.getActualDeliveryDate())
+                .notes(shipment.getNotes())
+                .createdAt(shipment.getCreatedAt())
+                .updatedAt(shipment.getUpdatedAt())
+                .build();
 
         response.cancellationReason = order.getCancellationReason();
         response.createdAt = order.getCreatedAt();
@@ -86,24 +97,8 @@ public class OrderDetailResponse {
         return totalAmount;
     }
 
-    public String getReceiverName() {
-        return receiverName;
-    }
-
-    public String getReceiverPhone() {
-        return receiverPhone;
-    }
-
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public String getDeliveryMethod() {
-        return deliveryMethod;
-    }
-
-    public String getDeliveryNote() {
-        return deliveryNote;
+    public ShipmentResponse getShipment() {
+        return shipment;
     }
 
     public String getCancellationReason() {

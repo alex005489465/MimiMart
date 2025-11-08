@@ -31,9 +31,6 @@ public class OrderEntity {
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(name = "delivery_info", nullable = false, columnDefinition = "TEXT")
-    private String deliveryInfo; // JSON 格式
-
     @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
 
@@ -101,14 +98,6 @@ public class OrderEntity {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
-    }
-
-    public String getDeliveryInfo() {
-        return deliveryInfo;
-    }
-
-    public void setDeliveryInfo(String deliveryInfo) {
-        this.deliveryInfo = deliveryInfo;
     }
 
     public String getCancellationReason() {

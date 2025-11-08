@@ -35,6 +35,7 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final OrderFactory orderFactory;
     private final PaymentService paymentService;
+    private final ShipmentService shipmentService;
 
     /**
      * 前台:建立訂單(從前端傳入的項目列表)
@@ -42,12 +43,13 @@ public class OrderService {
      * @param memberId     會員 ID
      * @param items        訂單項目列表
      * @param deliveryInfo 送貨資訊
+     * @param shippingFee  運費
      * @return 訂單(領域模型)
      */
     @Transactional
-    public Order createOrder(Long memberId, List<CreateOrderRequest.OrderItemRequest> items, DeliveryInfo deliveryInfo) {
+    public Order createOrder(Long memberId, List<CreateOrderRequest.OrderItemRequest> items, DeliveryInfo deliveryInfo, java.math.BigDecimal shippingFee) {
         // 1. 使用領域服務建立訂單(從項目列表)
-        Order order = orderFactory.createFromItems(memberId, items, deliveryInfo);
+        Order order = orderFactory.createFromItems(memberId, items);
 
         // 2. 持久化訂單
         OrderEntity entity = orderMapper.toEntity(order);
@@ -59,7 +61,14 @@ public class OrderService {
                 savedEntity.getTotalAmount()
         );
 
-        // 4. 返回領域模型
+        // 4. 同步建立物流記錄（在同一事務中）
+        shipmentService.createShipment(
+                savedEntity.getId(),
+                deliveryInfo,
+                shippingFee
+        );
+
+        // 5. 返回領域模型
         return orderMapper.toDomain(savedEntity);
     }
 

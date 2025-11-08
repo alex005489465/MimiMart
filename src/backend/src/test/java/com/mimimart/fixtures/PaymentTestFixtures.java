@@ -59,7 +59,6 @@ public class PaymentTestFixtures {
         order.setOrderNumber(orderNumber);
         order.setStatus(OrderStatus.PAYMENT_PENDING);
         order.setTotalAmount(totalAmount);
-        order.setDeliveryInfo("{\"receiverName\":\"測試收件人\",\"receiverPhone\":\"0912345678\",\"shippingAddress\":\"台北市測試路1號\",\"deliveryMethod\":\"HOME_DELIVERY\",\"deliveryNote\":\"\"}");
 
         // 儲存訂單(先不設置項目)
         order = orderRepository.save(order);

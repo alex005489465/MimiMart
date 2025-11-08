@@ -27,13 +27,12 @@ public class OrderFactory {
     /**
      * 從項目列表建立訂單
      *
-     * @param memberId     會員 ID
-     * @param items        訂單項目列表
-     * @param deliveryInfo 送貨資訊
+     * @param memberId 會員 ID
+     * @param items    訂單項目列表
      * @return Order 訂單(領域模型)
      * @throws EmptyCartException 項目列表為空時拋出
      */
-    public Order createFromItems(Long memberId, List<CreateOrderRequest.OrderItemRequest> items, DeliveryInfo deliveryInfo) {
+    public Order createFromItems(Long memberId, List<CreateOrderRequest.OrderItemRequest> items) {
         // 驗證項目列表不為空
         if (items == null || items.isEmpty()) {
             throw new EmptyCartException();
@@ -67,7 +66,6 @@ public class OrderFactory {
                 .status(OrderStatus.PAYMENT_PENDING)
                 .items(orderItems)
                 .totalAmount(totalAmount)
-                .deliveryInfo(deliveryInfo)
                 .build();
     }
 

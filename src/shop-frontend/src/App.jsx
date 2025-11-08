@@ -21,6 +21,7 @@ import Home from './pages/Home/Home';
 import Login from './pages/Login/Login';
 import Member from './pages/Member/Member';
 import Cart from './pages/Cart/Cart';
+import Checkout from './pages/Checkout/Checkout';
 import Products from './pages/Products/Products';
 import ProductDetail from './pages/ProductDetail/ProductDetail';
 import NotFound from './pages/NotFound/NotFound';
@@ -56,13 +57,13 @@ function App() {
               }
             />
 
-            {/* 購物車 */}
+            {/* 購物車與結帳 */}
             <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
 
             {/* 商品相關路由 */}
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetail />} />
-            {/* <Route path="/checkout" element={<Checkout />} /> */}
 
             {/* 其他頁面（待實作） */}
             {/* <Route path="/promotions" element={<Promotions />} /> */}
