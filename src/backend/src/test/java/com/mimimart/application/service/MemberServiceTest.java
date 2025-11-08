@@ -2,6 +2,7 @@ package com.mimimart.application.service;
 
 import com.mimimart.domain.member.exception.InvalidCredentialsException;
 import com.mimimart.domain.member.exception.MemberNotFoundException;
+import com.mimimart.fixtures.TestFixtures;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -42,12 +43,15 @@ class MemberServiceTest {
     @Autowired
     private EmailQuotaService emailQuotaService;
 
+    @Autowired
+    private TestFixtures fixtures;
+
     private Member testMember;
 
     @BeforeEach
     void setUp() {
-        // 建立測試用會員
-        testMember = authService.register("member@example.com", "password123", "測試會員");
+        // 建立測試用會員（使用 fixtures）
+        testMember = fixtures.createTestMember(1);
     }
 
     /**
@@ -126,8 +130,9 @@ class MemberServiceTest {
 
         // Then
         assertEquals(newName, updatedMember.getName());
-        assertNull(updatedMember.getPhone()); // 電話應該保持不變
-        assertNull(updatedMember.getHomeAddress()); // 地址應該保持不變
+        // fixtures 建立的會員已有電話和地址，部分更新時應保持原值
+        assertEquals(testMember.getPhone(), updatedMember.getPhone());
+        assertEquals(testMember.getHomeAddress(), updatedMember.getHomeAddress());
     }
 
     @Test
@@ -142,8 +147,8 @@ class MemberServiceTest {
     @Test
     @DisplayName("修改密碼 - 使用正確的舊密碼成功修改")
     void testChangePassword_Success() {
-        // Given
-        String oldPassword = "password123";
+        // Given - fixtures 的預設密碼是 "fixture123"
+        String oldPassword = fixtures.getDefaultPassword();
         String newPassword = "newpassword456";
 
         // When

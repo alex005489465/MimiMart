@@ -1,5 +1,6 @@
 package com.mimimart.fixtures;
 
+import com.mimimart.application.service.AuthService;
 import com.mimimart.infrastructure.persistence.entity.Category;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.entity.Product;
@@ -12,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * 測試資料輔助類
@@ -44,6 +47,9 @@ public class TestFixtures {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuthService authService;
 
     private static final String DEFAULT_PASSWORD = "fixture123";
 
@@ -111,6 +117,77 @@ public class TestFixtures {
         product.setImageUrl(String.format("/test/product-%03d.jpg", index));
 
         return productRepository.save(product);
+    }
+
+    /**
+     * 建立測試會員並返回 LoginResult（含 Access Token 和 Refresh Token）
+     * 適用於需要驗證完整註冊+登入流程的測試
+     *
+     * @param index 會員編號
+     * @return AuthService.LoginResult（含會員資料與 Token）
+     */
+    public AuthService.LoginResult createTestMemberWithAuth(int index) {
+        long timestamp = System.currentTimeMillis();
+        String email = String.format("auth-test-%d-%03d@fixture.test", timestamp, index);
+        String name = String.format("認證測試會員%03d", index);
+
+        return authService.register(email, DEFAULT_PASSWORD, name);
+    }
+
+    /**
+     * 建立未驗證的測試會員（含 verificationToken）
+     * 適用於 Email 驗證流程測試
+     *
+     * @param index 會員編號
+     * @return 測試會員實體（含 verificationToken）
+     */
+    public Member createTestMemberForEmailVerification(int index) {
+        long timestamp = System.currentTimeMillis();
+        String email = String.format("verify-test-%d-%03d@fixture.test", timestamp, index);
+        String name = String.format("驗證測試會員%03d", index);
+
+        Member member = new Member();
+        member.setEmail(email);
+        member.setPasswordHash(passwordEncoder.encode(DEFAULT_PASSWORD));
+        member.setName(name);
+        member.setPhone(String.format("0900%06d", index));
+        member.setHomeAddress(String.format("測試地址%03d號", index));
+        member.setStatus(MemberStatus.ACTIVE);
+        member.setEmailVerified(false);
+
+        // 設定驗證 Token（24 小時有效期）
+        member.setVerificationToken(UUID.randomUUID().toString());
+        member.setVerificationTokenExpiresAt(LocalDateTime.now().plusHours(24));
+
+        return memberRepository.save(member);
+    }
+
+    /**
+     * 建立測試會員（含 passwordResetToken）
+     * 適用於密碼重設流程測試
+     *
+     * @param index 會員編號
+     * @return 測試會員實體（含 passwordResetToken）
+     */
+    public Member createTestMemberForPasswordReset(int index) {
+        long timestamp = System.currentTimeMillis();
+        String email = String.format("reset-test-%d-%03d@fixture.test", timestamp, index);
+        String name = String.format("重設測試會員%03d", index);
+
+        Member member = new Member();
+        member.setEmail(email);
+        member.setPasswordHash(passwordEncoder.encode(DEFAULT_PASSWORD));
+        member.setName(name);
+        member.setPhone(String.format("0900%06d", index));
+        member.setHomeAddress(String.format("測試地址%03d號", index));
+        member.setStatus(MemberStatus.ACTIVE);
+        member.setEmailVerified(true);
+
+        // 設定重設密碼 Token（30 分鐘有效期）
+        member.setPasswordResetToken(UUID.randomUUID().toString());
+        member.setPasswordResetTokenExpiresAt(LocalDateTime.now().plusMinutes(30));
+
+        return memberRepository.save(member);
     }
 
     /**

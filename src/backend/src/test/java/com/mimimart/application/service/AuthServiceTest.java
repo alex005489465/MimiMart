@@ -10,6 +10,7 @@ import com.mimimart.domain.member.exception.MemberNotFoundException;
 import com.mimimart.domain.member.exception.PasswordMismatchException;
 import com.mimimart.domain.member.exception.ResetTokenExpiredException;
 import com.mimimart.domain.member.exception.VerificationTokenExpiredException;
+import com.mimimart.fixtures.TestFixtures;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import com.mimimart.infrastructure.persistence.repository.RefreshTokenRepository;
@@ -48,6 +49,9 @@ class AuthServiceTest {
     @Autowired
     private EmailQuotaService emailQuotaService;
 
+    @Autowired
+    private TestFixtures fixtures;
+
     /**
      * 每個測試執行後清理 Redis 郵件配額計數器
      * 避免測試之間的配額累積導致測試失敗
@@ -66,19 +70,31 @@ class AuthServiceTest {
         String name = "測試會員";
 
         // When
-        Member member = authService.register(email, password, name);
+        AuthService.LoginResult result = authService.register(email, password, name);
 
-        // Then
-        assertNotNull(member);
-        assertNotNull(member.getId());
-        assertEquals(email, member.getEmail());
-        assertEquals(name, member.getName());
-        assertEquals(MemberStatus.ACTIVE, member.getStatus());
-        assertFalse(member.getEmailVerified());
-        assertNotNull(member.getPasswordHash());
-        assertNotEquals(password, member.getPasswordHash()); // 密碼應該被加密
-        assertNotNull(member.getVerificationToken());
-        assertNotNull(member.getVerificationTokenExpiresAt());
+        // Then - 驗證 Member 資料
+        assertNotNull(result);
+        assertNotNull(result.member);
+        assertNotNull(result.member.getId());
+        assertEquals(email, result.member.getEmail());
+        assertEquals(name, result.member.getName());
+        assertEquals(MemberStatus.ACTIVE, result.member.getStatus());
+        assertFalse(result.member.getEmailVerified());
+        assertNotNull(result.member.getPasswordHash());
+        assertNotEquals(password, result.member.getPasswordHash()); // 密碼應該被加密
+        assertNotNull(result.member.getVerificationToken());
+        assertNotNull(result.member.getVerificationTokenExpiresAt());
+
+        // Then - 驗證 Access Token
+        assertNotNull(result.accessToken);
+        assertTrue(result.accessToken.startsWith("eyJ")); // JWT 格式
+
+        // Then - 驗證 Refresh Token
+        assertNotNull(result.refreshToken);
+        assertTrue(refreshTokenRepository.findByToken(result.refreshToken).isPresent());
+
+        // Then - 驗證 lastLoginAt 設定為註冊時間
+        assertNotNull(result.member.getLastLoginAt());
     }
 
     @Test
@@ -145,11 +161,11 @@ class AuthServiceTest {
         // Given
         String email = "logout@example.com";
         String password = "password123";
-        Member member = authService.register(email, password, "登出測試會員");
+        AuthService.LoginResult registerResult = authService.register(email, password, "登出測試會員");
         AuthService.LoginResult loginResult = authService.login(email, password);
 
         // When: 登出時提供 Access Token
-        authService.logout(member.getId(), loginResult.accessToken);
+        authService.logout(registerResult.member.getId(), loginResult.accessToken);
 
         // Then: Refresh Token 應該被撤銷
         assertFalse(refreshTokenRepository.findByToken(loginResult.refreshToken).isPresent());
@@ -188,16 +204,15 @@ class AuthServiceTest {
     @Test
     @DisplayName("Email 驗證 - 使用有效 Token 驗證成功")
     void testVerifyEmail_Success() {
-        // Given
-        String email = "verify@example.com";
-        Member member = authService.register(email, "password123", "驗證測試會員");
+        // Given - 使用 fixtures 建立未驗證會員
+        Member member = fixtures.createTestMemberForEmailVerification(1);
         String token = member.getVerificationToken();
 
         // When
         authService.verifyEmail(token);
 
         // Then
-        Member verifiedMember = memberRepository.findByEmail(email).orElseThrow();
+        Member verifiedMember = memberRepository.findByEmail(member.getEmail()).orElseThrow();
         assertTrue(verifiedMember.getEmailVerified());
         assertNull(verifiedMember.getVerificationToken());
         assertNull(verifiedMember.getVerificationTokenExpiresAt());
@@ -215,14 +230,13 @@ class AuthServiceTest {
     @Test
     @DisplayName("Email 驗證 - 已驗證的 Email 再次驗證應拋出例外")
     void testVerifyEmail_AlreadyVerified() {
-        // Given
-        String email = "already-verified@example.com";
-        Member member = authService.register(email, "password123", "已驗證會員");
+        // Given - 使用 fixtures 建立未驗證會員
+        Member member = fixtures.createTestMemberForEmailVerification(2);
         String token = member.getVerificationToken();
         authService.verifyEmail(token);
 
         // 重新取得會員的驗證 token（模擬重複驗證）
-        Member verifiedMember = memberRepository.findByEmail(email).orElseThrow();
+        Member verifiedMember = memberRepository.findByEmail(member.getEmail()).orElseThrow();
 
         // When & Then - 因為已驗證，token 已被清空，應該拋出 InvalidVerificationTokenException
         assertThrows(InvalidVerificationTokenException.class, () -> {
@@ -233,16 +247,15 @@ class AuthServiceTest {
     @Test
     @DisplayName("重新發送驗證郵件 - 成功")
     void testResendVerificationEmail_Success() {
-        // Given
-        String email = "resend@example.com";
-        Member member = authService.register(email, "password123", "重發驗證會員");
+        // Given - 使用 fixtures 建立未驗證會員
+        Member member = fixtures.createTestMemberForEmailVerification(3);
         String oldToken = member.getVerificationToken();
 
         // When
-        authService.resendVerificationEmail(email);
+        authService.resendVerificationEmail(member.getEmail());
 
         // Then
-        Member updatedMember = memberRepository.findByEmail(email).orElseThrow();
+        Member updatedMember = memberRepository.findByEmail(member.getEmail()).orElseThrow();
         assertNotNull(updatedMember.getVerificationToken());
         assertNotEquals(oldToken, updatedMember.getVerificationToken());
         assertNotNull(updatedMember.getVerificationTokenExpiresAt());
@@ -260,14 +273,13 @@ class AuthServiceTest {
     @Test
     @DisplayName("重新發送驗證郵件 - 已驗證的 Email 應拋出例外")
     void testResendVerificationEmail_AlreadyVerified() {
-        // Given
-        String email = "verified-resend@example.com";
-        Member member = authService.register(email, "password123", "已驗證會員");
+        // Given - 使用 fixtures 建立未驗證會員，然後驗證它
+        Member member = fixtures.createTestMemberForEmailVerification(4);
         authService.verifyEmail(member.getVerificationToken());
 
         // When & Then
         assertThrows(EmailAlreadyVerifiedException.class, () -> {
-            authService.resendVerificationEmail(email);
+            authService.resendVerificationEmail(member.getEmail());
         });
     }
 

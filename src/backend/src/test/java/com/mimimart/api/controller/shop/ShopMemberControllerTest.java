@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mimimart.api.dto.member.ChangePasswordRequest;
 import com.mimimart.api.dto.member.UpdateProfileRequest;
 import com.mimimart.application.service.AuthService;
+import com.mimimart.fixtures.TestFixtures;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import com.mimimart.infrastructure.security.CustomUserDetails;
@@ -57,13 +58,16 @@ class ShopMemberControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private TestFixtures fixtures;
+
     private Member testMember;
     private CustomUserDetails userDetails;
 
     @BeforeEach
     void setUp() {
-        // 建立測試用會員
-        testMember = authService.register("member@example.com", "password123", "測試會員");
+        // 建立測試用會員（使用 fixtures）
+        testMember = fixtures.createTestMember(1);
 
         // 建立 UserDetails 用於認證
         userDetails = new CustomUserDetails(
@@ -85,9 +89,9 @@ class ShopMemberControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("查詢成功"))
                 .andExpect(jsonPath("$.data.id").value(testMember.getId()))
-                .andExpect(jsonPath("$.data.email").value("member@example.com"))
-                .andExpect(jsonPath("$.data.name").value("測試會員"))
-                .andExpect(jsonPath("$.data.emailVerified").value(false));
+                .andExpect(jsonPath("$.data.email").value(testMember.getEmail()))
+                .andExpect(jsonPath("$.data.name").value(testMember.getName()))
+                .andExpect(jsonPath("$.data.emailVerified").value(true)); // fixtures 建立的會員已驗證
     }
 
     @Test
@@ -139,9 +143,9 @@ class ShopMemberControllerTest {
     @Test
     @DisplayName("POST /api/shop/member/change-password - 成功修改密碼")
     void testChangePassword_Success() throws Exception {
-        // Given
+        // Given - fixtures 的預設密碼是 "fixture123"
         ChangePasswordRequest request = new ChangePasswordRequest();
-        request.setOldPassword("password123");
+        request.setOldPassword(fixtures.getDefaultPassword());
         request.setNewPassword("newpassword456");
 
         // When & Then

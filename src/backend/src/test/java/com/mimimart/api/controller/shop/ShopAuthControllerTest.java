@@ -9,6 +9,7 @@ import com.mimimart.api.dto.request.ResendVerificationEmailRequest;
 import com.mimimart.api.dto.request.ResetPasswordRequest;
 import com.mimimart.api.dto.request.VerifyEmailRequest;
 import com.mimimart.application.service.AuthService;
+import com.mimimart.fixtures.TestFixtures;
 import com.mimimart.infrastructure.persistence.entity.Member;
 import com.mimimart.infrastructure.persistence.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,9 @@ class ShopAuthControllerTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private TestFixtures fixtures;
+
     @BeforeEach
     void setUp() {
         // 清理可能的測試資料
@@ -72,10 +76,14 @@ class ShopAuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("註冊成功"))
-                .andExpect(jsonPath("$.data.email").value("newmember@example.com"))
-                .andExpect(jsonPath("$.data.name").value("新會員"))
-                .andExpect(jsonPath("$.data.emailVerified").value(false))
-                .andExpect(jsonPath("$.data.id").exists());
+                // 驗證 Token 欄位
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists())
+                // 驗證 Profile 欄位（路徑變更）
+                .andExpect(jsonPath("$.data.profile.email").value("newmember@example.com"))
+                .andExpect(jsonPath("$.data.profile.name").value("新會員"))
+                .andExpect(jsonPath("$.data.profile.emailVerified").value(false))
+                .andExpect(jsonPath("$.data.profile.id").exists());
     }
 
     @Test
@@ -204,9 +212,8 @@ class ShopAuthControllerTest {
     @Test
     @DisplayName("POST /api/shop/auth/verify-email - 使用有效 Token 驗證 Email 成功")
     void testVerifyEmail_Success() throws Exception {
-        // Given
-        String email = "verify@example.com";
-        Member member = authService.register(email, "password123", "驗證測試會員");
+        // Given - 使用 fixtures 建立未驗證會員
+        Member member = fixtures.createTestMemberForEmailVerification(1);
         String token = member.getVerificationToken();
 
         VerifyEmailRequest request = new VerifyEmailRequest(token);
