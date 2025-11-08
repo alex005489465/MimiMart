@@ -1,0 +1,128 @@
+.container {
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+  min-height: calc(100vh - 200px);
+}
+
+.breadcrumbs {
+  margin-bottom: 2rem;
+  padding: 0.75rem 0;
+}
+
+.loadingBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.imageCard {
+  position: sticky;
+  top: 100px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.productImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.productInfo {
+  padding: 1rem 0;
+}
+
+.priceSection {
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(25, 118, 210, 0.1) 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+}
+
+.stockSection {
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+}
+
+.quantitySection {
+  margin: 2rem 0;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.quantityControl button {
+  min-width: 48px;
+  height: 48px;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.descriptionSection {
+  margin-top: 3rem;
+  padding: 2rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+}
+
+/* 響應式設計 */
+@media (max-width: 900px) {
+  .container {
+    padding-top: 1rem;
+  }
+
+  .imageCard {
+    position: relative;
+    top: 0;
+  }
+
+  .productInfo h4 {
+    font-size: 1.75rem;
+  }
+
+  .priceSection h3 {
+    font-size: 2rem;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .breadcrumbs {
+    font-size: 0.875rem;
+  }
+
+  .productInfo h4 {
+    font-size: 1.5rem;
+  }
+
+  .priceSection {
+    padding: 1rem;
+  }
+
+  .priceSection h3 {
+    font-size: 1.75rem;
+  }
+
+  .descriptionSection {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+}

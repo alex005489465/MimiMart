@@ -1,0 +1,110 @@
+.container {
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+  min-height: calc(100vh - 200px);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.loadingBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.emptyBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.productCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.productImage {
+  object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.productImage:hover {
+  opacity: 0.85;
+}
+
+.productContent {
+  flex-grow: 1;
+  cursor: pointer;
+  padding: 1rem;
+}
+
+.productName {
+  font-size: 1rem;
+  line-height: 1.4;
+  height: 2.8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-bottom: 0.5rem;
+}
+
+.priceBox {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.productActions {
+  padding: 1rem;
+  padding-top: 0;
+}
+
+.paginationBox {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+  padding: 2rem 0;
+}
+
+/* 響應式設計 */
+@media (max-width: 600px) {
+  .container {
+    padding-top: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .productName {
+    font-size: 0.9rem;
+  }
+
+  .priceBox h5 {
+    font-size: 1.25rem;
+  }
+}
