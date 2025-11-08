@@ -25,9 +25,14 @@ public class RefreshTokenService {
 
     /**
      * 儲存 Refresh Token
+     * 採用單裝置登入策略：每次儲存新 Token 前，先刪除該用戶所有舊 Token
      */
     @Transactional
     public void saveRefreshToken(Long userId, String token, UserType userType, LocalDateTime expiresAt) {
+        // 先刪除該用戶所有舊 Token（單裝置登入策略）
+        refreshTokenRepository.deleteByMemberIdAndUserType(userId, userType);
+
+        // 再新增新 Token
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setMemberId(userId);
         refreshToken.setToken(token);

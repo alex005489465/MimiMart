@@ -7,8 +7,12 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.models.OpenAPI;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Arrays;
 
 /**
  * Swagger/OpenAPI 文件配置
@@ -48,17 +52,7 @@ import org.springframework.context.annotation.Configuration;
             name = "MIT License",
             url = "https://opensource.org/licenses/MIT"
         )
-    ),
-    servers = {
-        @Server(
-            description = "本地開發環境",
-            url = "http://localhost:8080"
-        ),
-        @Server(
-            description = "生產環境",
-            url = "https://api.mimimart.com"
-        )
-    }
+    )
 )
 @SecurityScheme(
     name = "Bearer Authentication",
@@ -69,5 +63,25 @@ import org.springframework.context.annotation.Configuration;
     in = SecuritySchemeIn.HEADER
 )
 public class SwaggerConfig {
-    // 此類別透過註解進行配置,無需額外的 Bean 定義
+
+    /**
+     * 自訂 OpenAPI 配置
+     *
+     * <p>從環境變數動態讀取 Base URL,避免硬編碼端口號</p>
+     *
+     * @param baseUrl 應用基礎 URL (從 application.yml 的 app.base-url 讀取)
+     * @return OpenAPI 配置物件
+     */
+    @Bean
+    public OpenAPI customOpenAPI(@Value("${app.base-url}") String baseUrl) {
+        return new OpenAPI()
+            .servers(Arrays.asList(
+                new io.swagger.v3.oas.models.servers.Server()
+                    .url(baseUrl)
+                    .description("當前環境"),
+                new io.swagger.v3.oas.models.servers.Server()
+                    .url("https://api.mimimart.com")
+                    .description("生產環境")
+            ));
+    }
 }

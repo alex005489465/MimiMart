@@ -79,7 +79,7 @@ springdoc:
   api-docs:
     path: /swagger/v3/api-docs
   swagger-ui:
-    path: /swagger/swagger-ui/index.html
+    path: /swagger/ui.html
     displayRequestDuration: true
     tryItOutEnabled: true
     defaultModelsExpandDepth: 1
