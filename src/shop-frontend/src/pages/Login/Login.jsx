@@ -460,39 +460,54 @@ const Login = () => {
     </form>
   );
 
-  const tabItems = [
-    {
-      key: 'login',
-      label: '登入',
-      children: LoginForm,
-    },
-    {
-      key: 'register',
-      label: '註冊',
-      children: RegisterForm,
-    },
-  ];
-
   return (
     <div className={styles.loginPage}>
       <div className={styles.container}>
         <Card className={styles.loginCard}>
-          <div className={styles.header}>
-            <Title level={2} style={{ marginBottom: 8 }}>
-              歡迎來到 MimiMart
-            </Title>
-            <Text type="secondary">請登入您的帳號或註冊新帳號</Text>
-          </div>
+          <CardContent>
+            <Box className={styles.header} sx={{ textAlign: 'center', mb: 3 }}>
+              <Typography variant="h4" component="h2" gutterBottom>
+                歡迎來到 MimiMart
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                請登入您的帳號或註冊新帳號
+              </Typography>
+            </Box>
 
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            items={tabItems}
-            centered
-            size="large"
-          />
+            <Tabs
+              value={activeTab}
+              onChange={(event, newValue) => setActiveTab(newValue)}
+              centered
+              variant="fullWidth"
+              sx={{ mb: 2 }}
+            >
+              <Tab label="登入" />
+              <Tab label="註冊" />
+            </Tabs>
+
+            <TabPanel value={activeTab} index={0}>
+              {LoginForm}
+            </TabPanel>
+            <TabPanel value={activeTab} index={1}>
+              {RegisterForm}
+            </TabPanel>
+          </CardContent>
         </Card>
       </div>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

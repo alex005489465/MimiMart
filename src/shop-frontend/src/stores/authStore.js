@@ -4,7 +4,8 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import api from '../services/api';
+import { authService } from '../services/authService';
+import { memberService } from '../services/memberService';
 
 const useAuthStore = create(
   persist(
@@ -26,7 +27,7 @@ const useAuthStore = create(
         }
 
         try {
-          const response = await api.get('/api/users/profile');
+          const response = await memberService.getProfile();
           set({
             user: response.data,
             token,
@@ -48,13 +49,13 @@ const useAuthStore = create(
       // 登入
       login: async (credentials) => {
         try {
-          const response = await api.post('/api/users/login', credentials);
-          const { token, user } = response.data;
+          const response = await authService.login(credentials);
+          const { accessToken, profile } = response.data;
 
-          localStorage.setItem('token', token);
+          localStorage.setItem('token', accessToken);
           set({
-            user,
-            token,
+            user: profile,
+            token: accessToken,
             isAuthenticated: true,
           });
 
@@ -74,13 +75,19 @@ const useAuthStore = create(
       // 註冊
       register: async (userData) => {
         try {
-          const response = await api.post('/api/users/register', userData);
-          const { token, user } = response.data;
+          // 後端註冊 API 需要 name 而不是 username
+          const registerData = {
+            email: userData.email,
+            password: userData.password,
+            name: userData.username, // 將 username 對應到 name
+          };
+          const response = await authService.register(registerData);
+          const { accessToken, profile } = response.data;
 
-          localStorage.setItem('token', token);
+          localStorage.setItem('token', accessToken);
           set({
-            user,
-            token,
+            user: profile,
+            token: accessToken,
             isAuthenticated: true,
           });
 
@@ -95,6 +102,14 @@ const useAuthStore = create(
 
       // 登出
       logout: async () => {
+        try {
+          // 呼叫後端登出 API
+          await authService.logout();
+        } catch (error) {
+          // 即使後端登出失敗也要清除前端狀態
+          console.error('登出 API 呼叫失敗:', error);
+        }
+
         localStorage.removeItem('token');
         set({
           user: null,
@@ -117,7 +132,7 @@ const useAuthStore = create(
       // 重新整理使用者資料
       refreshUser: async () => {
         try {
-          const response = await api.get('/api/users/profile');
+          const response = await memberService.getProfile();
           set({ user: response.data });
           return { success: true };
         } catch (error) {
